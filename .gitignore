@@ -1,1 +1,21 @@
+# Questo repository contiene SOLO il sito WeedMap (index.html, weedmap.html, three.min.js).
+# La cartella è condivisa con il progetto separato "WeedOS" (OS in Rust):
+# i suoi file e artefatti NON devono finire qui.
+
+# --- Progetto WeedOS / Rust ---
+/target/
+/.cargo/
+/src/
+/Cargo.toml
+/Cargo.lock
+/linker.ld
+
+# --- Artefatti di build/test (QEMU, boot, log) ---
+*.png
+*.txt
+*.bin
+*.img
+*.iso
+
+# --- Ambiente Claude / temporanei ---
 .claude/
