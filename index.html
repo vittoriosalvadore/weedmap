@@ -3,248 +3,354 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WeedMap 🌿 — Mappa Interattiva della Cannabis</title>
+<title>WeedMap — Mappa Interattiva della Cannabis</title>
+<meta name="description" content="Una mappa interattiva ed elegante della cannabis: anatomia della pianta, Indica/Sativa/Hybrid, strain, terpeni, cannabinoidi e fun facts.">
+<meta property="og:title" content="WeedMap 🌿 — Mappa Interattiva della Cannabis">
+<meta property="og:description" content="Esplora anatomia, terpeni, strain e cannabinoidi in un'esperienza interattiva e animata.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0f0c;
-    --bg2:#0e1712;
-    --panel:rgba(20,32,24,.66);
-    --panel-solid:#13201a;
-    --line:rgba(120,200,140,.16);
-    --green:#5fd07a;
-    --green-deep:#2f9d57;
-    --lime:#aef06a;
-    --purple:#b483ff;
-    --purple-deep:#7a4bd6;
-    --gold:#f4b740;
-    --orange:#ff8b4a;
-    --text:#e9f5ec;
-    --muted:#9fb6a6;
-    --shadow:0 18px 50px rgba(0,0,0,.45);
-    --radius:20px;
-    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    --bg:#070b09;
+    --bg2:#0a120d;
+    --panel:rgba(255,255,255,.035);
+    --panel-2:rgba(255,255,255,.055);
+    --panel-solid:#0e1812;
+    --line:rgba(150,220,170,.13);
+    --line-2:rgba(255,255,255,.10);
+    --green:#5fe089;
+    --green-deep:#1f9d57;
+    --lime:#c6ff7a;
+    --violet:#b58bff;
+    --violet-2:#7c4ddb;
+    --gold:#ffcf6b;
+    --amber:#ff9b54;
+    --text:#eaf6ee;
+    --muted:#94ab9c;
+    --muted-2:#6f8579;
+    --shadow:0 30px 70px -20px rgba(0,0,0,.65);
+    --radius:22px;
+    --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+    --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+    --font-serif:"Fraunces",Georgia,serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
-    background:
-      radial-gradient(1200px 700px at 80% -10%, rgba(122,75,214,.18), transparent 60%),
-      radial-gradient(1000px 600px at -10% 20%, rgba(47,157,87,.18), transparent 55%),
-      linear-gradient(180deg,var(--bg),var(--bg2));
+    font-family:var(--font-body);
+    background:var(--bg);
     color:var(--text);
     min-height:100vh;
     overflow-x:hidden;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:.1px;
   }
-  #stars{position:fixed;inset:0;z-index:0;pointer-events:none}
-  .wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* ---------- BACKGROUND (aurora + grain + grid) ---------- */
+  #bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  #bg .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;mix-blend-mode:screen;will-change:transform}
+  #bg .b1{width:60vw;height:60vw;left:-10vw;top:-15vw;background:radial-gradient(circle,#1f9d57,transparent 65%);animation:drift1 26s ease-in-out infinite}
+  #bg .b2{width:55vw;height:55vw;right:-12vw;top:5vw;background:radial-gradient(circle,#7c4ddb,transparent 65%);animation:drift2 32s ease-in-out infinite}
+  #bg .b3{width:50vw;height:50vw;left:20vw;bottom:-20vw;background:radial-gradient(circle,#2fb56a,transparent 65%);animation:drift3 30s ease-in-out infinite}
+  #bg .grid{position:absolute;inset:0;background-image:
+      linear-gradient(rgba(150,220,170,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(150,220,170,.05) 1px,transparent 1px);
+    background-size:64px 64px;mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000,transparent 75%)}
+  #bg .vignette{position:absolute;inset:0;background:radial-gradient(ellipse 90% 70% at 50% 0%,transparent 40%,rgba(0,0,0,.55))}
+  #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  #stars{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+  /* ---------- SPOTLIGHT (cursor glow) ---------- */
+  #spotlight{position:fixed;width:520px;height:520px;border-radius:50%;z-index:2;pointer-events:none;
+    transform:translate(-50%,-50%);left:-9999px;top:0;mix-blend-mode:screen;
+    background:radial-gradient(circle,rgba(95,224,137,.10),rgba(124,77,219,.05) 40%,transparent 70%);
+    transition:opacity .4s;opacity:0}
+
+  .wrap{position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 22px}
+
+  /* ---------- PROGRESS + DOT NAV ---------- */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+    background:linear-gradient(90deg,var(--lime),var(--green),var(--violet));box-shadow:0 0 14px var(--green)}
+  #dotnav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:55;display:flex;flex-direction:column;gap:14px}
+  #dotnav a{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--muted-2);position:relative;transition:.3s;cursor:pointer}
+  #dotnav a:hover{border-color:var(--green);transform:scale(1.2)}
+  #dotnav a.active{background:var(--green);border-color:var(--green);box-shadow:0 0 12px var(--green)}
+  #dotnav a span{position:absolute;right:22px;top:50%;transform:translateY(-50%) translateX(6px);
+    white-space:nowrap;font-size:11px;font-weight:600;color:var(--text);background:rgba(10,18,13,.9);
+    border:1px solid var(--line);padding:4px 9px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;letter-spacing:.4px}
+  #dotnav a:hover span{opacity:1;transform:translateY(-50%) translateX(0)}
 
   /* ---------- NAV ---------- */
-  nav{
-    position:sticky;top:0;z-index:50;
-    backdrop-filter:blur(14px);
-    background:rgba(8,14,10,.72);
-    border-bottom:1px solid var(--line);
-  }
-  .nav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:12px 20px}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.3px}
-  .brand .leaf-mini{width:26px;height:26px;animation:spin 14s linear infinite}
-  .nav-links{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-  .nav-links a{
-    color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:600;
-    padding:7px 12px;border-radius:999px;transition:.25s;white-space:nowrap;
-  }
-  .nav-links a:hover{color:var(--text);background:rgba(95,208,122,.12)}
-  .nav-links a.active{color:#08120b;background:linear-gradient(90deg,var(--lime),var(--green))}
-  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
-    background:linear-gradient(90deg,var(--lime),var(--green),var(--purple));box-shadow:0 0 12px var(--green)}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px) saturate(140%);
+    background:linear-gradient(180deg,rgba(7,11,9,.85),rgba(7,11,9,.45));border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:13px 22px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.2px}
+  .brand .leaf-mini{width:28px;height:28px;animation:spin 16s linear infinite}
+  .nav-links{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:550;
+    padding:8px 13px;border-radius:999px;transition:.25s;white-space:nowrap}
+  .nav-links a:hover{color:var(--text);background:var(--panel-2)}
+  .nav-links a.active{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));font-weight:600}
 
   /* ---------- HERO ---------- */
-  header.hero{position:relative;text-align:center;padding:88px 20px 60px}
-  .hero h1{font-size:clamp(40px,8vw,84px);font-weight:900;line-height:1;letter-spacing:-1px;
-    background:linear-gradient(120deg,#eafff0,var(--lime) 40%,var(--green) 60%,var(--purple));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 6px 30px rgba(95,208,122,.25))}
-  .hero p.sub{margin:18px auto 0;max-width:640px;color:var(--muted);font-size:clamp(15px,2.2vw,19px);line-height:1.6}
-  .hero .big-leaf{width:min(330px,72vw);margin:8px auto 18px;display:block;filter:drop-shadow(0 20px 40px rgba(47,157,87,.4))}
+  header.hero{position:relative;text-align:center;padding:96px 22px 64px;z-index:5}
+  .hero .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border:1px solid var(--line);
+    border-radius:999px;color:var(--lime);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+    background:rgba(95,224,137,.06);backdrop-filter:blur(6px)}
+  .hero .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink 1.8s infinite}
+  .hero .big-leaf{width:min(190px,46vw);margin:26px auto 10px;display:block;filter:drop-shadow(0 24px 50px rgba(31,157,87,.45));will-change:transform}
   .hero .big-leaf .leaflet{transform-origin:50% 96%;animation:sway 6s ease-in-out infinite}
-  .scroll-cue{margin-top:34px;display:inline-flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:12px;letter-spacing:2px}
-  .scroll-cue .arrow{width:22px;height:22px;border-right:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(45deg);animation:bounce 1.8s infinite}
-  .pill{display:inline-block;padding:6px 14px;border:1px solid var(--line);border-radius:999px;color:var(--lime);
-    font-size:12.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(95,208,122,.07)}
+  .hero h1{font-family:var(--font-display);font-size:clamp(56px,12vw,140px);font-weight:700;line-height:.92;letter-spacing:-3px;
+    position:relative;background:linear-gradient(115deg,#f3fff7 8%,var(--lime) 38%,var(--green) 58%,var(--violet) 92%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 8px 40px rgba(95,224,137,.22))}
+  .hero h1 .shine{position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:shine 5.5s ease-in-out infinite}
+  .hero .tagline{font-family:var(--font-serif);font-style:italic;font-weight:500;font-size:clamp(20px,3.6vw,30px);
+    color:#dff3e4;margin-top:8px;letter-spacing:.2px}
+  .hero p.sub{font-family:var(--font-body);margin:20px auto 0;max-width:600px;color:var(--muted);
+    font-size:clamp(15px,2.1vw,18px);line-height:1.7}
+  .hero .cta-row{margin-top:34px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:14px 26px;border-radius:999px;
+    transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s,background .3s;text-decoration:none;display:inline-flex;align-items:center;gap:9px}
+  .btn-primary{color:#06140c;background:linear-gradient(100deg,var(--lime),var(--green));box-shadow:0 12px 34px -8px rgba(95,224,137,.6)}
+  .btn-primary:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 18px 44px -8px rgba(95,224,137,.75)}
+  .btn-ghost{color:var(--text);background:var(--panel-2);border:1px solid var(--line)}
+  .btn-ghost:hover{transform:translateY(-3px);border-color:var(--green);background:rgba(95,224,137,.08)}
+  .scroll-cue{margin-top:46px;display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2);font-size:11px;letter-spacing:3px}
+  .scroll-cue .mouse{width:24px;height:38px;border:2px solid var(--muted-2);border-radius:14px;position:relative}
+  .scroll-cue .mouse::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--green);animation:wheel 1.6s infinite}
+
+  /* ---------- STATS ---------- */
+  #stats-band{padding:14px 0 30px;z-index:5;position:relative}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px 18px;text-align:center;
+    backdrop-filter:blur(10px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
+  .stat:hover{border-color:var(--green)}
+  .stat-num{font-family:var(--font-display);font-size:clamp(30px,5vw,46px);font-weight:700;line-height:1;
+    background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat-lbl{margin-top:8px;color:var(--muted);font-size:13px;font-weight:500;letter-spacing:.3px}
 
   /* ---------- SECTIONS ---------- */
-  section{padding:70px 0;position:relative}
-  .sec-head{text-align:center;max-width:720px;margin:0 auto 42px}
-  .sec-head .kicker{color:var(--green);font-weight:800;letter-spacing:3px;font-size:12.5px;text-transform:uppercase}
-  .sec-head h2{font-size:clamp(28px,4.6vw,44px);font-weight:850;margin:10px 0 12px;letter-spacing:-.5px}
-  .sec-head p{color:var(--muted);font-size:16px;line-height:1.65}
-  /* Entrata "slide-up" che NON nasconde mai il contenuto: l'opacità resta 1.
-     Anche se il reveal non scatta (webview/in-app, tab in background, niente JS),
-     tutto è comunque pienamente visibile — al massimo spostato di pochi px.
-     L'animazione si attiva solo se JS aggiunge la classe .anim su <html>. */
-  .reveal{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
-  html.anim .reveal{transform:translateY(28px)}
+  section{padding:74px 0;position:relative;z-index:5}
+  .sec-head{text-align:center;max-width:740px;margin:0 auto 46px}
+  .sec-head .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--green);font-weight:600;
+    letter-spacing:3px;font-size:12px;text-transform:uppercase}
+  .sec-head .kicker::before,.sec-head .kicker::after{content:"";width:26px;height:1px;background:linear-gradient(90deg,transparent,var(--green))}
+  .sec-head .kicker::after{background:linear-gradient(90deg,var(--green),transparent)}
+  .sec-head h2{font-family:var(--font-display);font-size:clamp(32px,5.2vw,54px);font-weight:700;margin:14px 0 14px;letter-spacing:-1.2px;line-height:1.04}
+  .sec-head p{color:var(--muted);font-size:16.5px;line-height:1.7}
+
+  /* reveal: NON nasconde mai (opacità sempre 1) → niente pagina vuota */
+  .reveal{transition:transform .85s cubic-bezier(.16,1,.3,1)}
+  html.anim .reveal{transform:translateY(42px)}
   html.anim .reveal.in{transform:none}
+  html.anim .stagger{transform:translateY(26px)}
+  html.anim .reveal.in .stagger{transform:none;transition:transform .7s cubic-bezier(.16,1,.3,1)}
+  html.anim .reveal.in .stagger:nth-child(1){transition-delay:.04s}
+  html.anim .reveal.in .stagger:nth-child(2){transition-delay:.10s}
+  html.anim .reveal.in .stagger:nth-child(3){transition-delay:.16s}
+  html.anim .reveal.in .stagger:nth-child(4){transition-delay:.22s}
+  html.anim .reveal.in .stagger:nth-child(5){transition-delay:.28s}
+  html.anim .reveal.in .stagger:nth-child(6){transition-delay:.34s}
+  html.anim .reveal.in .stagger:nth-child(7){transition-delay:.40s}
+  html.anim .reveal.in .stagger:nth-child(8){transition-delay:.46s}
+  html.anim .reveal.in .stagger:nth-child(9){transition-delay:.52s}
+  html.anim .reveal.in .stagger:nth-child(n+10){transition-delay:.58s}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(10px);box-shadow:var(--shadow)}
 
   /* ---------- ANATOMY ---------- */
   .anatomy-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.05fr;gap:28px;align-items:stretch}
-  .plant-stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px;box-shadow:var(--shadow);overflow:hidden}
-  .plant-stage svg{width:100%;height:auto;display:block}
+  .plant-stage{position:relative;padding:16px;overflow:hidden}
+  .plant-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 32%,rgba(95,224,137,.12),transparent 60%)}
+  .plant-stage svg{position:relative;width:100%;height:auto;display:block}
   .hotspot{cursor:pointer}
   .hotspot .hit{fill:transparent}
-  .hotspot .ring{fill:rgba(95,208,122,.16);stroke:var(--green);stroke-width:1.6;
-    transition:.3s;transform-box:fill-box;transform-origin:center}
+  .hotspot .ring{fill:rgba(95,224,137,.16);stroke:var(--green);stroke-width:1.6;transition:.3s;transform-box:fill-box;transform-origin:center;animation:pulse-ring 2.6s ease-out infinite}
   .hotspot .dot{fill:var(--lime);transition:.3s}
-  .hotspot .num{fill:#06140c;font-size:11px;font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .hotspot .ring{animation:pulse-ring 2.4s ease-out infinite}
-  .hotspot:hover .ring,.hotspot.active .ring{fill:rgba(174,240,106,.32);stroke:var(--lime);stroke-width:2.4}
+  .hotspot .num{fill:#06140c;font-family:var(--font-display);font-size:11px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .hotspot:hover .ring,.hotspot.active .ring{fill:rgba(198,255,122,.34);stroke:var(--lime);stroke-width:2.6}
   .hotspot:hover .dot,.hotspot.active .dot{fill:#fff}
-  .glow-part{transition:.4s;transform-box:fill-box;transform-origin:center}
-  .dim{opacity:.28;filter:saturate(.5)}
-  .focus-part{opacity:1;filter:drop-shadow(0 0 10px var(--lime))}
-
-  .info-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:26px 28px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:360px}
-  .info-card .tagnum{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;
-    font-weight:800;background:linear-gradient(135deg,var(--green),var(--green-deep));color:#06140c}
-  .info-card h3{font-size:24px;margin:14px 0 4px}
-  .info-card .role{color:var(--green);font-weight:700;font-size:14px;margin-bottom:14px}
-  .info-card .desc{color:#d6e7da;line-height:1.7;font-size:15.5px}
-  .info-card .fun{margin-top:auto;padding-top:18px}
-  .fun-box{background:rgba(122,75,214,.12);border:1px solid rgba(180,131,255,.28);border-radius:14px;padding:14px 16px;
-    color:#e8ddff;font-size:14px;line-height:1.55}
-  .fun-box b{color:var(--purple)}
-  .hint{color:var(--muted);font-size:13px;text-align:center;margin-top:14px}
-  .key{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
-  .key button{all:unset;cursor:pointer;font-size:12.5px;color:var(--muted);padding:6px 11px;border-radius:999px;
-    border:1px solid var(--line);transition:.25s}
+  .glow-part{transition:.45s;transform-box:fill-box;transform-origin:center}
+  .dim{opacity:.22;filter:saturate(.5)}
+  .focus-part{opacity:1;filter:drop-shadow(0 0 12px var(--lime))}
+  .info-card{padding:30px 30px;display:flex;flex-direction:column;min-height:380px}
+  .info-card .tagnum{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;
+    font-family:var(--font-display);font-weight:700;font-size:17px;background:linear-gradient(135deg,var(--green),var(--green-deep));color:#06140c}
+  .info-card h3{font-family:var(--font-display);font-size:26px;margin:16px 0 5px;letter-spacing:-.5px;line-height:1.15}
+  .info-card .role{color:var(--green);font-weight:600;font-size:14.5px;margin-bottom:15px}
+  .info-card .desc{color:#d6e7da;line-height:1.75;font-size:15.5px}
+  .info-card .fun{margin-top:auto;padding-top:20px}
+  .fun-box{background:linear-gradient(120deg,rgba(124,77,219,.14),rgba(124,77,219,.05));border:1px solid rgba(181,139,255,.3);
+    border-radius:16px;padding:15px 17px;color:#ecdfff;font-size:14px;line-height:1.6}
+  .fun-box b{color:var(--violet);font-family:var(--font-display)}
+  .hint{color:var(--muted-2);font-size:13px;text-align:center;margin-top:16px}
+  .key{margin-top:18px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+  .key button{font-family:var(--font-body);cursor:pointer;font-size:12.5px;color:var(--muted);padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);background:transparent;transition:.25s}
   .key button:hover{color:var(--text);border-color:var(--green)}
-  .key button.on{color:#06140c;background:var(--green);border-color:var(--green);font-weight:700}
+  .key button.on{color:#06140c;background:var(--green);border-color:var(--green);font-weight:600}
 
-  /* ---------- TYPES (Indica/Sativa/Hybrid) ---------- */
-  .type-toggle{display:flex;gap:10px;justify-content:center;margin-bottom:30px;flex-wrap:wrap}
-  .type-toggle button{all:unset;cursor:pointer;padding:12px 26px;border-radius:999px;font-weight:800;font-size:15px;
-    border:1px solid var(--line);color:var(--muted);transition:.3s;background:rgba(255,255,255,.02)}
+  /* ---------- TYPES ---------- */
+  .type-toggle{display:flex;gap:11px;justify-content:center;margin-bottom:32px;flex-wrap:wrap}
+  .type-toggle button{font-family:var(--font-display);cursor:pointer;padding:13px 30px;border-radius:999px;font-weight:600;font-size:15.5px;
+    border:1px solid var(--line);color:var(--muted);transition:.3s;background:var(--panel)}
   .type-toggle button.on{color:#06140c;transform:translateY(-2px)}
-  .type-toggle button[data-t="Indica"].on{background:linear-gradient(135deg,#b483ff,#7a4bd6)}
-  .type-toggle button[data-t="Sativa"].on{background:linear-gradient(135deg,var(--lime),var(--green))}
-  .type-toggle button[data-t="Hybrid"].on{background:linear-gradient(135deg,var(--gold),var(--orange))}
+  .type-toggle button[data-t="Indica"].on{background:linear-gradient(135deg,#c4a3ff,#7c4ddb);box-shadow:0 12px 30px -10px #7c4ddb}
+  .type-toggle button[data-t="Sativa"].on{background:linear-gradient(135deg,var(--lime),var(--green));box-shadow:0 12px 30px -10px var(--green)}
+  .type-toggle button[data-t="Hybrid"].on{background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 12px 30px -10px var(--amber)}
   .type-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:26px;align-items:center}
-  .radar-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .radar-box{padding:22px}
   .radar-box svg{width:100%;height:auto}
-  .type-desc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
-  .type-desc h3{font-size:30px;margin-bottom:6px}
-  .type-desc .badge{display:inline-block;padding:5px 13px;border-radius:999px;font-weight:800;font-size:12.5px;margin-bottom:16px}
-  .type-desc p{color:#d6e7da;line-height:1.7;font-size:15.5px;margin-bottom:14px}
-  .type-desc .shape{color:var(--muted);font-size:14.5px;line-height:1.6;border-left:3px solid var(--green);padding-left:14px}
+  .type-desc{padding:32px}
+  .type-desc h3{font-family:var(--font-display);font-size:34px;margin-bottom:8px;letter-spacing:-.5px}
+  .type-desc .badge{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:600;font-size:12.5px;margin-bottom:18px}
+  .type-desc p{color:#d6e7da;line-height:1.75;font-size:15.5px;margin-bottom:15px}
+  .type-desc .shape{color:var(--muted);font-size:14.5px;line-height:1.65;border-left:3px solid var(--green);padding-left:15px}
 
   /* ---------- STRAINS ---------- */
-  .filters{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
-  .filters button{all:unset;cursor:pointer;padding:9px 18px;border-radius:999px;font-weight:700;font-size:13.5px;
-    border:1px solid var(--line);color:var(--muted);transition:.25s}
-  .filters button:hover{color:var(--text)}
-  .filters button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green))}
-  .strain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
-  .strain{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;cursor:pointer;
-    box-shadow:var(--shadow);transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .3s;position:relative;overflow:hidden}
-  .strain::before{content:"";position:absolute;inset:0;opacity:.0;transition:.4s;
-    background:radial-gradient(220px 120px at 80% 0%,var(--accent,rgba(95,208,122,.25)),transparent 70%)}
-  .strain:hover{transform:translateY(-6px);border-color:var(--green)}
+  .filters{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+  .filters button{font-family:var(--font-body);cursor:pointer;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;
+    border:1px solid var(--line);color:var(--muted);transition:.25s;background:var(--panel)}
+  .filters button:hover{color:var(--text);border-color:var(--green)}
+  .filters button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));border-color:transparent}
+  .strain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:18px}
+  .strain{position:relative;padding:22px;cursor:pointer;border-radius:20px;overflow:hidden;
+    background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px);
+    transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s}
+  .strain::before{content:"";position:absolute;inset:0;opacity:0;transition:.45s;
+    background:radial-gradient(280px 150px at 80% -10%,var(--accent,rgba(95,224,137,.3)),transparent 70%)}
+  .strain:hover{transform:translateY(-7px);border-color:var(--green);box-shadow:0 26px 50px -22px rgba(0,0,0,.7)}
   .strain:hover::before{opacity:1}
   .strain .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative}
-  .strain h3{font-size:19px;line-height:1.15}
-  .strain .type-chip{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
-  .chip-Indica{background:rgba(180,131,255,.18);color:#cdb0ff;border:1px solid rgba(180,131,255,.4)}
-  .chip-Sativa{background:rgba(174,240,106,.16);color:var(--lime);border:1px solid rgba(174,240,106,.4)}
-  .chip-Hybrid{background:rgba(244,183,64,.16);color:var(--gold);border:1px solid rgba(244,183,64,.4)}
-  .strain .thc{margin-top:12px;font-size:13px;color:var(--muted)}
-  .strain .thc b{color:var(--text)}
-  .thc-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.08);margin-top:7px;overflow:hidden}
-  .thc-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--lime));transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
-  .strain .more{max-height:0;opacity:0;overflow:hidden;transition:max-height .5s ease,opacity .4s;position:relative}
-  .strain.open .more{max-height:600px;opacity:1;margin-top:14px}
-  .strain .row{font-size:13.5px;line-height:1.5;margin-bottom:9px;color:#d6e7da}
-  .strain .row b{color:var(--green);display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
-  .strain .toggle-h{margin-top:12px;font-size:12px;color:var(--muted);position:relative}
+  .strain h3{font-family:var(--font-display);font-size:19.5px;line-height:1.15;letter-spacing:-.3px}
+  .strain .type-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .chip-Indica{background:rgba(181,139,255,.18);color:#d4bcff;border:1px solid rgba(181,139,255,.4)}
+  .chip-Sativa{background:rgba(198,255,122,.16);color:var(--lime);border:1px solid rgba(198,255,122,.4)}
+  .chip-Hybrid{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
+  .strain .thc{margin-top:14px;font-size:13px;color:var(--muted);position:relative}
+  .strain .thc b{color:var(--text);font-family:var(--font-display)}
+  .thc-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.07);margin-top:8px;overflow:hidden}
+  .thc-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--lime));transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+  .strain .more{max-height:0;opacity:.4;overflow:hidden;transition:max-height .55s ease,opacity .45s;position:relative}
+  .strain.open .more{max-height:640px;opacity:1;margin-top:16px}
+  .strain .row{font-size:13.5px;line-height:1.55;margin-bottom:10px;color:#d6e7da}
+  .strain .row b{color:var(--green);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;font-family:var(--font-display)}
+  .strain .toggle-h{margin-top:14px;font-size:12px;color:var(--muted-2);position:relative}
 
   /* ---------- TERPENES ---------- */
-  .terp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
-  .wheel{position:relative;width:min(440px,86vw);aspect-ratio:1;margin:0 auto}
-  .wheel .ring-deco{position:absolute;inset:6%;border-radius:50%;border:1px dashed rgba(174,240,106,.25);animation:spin 40s linear infinite}
-  .wheel .ring-deco.r2{inset:18%;border-color:rgba(180,131,255,.22);animation-duration:60s;animation-direction:reverse}
-  .terp-node{position:absolute;top:50%;left:50%;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-weight:800;font-size:12.5px;
-    border:2px solid rgba(255,255,255,.14);background:var(--panel-solid);color:var(--text);
-    transition:transform .3s,box-shadow .3s,border-color .3s;line-height:1.1;padding:4px}
-  .terp-node:hover{transform:scale(1.12)}
-  .terp-node.on{transform:scale(1.18);box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 26px var(--tc)}
-  .terp-center{position:absolute;top:50%;left:50%;width:34%;height:34%;margin:-17% 0 0 -17%;border-radius:50%;
-    background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.06),rgba(10,16,12,.9));
+  .terp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}
+  .wheel{position:relative;width:min(460px,86vw);aspect-ratio:1;margin:0 auto}
+  .wheel .ring-deco{position:absolute;inset:5%;border-radius:50%;border:1px dashed rgba(198,255,122,.22);animation:spin 44s linear infinite}
+  .wheel .ring-deco.r2{inset:17%;border-color:rgba(181,139,255,.2);animation-duration:66s;animation-direction:reverse}
+  .wheel .ring-deco.r3{inset:29%;border-color:rgba(95,224,137,.12);animation-duration:54s}
+  .terp-node{position:absolute;top:50%;left:50%;width:82px;height:82px;margin:-41px 0 0 -41px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-family:var(--font-display);font-weight:600;font-size:12.5px;
+    border:2px solid rgba(255,255,255,.14);background:rgba(14,24,18,.85);color:var(--text);backdrop-filter:blur(6px);
+    transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .3s;line-height:1.1;padding:4px}
+  .terp-node:hover{transform:scale(1.14)}
+  .terp-node.on{transform:scale(1.2);box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 34px var(--tc)}
+  .terp-center{position:absolute;top:50%;left:50%;width:35%;height:35%;margin:-17.5% 0 0 -17.5%;border-radius:50%;
+    background:radial-gradient(circle at 50% 32%,rgba(255,255,255,.07),rgba(8,13,10,.94));
     border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;
-    font-size:12px;color:var(--muted);padding:10px}
-  .terp-detail{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);min-height:320px}
-  .terp-detail .swatch{width:46px;height:46px;border-radius:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
-  .terp-detail h3{font-size:26px;margin-bottom:6px}
-  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
-  .terp-detail .meta span{font-size:12px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
-  .terp-detail .block{margin-bottom:14px}
-  .terp-detail .block b{color:var(--green);font-size:12px;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:3px}
-  .terp-detail .block p{color:#d6e7da;line-height:1.6;font-size:15px}
+    font-size:12px;color:var(--muted);padding:12px}
+  .terp-detail{padding:32px;min-height:340px}
+  .terp-detail .swatch{width:52px;height:52px;border-radius:14px;margin-bottom:14px;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+  .terp-detail h3{font-family:var(--font-display);font-size:28px;margin-bottom:6px;letter-spacing:-.5px}
+  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+  .terp-detail .meta span{font-size:12px;padding:6px 12px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+  .terp-detail .block{margin-bottom:16px}
+  .terp-detail .block b{color:var(--green);font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
+  .terp-detail .block p{color:#d6e7da;line-height:1.65;font-size:15px}
 
   /* ---------- CANNABINOIDS ---------- */
-  .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-  .cann{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
-  .cann .h{display:flex;align-items:center;gap:12px;margin-bottom:4px}
-  .cann .sigla{font-size:24px;font-weight:900;letter-spacing:.5px;
+  .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:17px}
+  .cann{padding:24px;border-radius:18px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px);
+    transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
+  .cann:hover{border-color:var(--green)}
+  .cann .h{display:flex;align-items:center;gap:12px;margin-bottom:5px}
+  .cann .sigla{font-family:var(--font-display);font-size:27px;font-weight:700;letter-spacing:.5px;
     background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .cann .psy{margin-left:auto;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px}
-  .psy-si{background:rgba(255,139,74,.18);color:var(--orange);border:1px solid rgba(255,139,74,.4)}
-  .psy-no{background:rgba(95,208,122,.16);color:var(--green);border:1px solid rgba(95,208,122,.4)}
-  .psy-lieve{background:rgba(244,183,64,.16);color:var(--gold);border:1px solid rgba(244,183,64,.4)}
-  .cann .full{color:var(--muted);font-size:13px;margin-bottom:12px}
-  .cann .eff{color:#e6f3ea;font-size:14.5px;line-height:1.55;margin-bottom:10px}
-  .cann .note{font-size:13px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
-  .cann .note b{color:var(--purple)}
+  .cann .psy{margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+  .psy-si{background:rgba(255,155,84,.18);color:var(--amber);border:1px solid rgba(255,155,84,.4)}
+  .psy-no{background:rgba(95,224,137,.16);color:var(--green);border:1px solid rgba(95,224,137,.4)}
+  .psy-lieve{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
+  .cann .full{color:var(--muted);font-size:13px;margin-bottom:13px}
+  .cann .eff{color:#e6f3ea;font-size:14.5px;line-height:1.6;margin-bottom:11px}
+  .cann .note{font-size:13px;color:var(--muted);line-height:1.55;border-top:1px solid var(--line);padding-top:11px}
+  .cann .note b{color:var(--violet);font-family:var(--font-display)}
 
   /* ---------- FACTS ---------- */
-  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-  .fact{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);
-    transition:transform .35s,border-color .3s;position:relative}
-  .fact:hover{transform:translateY(-5px) rotate(-.4deg);border-color:var(--purple)}
-  .fact .emoji{font-size:32px;display:block;margin-bottom:10px}
-  .fact h4{font-size:16.5px;margin-bottom:7px}
-  .fact p{color:var(--muted);font-size:14px;line-height:1.6}
+  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:17px}
+  .fact{padding:24px;border-radius:18px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px);
+    transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
+  .fact:hover{border-color:var(--violet)}
+  .fact .emoji{font-size:34px;display:block;margin-bottom:12px}
+  .fact h4{font-family:var(--font-display);font-size:17px;margin-bottom:8px;letter-spacing:-.2px}
+  .fact p{color:var(--muted);font-size:14px;line-height:1.65}
 
   /* ---------- FOOTER ---------- */
-  footer{padding:50px 20px 70px;text-align:center;border-top:1px solid var(--line);margin-top:40px}
-  footer .disclaimer{max-width:680px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.7;
-    background:rgba(255,139,74,.06);border:1px solid rgba(255,139,74,.2);border-radius:14px;padding:18px 22px}
-  footer .made{margin-top:20px;color:var(--muted);font-size:13px}
+  footer{padding:60px 22px 80px;text-align:center;border-top:1px solid var(--line);margin-top:50px;position:relative;z-index:5}
+  footer .foot-leaf{width:46px;height:46px;margin:0 auto 18px;animation:sway 6s ease-in-out infinite}
+  footer .disclaimer{max-width:700px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.75;
+    background:linear-gradient(120deg,rgba(255,155,84,.07),rgba(255,155,84,.02));border:1px solid rgba(255,155,84,.22);border-radius:16px;padding:20px 24px}
+  footer .made{margin-top:22px;color:var(--muted-2);font-size:13px;font-family:var(--font-display)}
+
+  /* ---------- INTRO ---------- */
+  .intro{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 50%,#0b1610,#05080699);transition:opacity .9s ease,visibility .9s}
+  .intro.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .intro-in{text-align:center}
+  .intro-in svg{width:120px;height:120px;filter:drop-shadow(0 0 30px rgba(95,224,137,.5));animation:introLeaf 1.6s cubic-bezier(.16,1,.3,1) both}
+  .intro-title{font-family:var(--font-display);font-weight:700;font-size:44px;letter-spacing:-1px;margin-top:14px;
+    background:linear-gradient(115deg,#f3fff7,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:introUp .9s .4s cubic-bezier(.16,1,.3,1) both}
+  .intro-sub{color:var(--muted);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-top:8px;animation:introUp .9s .6s cubic-bezier(.16,1,.3,1) both}
 
   /* ---------- ANIMATIONS ---------- */
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-  @keyframes bounce{0%,100%{transform:rotate(45deg) translate(0,0)}50%{transform:rotate(45deg) translate(5px,5px)}}
-  @keyframes pulse-ring{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.5);opacity:0}100%{opacity:0}}
-  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-  @keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
-  .tricho{animation:shimmer 2.6s ease-in-out infinite}
+  @keyframes pulse-ring{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
+  @keyframes shimmer{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes shine{0%{background-position:140% 0}60%,100%{background-position:-40% 0}}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+  @keyframes wheel{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(12px);opacity:0}}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,6vh) scale(1.15)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-7vw,5vh) scale(1.1)}}
+  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5vw,-6vh) scale(1.2)}}
+  @keyframes introLeaf{0%{transform:scale(.4) rotate(-30deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+  @keyframes introUp{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+  .tricho{animation:shimmer 2.8s ease-in-out infinite}
   .pistil{transform-box:fill-box;transform-origin:bottom center;animation:sway 5s ease-in-out infinite}
 
-  @media (max-width:860px){
+  @media (max-width:880px){
     .anatomy-grid,.type-grid,.terp-wrap{grid-template-columns:1fr}
     .nav-links{display:none}
+    #dotnav{display:none}
+    .stats{grid-template-columns:repeat(2,1fr)}
   }
   @media (prefers-reduced-motion:reduce){
-    *{animation:none!important;scroll-behavior:auto!important}
-    .reveal{opacity:1;transform:none}
+    *{animation:none!important;scroll-behavior:auto!important;transition:none!important}
+    .reveal,.stagger{transform:none!important}
+    #bg .blob{opacity:.4}
   }
 </style>
 </head>
 <body>
-<div id="progress"></div>
+<div id="bg">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="grid"></div><div class="vignette"></div>
+</div>
+<div id="grain"></div>
 <canvas id="stars"></canvas>
+<div id="spotlight"></div>
+<div id="progress"></div>
+<div id="dotnav"></div>
 
 <nav>
   <div class="nav-in">
@@ -263,48 +369,59 @@
   </div>
 </nav>
 
-<header class="hero wrap">
-  <span class="pill">Mappa Interattiva · Educativa</span>
+<header class="hero wrap" id="top">
+  <span class="eyebrow"><span class="pulse"></span>Mappa Interattiva · Educativa</span>
   <svg class="big-leaf" viewBox="0 0 200 200" id="heroLeaf"></svg>
-  <h1>WeedMap</h1>
-  <p class="sub">Esplora la pianta di cannabis pezzo per pezzo: l'<b>anatomia</b>, le differenze tra <b>Indica, Sativa e Hybrid</b>, gli <b>strain</b> più famosi, cosa fa ogni <b>terpene</b> e <b>cannabinoide</b> — con animazioni e tanti fun facts. Clicca, esplora, scopri. 🌿</p>
-  <div class="scroll-cue">SCORRI<span class="arrow"></span></div>
+  <h1>WeedMap<span class="shine">WeedMap</span></h1>
+  <div class="tagline">la cannabis, spiegata pezzo per pezzo</div>
+  <p class="sub">Esplora l'<b>anatomia</b> della pianta, le differenze tra <b>Indica, Sativa e Hybrid</b>, gli <b>strain</b> più famosi e cosa fa ogni <b>terpene</b> e <b>cannabinoide</b> — con animazioni e tanti fun facts.</p>
+  <div class="cta-row">
+    <a href="#anatomia" class="btn btn-primary">Inizia il viaggio →</a>
+    <a href="#terpeni" class="btn btn-ghost">🍋 Vai ai terpeni</a>
+  </div>
+  <div class="scroll-cue"><span class="mouse"></span>SCORRI</div>
 </header>
 
 <main class="wrap">
+
+  <!-- STATS -->
+  <section id="stats-band" class="reveal" style="padding-top:0">
+    <div class="stats">
+      <div class="stat stagger"><div class="stat-num" data-target="100" data-suffix="+">100+</div><div class="stat-lbl">Cannabinoidi</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="500" data-suffix="+">500+</div><div class="stat-lbl">Composti chimici</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="8" data-suffix="">8</div><div class="stat-lbl">Terpeni chiave</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="12" data-suffix="">12</div><div class="stat-lbl">Strain iconici</div></div>
+    </div>
+  </section>
 
   <!-- ANATOMIA -->
   <section id="anatomia">
     <div class="sec-head reveal">
       <div class="kicker">Parte 01</div>
-      <h2>Anatomia della pianta 🌱</h2>
+      <h2>Anatomia della pianta</h2>
       <p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi della pianta per scoprire cosa fa ciascuna.</p>
     </div>
     <div class="anatomy-grid reveal">
-      <div class="plant-stage">
+      <div class="plant-stage card">
         <svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis interattiva"></svg>
       </div>
-      <div class="info-card" id="anatomyCard">
-        <!-- filled by JS -->
-      </div>
+      <div class="info-card card" id="anatomyCard"></div>
     </div>
-    <div class="key" id="anatomyKey" style="justify-content:center"></div>
-    <p class="hint">💡 Suggerimento: clicca i numeri per evidenziare la parte sulla pianta.</p>
+    <div class="key reveal" id="anatomyKey"></div>
+    <p class="hint">💡 Clicca i numeri per evidenziare la parte sulla pianta.</p>
   </section>
 
   <!-- TIPI -->
   <section id="tipi">
     <div class="sec-head reveal">
       <div class="kicker">Parte 02</div>
-      <h2>Indica · Sativa · Hybrid 🧬</h2>
+      <h2>Indica · Sativa · Hybrid</h2>
       <p>Le tre grandi famiglie. Seleziona un tipo per vedere il profilo degli effetti animarsi sul grafico radar.</p>
     </div>
     <div class="type-toggle reveal" id="typeToggle"></div>
     <div class="type-grid reveal">
-      <div class="radar-box">
-        <svg id="radar" viewBox="0 0 360 360"></svg>
-      </div>
-      <div class="type-desc" id="typeDesc"></div>
+      <div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div>
+      <div class="type-desc card" id="typeDesc"></div>
     </div>
     <p class="hint">⚠️ La divisione Indica/Sativa è una semplificazione: terpeni e cannabinoidi influenzano l'effetto più della tassonomia.</p>
   </section>
@@ -313,7 +430,7 @@
   <section id="strain">
     <div class="sec-head reveal">
       <div class="kicker">Parte 03</div>
-      <h2>Gli Strain più famosi 🔥</h2>
+      <h2>Gli Strain più famosi</h2>
       <p>Filtra per tipo e clicca una card per espanderla: genetica, terpeni, effetti e quando usarla.</p>
     </div>
     <div class="filters reveal" id="strainFilters"></div>
@@ -324,16 +441,15 @@
   <section id="terpeni">
     <div class="sec-head reveal">
       <div class="kicker">Parte 04</div>
-      <h2>La ruota dei Terpeni 🍋</h2>
+      <h2>La ruota dei Terpeni</h2>
       <p>I terpeni danno aroma ed effetto. Clicca un terpene nella ruota per vedere profilo, effetti e dove altro si trova.</p>
     </div>
     <div class="terp-wrap reveal">
       <div class="wheel" id="terpWheel">
-        <div class="ring-deco"></div>
-        <div class="ring-deco r2"></div>
+        <div class="ring-deco"></div><div class="ring-deco r2"></div><div class="ring-deco r3"></div>
         <div class="terp-center" id="terpCenter">Seleziona un terpene →</div>
       </div>
-      <div class="terp-detail" id="terpDetail"></div>
+      <div class="terp-detail card" id="terpDetail"></div>
     </div>
   </section>
 
@@ -341,7 +457,7 @@
   <section id="cannabinoidi">
     <div class="sec-head reveal">
       <div class="kicker">Parte 05</div>
-      <h2>I Cannabinoidi 🔬</h2>
+      <h2>I Cannabinoidi</h2>
       <p>Oltre al THC c'è un intero alfabeto di molecole. Ecco le principali e cosa fanno.</p>
     </div>
     <div class="cann-grid reveal" id="cannGrid"></div>
@@ -351,7 +467,7 @@
   <section id="facts">
     <div class="sec-head reveal">
       <div class="kicker">Parte 06</div>
-      <h2>Fun Facts 🤓</h2>
+      <h2>Fun Facts</h2>
       <p>Curiosità vere e interessanti sulla cannabis, dalla botanica alla cultura.</p>
     </div>
     <div class="facts-grid reveal" id="factsGrid"></div>
@@ -360,6 +476,7 @@
 </main>
 
 <footer>
+  <svg class="foot-leaf" viewBox="0 0 200 200" id="footLeaf"></svg>
   <div class="disclaimer">
     <b>⚠️ Contenuto educativo.</b> Questa mappa ha scopo puramente informativo e divulgativo per un pubblico adulto.
     Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese:
@@ -367,12 +484,12 @@
     variano per genetica, coltivazione e individuo. Molti effetti citati derivano da studi preclinici (in vitro o su
     animali) e non sono ancora confermati nell'uomo.
   </div>
-  <div class="made">🌿 WeedMap — fatto con animazioni e curiosità · 2026</div>
+  <div class="made">🌿 WeedMap — fatto con cura, animazioni e curiosità · 2026</div>
 </footer>
 
 <script>
 /* =========================================================
-   DATI  (arricchiti e verificati dal workflow di contenuti)
+   DATI (arricchiti e verificati)
    ========================================================= */
 const DATA = {
   anatomy: [
@@ -439,405 +556,316 @@ const DATA = {
   ]
 };
 
+var REDUCED = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+var FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
 /* =========================================================
-   LEAF SVG (foglia a 7 punte riutilizzabile)
+   LEAF SVG
    ========================================================= */
-function leafSVG(color1,color2){
-  const blades=[
-    {a:0,len:78,w:13},
-    {a:32,len:62,w:11},{a:-32,len:62,w:11},
-    {a:60,len:44,w:9},{a:-60,len:44,w:9},
-    {a:86,len:26,w:7},{a:-86,len:26,w:7}
-  ];
-  let s=`<defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="${color1}"/><stop offset="1" stop-color="${color2}"/></linearGradient></defs>`;
-  s+=`<g transform="translate(100,108)">`;
-  blades.forEach(b=>{
-    s+=`<g class="leaflet" transform="rotate(${b.a})">
-      <path d="M0,0 C ${b.w},-${b.len*0.35} ${b.w*0.5},-${b.len*0.8} 0,-${b.len}
-               C -${b.w*0.5},-${b.len*0.8} -${b.w},-${b.len*0.35} 0,0 Z"
-            fill="url(#lg)" stroke="${color2}" stroke-width="1"/>
-      <line x1="0" y1="0" x2="0" y2="-${b.len*0.92}" stroke="${color2}" stroke-width="1" opacity=".5"/>
-    </g>`;
+function leafSVG(c1,c2,id){
+  var blades=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];
+  var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs>';
+  s+='<g transform="translate(100,108)">';
+  blades.forEach(function(b){
+    s+='<g class="leaflet" transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/><line x1="0" y1="0" x2="0" y2="-'+(b.len*0.92)+'" stroke="'+c2+'" stroke-width="1" opacity=".5"/></g>';
   });
-  s+=`<line x1="0" y1="0" x2="0" y2="34" stroke="${color2}" stroke-width="3"/></g>`;
+  s+='<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';
   return s;
 }
-document.getElementById('heroLeaf').innerHTML=leafSVG('#aef06a','#2f9d57');
-document.getElementById('brandLeaf').innerHTML=leafSVG('#aef06a','#2f9d57');
+document.getElementById('heroLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lh');
+document.getElementById('brandLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lb');
+document.getElementById('footLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lf');
 
 /* =========================================================
-   PLANT ANATOMY SVG + HOTSPOTS
+   PLANT ANATOMY
    ========================================================= */
 function buildPlant(){
-  const svg=document.getElementById('plantSvg');
-  let s=`
-  <defs>
-    <linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc07a"/><stop offset="1" stop-color="#2c7d44"/></linearGradient>
-    <radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#7fe39a"/><stop offset="1" stop-color="#2f9d57"/></radialGradient>
-    <radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#8be0a0"/><stop offset="1" stop-color="#3a8f57"/></radialGradient>
-  </defs>`;
-
-  // roots
-  s+=`<g data-part="radici" class="glow-part">`;
-  for(let i=-3;i<=3;i++){
-    s+=`<path d="M200,560 q ${i*16},22 ${i*30},44" stroke="#c79a6a" stroke-width="${3-Math.abs(i)*0.3}" fill="none" opacity=".85"/>`;
-  }
-  s+=`</g>`;
-
-  // stem
-  s+=`<g data-part="gambo" class="glow-part"><rect x="195" y="250" width="10" height="312" rx="5" fill="url(#stemG)"/></g>`;
-
-  // nodes + fan leaves
+  var svg=document.getElementById('plantSvg');
+  var s='<defs>'+
+    '<linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc07a"/><stop offset="1" stop-color="#2c7d44"/></linearGradient>'+
+    '<radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#7fe39a"/><stop offset="1" stop-color="#2f9d57"/></radialGradient>'+
+    '<radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#8be0a0"/><stop offset="1" stop-color="#3a8f57"/></radialGradient></defs>';
+  s+='<g data-part="radici" class="glow-part">';
+  for(var i=-3;i<=3;i++){ s+='<path d="M200,560 q '+(i*16)+',22 '+(i*30)+',44" stroke="#c79a6a" stroke-width="'+(3-Math.abs(i)*0.3)+'" fill="none" opacity=".85"/>'; }
+  s+='</g>';
+  s+='<g data-part="gambo" class="glow-part"><rect x="195" y="250" width="10" height="312" rx="5" fill="url(#stemG)"/></g>';
   function fanLeaf(cx,cy,rot,scale){
-    let g=`<g transform="translate(${cx},${cy}) rotate(${rot}) scale(${scale})">`;
-    const blades=[{a:0,len:70},{a:26,len:54},{a:-26,len:54},{a:50,len:36},{a:-50,len:36}];
-    blades.forEach(b=>{ g+=`<g transform="rotate(${b.a})"><path d="M0,0 C12,-${b.len*0.35} 6,-${b.len*0.8} 0,-${b.len} C-6,-${b.len*0.8} -12,-${b.len*0.35} 0,0 Z" fill="url(#colaG)" stroke="#2c7d44" stroke-width="1"/></g>`; });
-    g+=`</g>`; return g;
+    var g='<g transform="translate('+cx+','+cy+') rotate('+rot+') scale('+scale+')">';
+    var bl=[{a:0,len:70},{a:26,len:54},{a:-26,len:54},{a:50,len:36},{a:-50,len:36}];
+    bl.forEach(function(b){ g+='<g transform="rotate('+b.a+')"><path d="M0,0 C12,-'+(b.len*0.35)+' 6,-'+(b.len*0.8)+' 0,-'+b.len+' C-6,-'+(b.len*0.8)+' -12,-'+(b.len*0.35)+' 0,0 Z" fill="url(#colaG)" stroke="#2c7d44" stroke-width="1"/></g>'; });
+    return g+'</g>';
   }
-  s+=`<g data-part="nodi" class="glow-part">
-        <circle cx="200" cy="420" r="7" fill="#3a8f57"/><circle cx="200" cy="350" r="7" fill="#3a8f57"/>
-      </g>`;
-  s+=`<g data-part="foglieventaglio" class="glow-part">
-        ${fanLeaf(196,420,-118,0.9)} ${fanLeaf(204,420,118,0.9)}
-        ${fanLeaf(196,350,-125,0.7)} ${fanLeaf(204,350,125,0.7)}
-      </g>`;
-
-  // COLA cluster
-  s+=`<g data-part="cola" class="glow-part">`;
-  const buds=[
-    [200,120,30],[178,150,24],[222,150,24],[200,165,26],
-    [165,185,20],[235,185,20],[190,195,22],[210,195,22],
-    [200,225,24],[178,215,18],[222,215,18]
-  ];
-  // sugar leaves
-  s+=`<g data-part="fogliezucchero" class="glow-part" opacity=".95">`;
-  [[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(p=>{
-    s+=`<g transform="translate(${p[0]},${p[1]}) rotate(${p[2]}) scale(${p[3]})"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>`;
+  s+='<g data-part="nodi" class="glow-part"><circle cx="200" cy="420" r="7" fill="#3a8f57"/><circle cx="200" cy="350" r="7" fill="#3a8f57"/></g>';
+  s+='<g data-part="foglieventaglio" class="glow-part">'+fanLeaf(196,420,-118,0.9)+fanLeaf(204,420,118,0.9)+fanLeaf(196,350,-125,0.7)+fanLeaf(204,350,125,0.7)+'</g>';
+  s+='<g data-part="cola" class="glow-part">';
+  var buds=[[200,120,30],[178,150,24],[222,150,24],[200,165,26],[165,185,20],[235,185,20],[190,195,22],[210,195,22],[200,225,24],[178,215,18],[222,215,18]];
+  s+='<g data-part="fogliezucchero" class="glow-part" opacity=".95">';
+  [[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){
+    s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>';
   });
-  s+=`</g>`;
-
-  // calyx buds
-  s+=`<g data-part="calice" class="glow-part">`;
-  buds.forEach(b=>{ s+=`<ellipse cx="${b[0]}" cy="${b[1]}" rx="${b[2]*0.7}" ry="${b[2]}" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>`; });
-  s+=`</g>`;
-  s+=`</g>`; // end cola
-
-  // pistils
-  s+=`<g data-part="pistilli" class="glow-part">`;
-  const pist=[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]];
-  pist.forEach((p,i)=>{ s+=`<path class="pistil" style="animation-delay:${(i%5)*0.3}s" d="M${p[0]},${p[1]} q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`; });
-  s+=`</g>`;
-
-  // trichomes
-  s+=`<g data-part="tricomi" class="glow-part">`;
-  let tri='';
-  for(let i=0;i<70;i++){
-    const ang=(i*53)%360, rad=(i*7)%70+8;
-    const cx=200+Math.cos(ang)*rad*0.7, cy=170+Math.sin(ang)*rad-(i%3)*4;
-    if(cy>110&&cy<245&&cx>150&&cx<250){
-      tri+=`<circle class="tricho" style="animation-delay:${(i%7)*0.25}s" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(1+(i%3)*0.6).toFixed(1)}" fill="#eafff0"/>`;
-    }
+  s+='</g>';
+  s+='<g data-part="calice" class="glow-part">';
+  buds.forEach(function(b){ s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>'; });
+  s+='</g></g>';
+  s+='<g data-part="pistilli" class="glow-part">';
+  var pist=[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]];
+  pist.forEach(function(p,i){ s+='<path class="pistil" style="animation-delay:'+((i%5)*0.3)+'s" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>'; });
+  s+='</g>';
+  s+='<g data-part="tricomi" class="glow-part">';
+  for(var t=0;t<70;t++){
+    var ang=(t*53)%360, rad=(t*7)%70+8;
+    var cx=200+Math.cos(ang)*rad*0.7, cy=170+Math.sin(ang)*rad-(t%3)*4;
+    if(cy>110&&cy<245&&cx>150&&cx<250){ s+='<circle class="tricho" style="animation-delay:'+((t%7)*0.25)+'s" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(1+(t%3)*0.6).toFixed(1)+'" fill="#eafff0"/>'; }
   }
-  s+=tri+`</g>`;
-
-  // HOTSPOTS
-  const spots=[
-    {id:"cola",x:200,y:100,n:1},
-    {id:"calice",x:235,y:170,n:2},
-    {id:"pistilli",x:165,y:135,n:3},
-    {id:"tricomi",x:200,y:200,n:4},
-    {id:"foglieventaglio",x:140,y:415,n:5},
-    {id:"fogliezucchero",x:150,y:205,n:6},
-    {id:"nodi",x:200,y:355,n:7},
-    {id:"gambo",x:205,y:500,n:8},
-    {id:"radici",x:200,y:590,n:9}
-  ];
-  spots.forEach(sp=>{
-    s+=`<g class="hotspot" data-spot="${sp.id}">
-      <circle class="hit" cx="${sp.x}" cy="${sp.y}" r="20"/>
-      <circle class="ring" cx="${sp.x}" cy="${sp.y}" r="13"/>
-      <circle class="dot" cx="${sp.x}" cy="${sp.y}" r="10"/>
-      <text class="num" x="${sp.x}" y="${sp.y}">${sp.n}</text>
-    </g>`;
+  s+='</g>';
+  var spots=[{id:"cola",x:200,y:100,n:1},{id:"calice",x:235,y:170,n:2},{id:"pistilli",x:165,y:135,n:3},{id:"tricomi",x:200,y:200,n:4},{id:"foglieventaglio",x:140,y:415,n:5},{id:"fogliezucchero",x:150,y:205,n:6},{id:"nodi",x:200,y:355,n:7},{id:"gambo",x:205,y:500,n:8},{id:"radici",x:200,y:590,n:9}];
+  spots.forEach(function(sp){
+    s+='<g class="hotspot" data-spot="'+sp.id+'"><circle class="hit" cx="'+sp.x+'" cy="'+sp.y+'" r="20"/><circle class="ring" cx="'+sp.x+'" cy="'+sp.y+'" r="13"/><circle class="dot" cx="'+sp.x+'" cy="'+sp.y+'" r="10"/><text class="num" x="'+sp.x+'" y="'+sp.y+'">'+sp.n+'</text></g>';
   });
-
   svg.innerHTML=s;
-
-  const groups={};
-  DATA.anatomy.forEach(p=>{ groups[p.id]=svg.querySelector(`[data-part="${p.id}"]`); });
+  var groups={};
+  DATA.anatomy.forEach(function(p){ groups[p.id]=svg.querySelector('[data-part="'+p.id+'"]'); });
   function focusPart(id){
-    document.querySelectorAll('#plantSvg .glow-part').forEach(g=>{g.classList.add('dim');g.classList.remove('focus-part');});
+    svg.querySelectorAll('.glow-part').forEach(function(g){g.classList.add('dim');g.classList.remove('focus-part');});
     if(groups[id]){groups[id].classList.remove('dim');groups[id].classList.add('focus-part');}
-    svg.querySelectorAll('.hotspot').forEach(h=>h.classList.toggle('active',h.dataset.spot===id));
-    document.querySelectorAll('#anatomyKey button').forEach(b=>b.classList.toggle('on',b.dataset.k===id));
+    svg.querySelectorAll('.hotspot').forEach(function(h){h.classList.toggle('active',h.dataset.spot===id);});
+    document.querySelectorAll('#anatomyKey button').forEach(function(b){b.classList.toggle('on',b.dataset.k===id);});
     renderAnatomy(id);
   }
-  function clearFocus(){
-    document.querySelectorAll('#plantSvg .glow-part').forEach(g=>{g.classList.remove('dim','focus-part');});
-  }
-  svg.querySelectorAll('.hotspot').forEach(h=>{
-    h.addEventListener('mouseenter',()=>focusPart(h.dataset.spot));
-    h.addEventListener('click',()=>focusPart(h.dataset.spot));
+  function clearFocus(){ svg.querySelectorAll('.glow-part').forEach(function(g){g.classList.remove('dim','focus-part');}); }
+  svg.querySelectorAll('.hotspot').forEach(function(h){
+    h.addEventListener('mouseenter',function(){focusPart(h.dataset.spot);});
+    h.addEventListener('click',function(){focusPart(h.dataset.spot);});
   });
   document.querySelector('.plant-stage').addEventListener('mouseleave',clearFocus);
   window._focusPart=focusPart;
 }
-
 function renderAnatomy(id){
-  const i=DATA.anatomy.findIndex(p=>p.id===id);
-  const p=DATA.anatomy[i];
-  const card=document.getElementById('anatomyCard');
-  card.innerHTML=`
-    <span class="tagnum">${i+1}</span>
-    <h3>${p.nome}</h3>
-    <div class="role">${p.funzione}</div>
-    <div class="desc">${p.dettaglio}</div>
-    <div class="fun"><div class="fun-box"><b>Lo sapevi?</b> ${p.curiosita}</div></div>`;
+  var i=DATA.anatomy.findIndex(function(p){return p.id===id;});
+  var p=DATA.anatomy[i];
+  document.getElementById('anatomyCard').innerHTML='<span class="tagnum">'+(i+1)+'</span><h3>'+p.nome+'</h3><div class="role">'+p.funzione+'</div><div class="desc">'+p.dettaglio+'</div><div class="fun"><div class="fun-box"><b>Lo sapevi?</b> '+p.curiosita+'</div></div>';
 }
 function buildAnatomyKey(){
-  const k=document.getElementById('anatomyKey');
-  k.innerHTML=DATA.anatomy.map((p,i)=>`<button data-k="${p.id}">${i+1}. ${p.nome.split(' (')[0]}</button>`).join('');
-  k.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>window._focusPart(b.dataset.k)));
+  var k=document.getElementById('anatomyKey');
+  k.innerHTML=DATA.anatomy.map(function(p,i){return '<button data-k="'+p.id+'">'+(i+1)+'. '+p.nome.split(' (')[0]+'</button>';}).join('');
+  k.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){window._focusPart(b.dataset.k);});});
 }
 
 /* =========================================================
-   TYPES + RADAR
+   RADAR
    ========================================================= */
-const AXES=[["relax","Relax"],["energia","Energia"],["focus","Focus"],["corpo","Corpo"],["creativita","Creatività"],["sonno","Sonno"],["appetito","Appetito"]];
-const RC=180,RR=120;
-let radarCurrent=AXES.map(()=>0), radarAnim=null, currentType="Indica";
-const TYPE_COLORS={Indica:"#b483ff",Sativa:"#aef06a",Hybrid:"#f4b740"};
-
-function radarPoint(idx,val){
-  const ang=(Math.PI*2*idx/AXES.length)-Math.PI/2;
-  const r=RR*val/100;
-  return [RC+Math.cos(ang)*r, RC+Math.sin(ang)*r];
-}
+var AXES=[["relax","Relax"],["energia","Energia"],["focus","Focus"],["corpo","Corpo"],["creativita","Creatività"],["sonno","Sonno"],["appetito","Appetito"]];
+var RC=180,RR=120,radarCurrent=AXES.map(function(){return 0;}),radarAnim=null;
+var TYPE_COLORS={Indica:"#b58bff",Sativa:"#c6ff7a",Hybrid:"#ffcf6b"};
+function radarPoint(idx,val){var a=(Math.PI*2*idx/AXES.length)-Math.PI/2,r=RR*val/100;return [RC+Math.cos(a)*r,RC+Math.sin(a)*r];}
 function buildRadarFrame(){
-  const svg=document.getElementById('radar');
-  let s='';
-  [25,50,75,100].forEach(p=>{
-    let pts=AXES.map((_,i)=>radarPoint(i,p).join(',')).join(' ');
-    s+=`<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
+  var s='';
+  [25,50,75,100].forEach(function(p){ s+='<polygon points="'+AXES.map(function(_,i){return radarPoint(i,p).join(',');}).join(' ')+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>'; });
+  AXES.forEach(function(ax,i){
+    var pt=radarPoint(i,100); s+='<line x1="'+RC+'" y1="'+RC+'" x2="'+pt[0]+'" y2="'+pt[1]+'" stroke="rgba(255,255,255,.08)"/>';
+    var lp=radarPoint(i,124); s+='<text x="'+lp[0]+'" y="'+lp[1]+'" fill="#94ab9c" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">'+ax[1]+'</text>';
   });
-  AXES.forEach((ax,i)=>{
-    const [x,y]=radarPoint(i,100);
-    s+=`<line x1="${RC}" y1="${RC}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.08)"/>`;
-    const [lx,ly]=radarPoint(i,122);
-    s+=`<text x="${lx}" y="${ly}" fill="#9fb6a6" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="central">${ax[1]}</text>`;
-  });
-  s+=`<polygon id="radarPoly" points="" fill="rgba(95,208,122,.25)" stroke="#5fd07a" stroke-width="2.5"/>`;
-  s+=`<g id="radarDots"></g>`;
-  svg.innerHTML=s;
+  s+='<polygon id="radarPoly" points="" fill="rgba(95,224,137,.22)" stroke="#5fe089" stroke-width="2.5" stroke-linejoin="round"/><g id="radarDots"></g>';
+  document.getElementById('radar').innerHTML=s;
 }
 function drawRadarShape(vals,col){
-  const poly=document.getElementById('radarPoly');
-  poly.setAttribute('points',vals.map((v,i)=>radarPoint(i,v).join(',')).join(' '));
-  const dots=vals.map((v,i)=>{const[x,y]=radarPoint(i,v);return `<circle cx="${x}" cy="${y}" r="3.5" fill="${col}"/>`;}).join('');
-  document.getElementById('radarDots').innerHTML=dots;
+  document.getElementById('radarPoly').setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));
+  document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>';}).join('');
 }
+function hexA(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
 function setRadar(type){
-  currentType=type;
-  const prof=DATA.profiles.find(p=>p.tipo===type);
-  const target=AXES.map(ax=>prof.assi[ax[0]]);
-  const col=TYPE_COLORS[type];
-  document.getElementById('radarPoly').setAttribute('fill',hexA(col,.25));
+  var prof=DATA.profiles.find(function(p){return p.tipo===type;});
+  var target=AXES.map(function(ax){return prof.assi[ax[0]];});
+  var col=TYPE_COLORS[type];
+  document.getElementById('radarPoly').setAttribute('fill',hexA(col,.22));
   document.getElementById('radarPoly').setAttribute('stroke',col);
-  const start=radarCurrent.slice();
-  // Disegno sincrono dello stato finale: garantisce il rendering anche se
-  // requestAnimationFrame non parte (es. tab in background). Su pagina visibile
-  // il primo frame del morph sovrascrive questo valore prima del paint.
+  var start=radarCurrent.slice();
   drawRadarShape(target,col);
-  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const t0=performance.now(), dur=700;
-  if(radarAnim)cancelAnimationFrame(radarAnim);
-  function step(now){
-    const k=Math.min(1,(now-t0)/dur);
-    const e=1-Math.pow(1-k,3);
-    radarCurrent=target.map((v,i)=>start[i]+(v-start[i])*e);
-    drawRadarShape(radarCurrent,col);
-    if(k<1)radarAnim=requestAnimationFrame(step);
+  if(!REDUCED){
+    var t0=performance.now(),dur=750;
+    if(radarAnim)cancelAnimationFrame(radarAnim);
+    (function step(now){
+      var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+      radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});
+      drawRadarShape(radarCurrent,col);
+      if(k<1)radarAnim=requestAnimationFrame(step);
+    })(performance.now());
   }
-  if(!reduce)radarAnim=requestAnimationFrame(step);
   radarCurrent=target.slice();
-  const badgeColors={Indica:"rgba(180,131,255,.2)",Sativa:"rgba(174,240,106,.18)",Hybrid:"rgba(244,183,64,.18)"};
-  document.getElementById('typeDesc').innerHTML=`
-    <h3 style="color:${col}">${prof.tipo}</h3>
-    <span class="badge" style="background:${badgeColors[type]};color:${col}">${prof.tipo} · profilo tipico</span>
-    <p>${prof.descrizione}</p>
-    <div class="shape"><b style="color:${col}">Aspetto:</b> ${prof.forma}</div>`;
-  document.querySelectorAll('#typeToggle button').forEach(b=>b.classList.toggle('on',b.dataset.t===type));
+  var bc={Indica:"rgba(181,139,255,.2)",Sativa:"rgba(198,255,122,.18)",Hybrid:"rgba(255,207,107,.18)"};
+  document.getElementById('typeDesc').innerHTML='<h3 style="color:'+col+'">'+prof.tipo+'</h3><span class="badge" style="background:'+bc[type]+';color:'+col+'">'+prof.tipo+' · profilo tipico</span><p>'+prof.descrizione+'</p><div class="shape"><b style="color:'+col+'">Aspetto:</b> '+prof.forma+'</div>';
+  document.querySelectorAll('#typeToggle button').forEach(function(b){b.classList.toggle('on',b.dataset.t===type);});
 }
-function hexA(hex,a){const h=hex.replace('#','');const r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);return `rgba(${r},${g},${b},${a})`;}
 function buildTypes(){
-  const tt=document.getElementById('typeToggle');
-  tt.innerHTML=DATA.profiles.map(p=>`<button data-t="${p.tipo}">${p.tipo}</button>`).join('');
-  tt.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setRadar(b.dataset.t)));
+  var tt=document.getElementById('typeToggle');
+  tt.innerHTML=DATA.profiles.map(function(p){return '<button data-t="'+p.tipo+'">'+p.tipo+'</button>';}).join('');
+  tt.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setRadar(b.dataset.t);});});
   buildRadarFrame();
 }
 
 /* =========================================================
    STRAINS
    ========================================================= */
-function thcMid(s){const m=s.match(/(\d+)\D+(\d+)/);if(m)return ((+m[1]+ +m[2])/2);const m2=s.match(/(\d+)/);return m2?+m2[1]:20;}
-function buildStrains(filter="Tutti"){
-  const grid=document.getElementById('strainGrid');
-  const list=DATA.strains.filter(s=>filter==="Tutti"||s.tipo===filter);
-  grid.innerHTML=list.map((s,i)=>{
-    const acc={Indica:"rgba(180,131,255,.25)",Sativa:"rgba(174,240,106,.22)",Hybrid:"rgba(244,183,64,.22)"}[s.tipo];
-    const pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));
-    return `<div class="strain" data-i="${i}" style="--accent:${acc}">
-      <div class="top">
-        <h3>${s.nome}</h3>
-        <span class="type-chip chip-${s.tipo}">${s.tipo}</span>
-      </div>
-      <div class="thc">THC tipico: <b>${s.thc}</b>
-        <div class="thc-bar"><span data-pct="${pct}"></span></div>
-      </div>
-      <div class="more">
-        <div class="row"><b>Genetica</b>${s.genetica}</div>
-        <div class="row"><b>Terpeni dominanti</b>${s.terpeniDominanti}</div>
-        <div class="row"><b>Effetti</b>${s.effetti}</div>
-        <div class="row"><b>Aromi</b>${s.aromi}</div>
-        <div class="row"><b>Ideale per</b>${s.adattaA}</div>
-      </div>
-      <div class="toggle-h">▾ clicca per dettagli</div>
-    </div>`;
+function thcMid(s){var m=s.match(/(\d+)\D+(\d+)/);if(m)return (+m[1]+ +m[2])/2;var m2=s.match(/(\d+)/);return m2?+m2[1]:20;}
+function buildStrains(filter){
+  filter=filter||"Tutti";
+  var grid=document.getElementById('strainGrid');
+  var list=DATA.strains.filter(function(s){return filter==="Tutti"||s.tipo===filter;});
+  var acc={Indica:"rgba(181,139,255,.28)",Sativa:"rgba(198,255,122,.24)",Hybrid:"rgba(255,207,107,.24)"};
+  grid.innerHTML=list.map(function(s){
+    var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));
+    return '<div class="strain stagger" style="--accent:'+acc[s.tipo]+'"><div class="top"><h3>'+s.nome+'</h3><span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></div><div class="thc">THC tipico: <b>'+s.thc+'</b><div class="thc-bar"><span data-pct="'+pct+'"></span></div></div><div class="more"><div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div></div><div class="toggle-h">▾ clicca per dettagli</div></div>';
   }).join('');
-  grid.querySelectorAll('.strain').forEach(card=>{
-    card.addEventListener('click',()=>{
+  grid.querySelectorAll('.strain').forEach(function(card){
+    card.addEventListener('click',function(){
       card.classList.toggle('open');
       card.querySelector('.toggle-h').textContent=card.classList.contains('open')?'▴ chiudi':'▾ clicca per dettagli';
     });
   });
-  setTimeout(()=>grid.querySelectorAll('.thc-bar span').forEach(b=>b.style.width=b.dataset.pct+'%'),60);
+  setTimeout(function(){grid.querySelectorAll('.thc-bar span').forEach(function(b){b.style.width=b.dataset.pct+'%';});},120);
 }
 function buildStrainFilters(){
-  const f=document.getElementById('strainFilters');
-  const opts=["Tutti","Indica","Sativa","Hybrid"];
-  f.innerHTML=opts.map((o,i)=>`<button data-f="${o}" class="${i===0?'on':''}">${o}</button>`).join('');
-  f.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
-    f.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');buildStrains(b.dataset.f);
-  }));
+  var f=document.getElementById('strainFilters');
+  f.innerHTML=["Tutti","Indica","Sativa","Hybrid"].map(function(o,i){return '<button data-f="'+o+'" class="'+(i===0?'on':'')+'">'+o+'</button>';}).join('');
+  f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){f.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');buildStrains(b.dataset.f);});});
 }
 
 /* =========================================================
    TERPENE WHEEL
    ========================================================= */
 function buildTerpenes(){
-  const wheel=document.getElementById('terpWheel');
-  const T=DATA.terpenes;
-  const R=42;
-  T.forEach((t,i)=>{
-    const ang=(Math.PI*2*i/T.length)-Math.PI/2;
-    const x=50+Math.cos(ang)*R, y=50+Math.sin(ang)*R;
-    const node=document.createElement('div');
-    node.className='terp-node';
-    node.style.left=x+'%';node.style.top=y+'%';
-    node.style.setProperty('--tc',t.colore);
-    node.style.borderColor=hexA(t.colore,.6);
-    node.innerHTML=t.nome.split(' (')[0];
-    node.dataset.i=i;
-    node.addEventListener('click',()=>selectTerp(i));
-    node.addEventListener('mouseenter',()=>{node.style.boxShadow=`0 0 24px ${t.colore}`;});
-    node.addEventListener('mouseleave',()=>{if(!node.classList.contains('on'))node.style.boxShadow='none';});
+  var wheel=document.getElementById('terpWheel'),T=DATA.terpenes,R=42;
+  T.forEach(function(t,i){
+    var a=(Math.PI*2*i/T.length)-Math.PI/2,x=50+Math.cos(a)*R,y=50+Math.sin(a)*R;
+    var node=document.createElement('div');
+    node.className='terp-node';node.style.left=x+'%';node.style.top=y+'%';
+    node.style.setProperty('--tc',t.colore);node.style.borderColor=hexA(t.colore,.6);
+    node.innerHTML=t.nome.split(' (')[0];node.dataset.i=i;
+    node.addEventListener('click',function(){selectTerp(i);});
     wheel.appendChild(node);
   });
   selectTerp(0);
 }
 function selectTerp(i){
-  const t=DATA.terpenes[i];
-  document.querySelectorAll('.terp-node').forEach(n=>{
-    const on=+n.dataset.i===i;n.classList.toggle('on',on);
-    n.style.boxShadow=on?`0 0 0 4px rgba(255,255,255,.08),0 0 28px ${t.colore}`:'none';
+  var t=DATA.terpenes[i];
+  document.querySelectorAll('.terp-node').forEach(function(n){
+    var on=+n.dataset.i===i;n.classList.toggle('on',on);
+    n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';
   });
-  document.getElementById('terpCenter').innerHTML=`<div><div style="font-size:26px">🍃</div><b style="color:${t.colore};font-size:14px">${t.nome.split(' (')[0]}</b></div>`;
-  document.getElementById('terpDetail').innerHTML=`
-    <div class="swatch" style="background:${t.colore}"></div>
-    <h3>${t.nome}</h3>
-    <div class="meta"><span>🌡️ Ebollizione ${t.bollePunto}</span></div>
-    <div class="block"><b>Aroma</b><p>${t.aroma}</p></div>
-    <div class="block"><b>Effetti riportati</b><p>${t.effetti}</p></div>
-    <div class="block"><b>Si trova anche in</b><p>${t.ancheIn}</p></div>`;
+  document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';
+  document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ Ebollizione '+t.bollePunto+'</span></div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>';
 }
 
 /* =========================================================
-   CANNABINOIDS
+   CANNABINOIDS + FACTS
    ========================================================= */
 function buildCannabinoids(){
-  const g=document.getElementById('cannGrid');
-  g.innerHTML=DATA.cannabinoids.map(c=>{
-    const cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";
-    const label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psicoattivo":"Lievemente psic.";
-    return `<div class="cann">
-      <div class="h"><span class="sigla">${c.sigla}</span>
-        <span class="psy ${cls}">${label}</span></div>
-      <div class="full">${c.nome}</div>
-      <div class="eff">${c.effetto}</div>
-      <div class="note"><b>Nota:</b> ${c.nota}</div>
-    </div>`;
+  document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){
+    var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";
+    var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psicoattivo":"Lievemente psic.";
+    return '<div class="cann stagger tilt"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div></div>';
   }).join('');
+  enableTilt();
 }
-
-/* =========================================================
-   FACTS
-   ========================================================= */
 function buildFacts(){
-  document.getElementById('factsGrid').innerHTML=DATA.facts.map(f=>`
-    <div class="fact"><span class="emoji">${f.emoji}</span><h4>${f.titolo}</h4><p>${f.testo}</p></div>`).join('');
+  document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){
+    return '<div class="fact stagger tilt"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';
+  }).join('');
+  enableTilt();
 }
 
 /* =========================================================
-   SCROLL: reveal, progress, active nav
+   TILT (3D hover) — solo dispositivi con mouse fine
    ========================================================= */
-function initScroll(){
-  const reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const hasIO=('IntersectionObserver' in window);
-  if(hasIO && !reduce){
-    document.documentElement.classList.add('anim');
-    const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -5% 0px'});
-    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-    // Fallback di sicurezza: se l'osservatore non scatta entro 1.2s, mostra tutto.
-    setTimeout(()=>document.querySelectorAll('.reveal:not(.in)').forEach(el=>el.classList.add('in')),1200);
-  }
-  // Senza IntersectionObserver o con reduced-motion: niente classe .anim,
-  // quindi il contenuto è già pienamente visibile.
-  const links=[...document.querySelectorAll('.nav-links a')];
-  const secs=links.map(l=>document.querySelector(l.getAttribute('href')));
-  window.addEventListener('scroll',()=>{
-    const h=document.documentElement;
-    document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
-    let idx=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<160)idx=i;});
-    links.forEach((l,i)=>l.classList.toggle('active',i===idx));
+function enableTilt(){
+  if(!FINE||REDUCED)return;
+  document.querySelectorAll('.tilt:not([data-tilt])').forEach(function(el){
+    el.setAttribute('data-tilt','1');
+    el.addEventListener('pointermove',function(e){
+      var r=el.getBoundingClientRect();
+      var px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+      el.style.transform='perspective(900px) rotateX('+(-py*7).toFixed(2)+'deg) rotateY('+(px*7).toFixed(2)+'deg) translateY(-6px)';
+    });
+    el.addEventListener('pointerleave',function(){el.style.transform='';});
   });
 }
 
 /* =========================================================
-   BACKGROUND PARTICLES (trichome frost rising)
+   COUNTERS
    ========================================================= */
+function animateCount(el){
+  var target=+el.dataset.target,suf=el.dataset.suffix||'';
+  if(REDUCED){el.textContent=target+suf;return;}
+  var t0=null,dur=1500;
+  function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+
+/* =========================================================
+   SCROLL: reveal, progress, nav, dotnav, parallax
+   ========================================================= */
+function buildDotNav(){
+  var secs=[["top","Top"],["anatomia","Anatomia"],["tipi","Tipi"],["strain","Strain"],["terpeni","Terpeni"],["cannabinoidi","Cannabinoidi"],["facts","Fun Facts"]];
+  document.getElementById('dotnav').innerHTML=secs.map(function(s){return '<a href="#'+s[0]+'" data-sec="'+s[0]+'"><span>'+s[1]+'</span></a>';}).join('');
+}
+function initScroll(){
+  var hasIO=('IntersectionObserver' in window);
+  if(hasIO && !REDUCED){
+    document.documentElement.classList.add('anim');
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.06,rootMargin:'0px 0px -4% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+    setTimeout(function(){document.querySelectorAll('.reveal:not(.in)').forEach(function(el){el.classList.add('in');});},1400);
+    var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animateCount(e.target);sio.unobserve(e.target);}});},{threshold:.5});
+    document.querySelectorAll('.stat-num').forEach(function(el){sio.observe(el);});
+  }
+  var navLinks=Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+  var dotLinks=Array.prototype.slice.call(document.querySelectorAll('#dotnav a'));
+  var secEls=["anatomia","tipi","strain","terpeni","cannabinoidi","facts"].map(function(id){return document.getElementById(id);});
+  var hero=document.getElementById('heroLeaf');
+  var ticking=false;
+  function onScroll(){
+    var h=document.documentElement;
+    document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+    var idx=0;
+    secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<170)idx=i;});
+    navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});
+    // dotnav: top + 6 sezioni
+    var dotIdx=0; if(h.scrollTop>120)dotIdx=idx+1;
+    dotLinks.forEach(function(l,i){l.classList.toggle('active',i===dotIdx);});
+    if(!REDUCED&&hero&&h.scrollTop<800){hero.style.transform='translateY('+(h.scrollTop*0.18)+'px)';}
+    ticking=false;
+  }
+  window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(onScroll);ticking=true;}});
+  onScroll();
+}
+
+/* =========================================================
+   SPOTLIGHT + PARTICLES + INTRO
+   ========================================================= */
+function initSpotlight(){
+  if(!FINE||REDUCED)return;
+  var sp=document.getElementById('spotlight');
+  window.addEventListener('pointermove',function(e){sp.style.left=e.clientX+'px';sp.style.top=e.clientY+'px';sp.style.opacity='1';});
+  window.addEventListener('pointerleave',function(){sp.style.opacity='0';});
+}
 function initParticles(){
-  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  const c=document.getElementById('stars'),x=c.getContext('2d');
-  let w,h,parts;
-  function reset(){w=c.width=innerWidth;h=c.height=innerHeight;
-    parts=Array.from({length:Math.min(70,Math.floor(w/22))},(_,i)=>({
-      x:((i*131)%w),y:(i*53)%h,r:(i%3)*0.8+0.6,
-      sp:((i%5)+2)*0.18,dr:((i%7)-3)*0.06,ph:i}));}
+  if(REDUCED)return;
+  var c=document.getElementById('stars'),x=c.getContext('2d'),w,h,parts,tp=0;
+  function reset(){w=c.width=innerWidth;h=c.height=innerHeight;parts=Array.from({length:Math.min(80,Math.floor(w/20))},function(_,i){return {x:(i*131)%w,y:(i*53)%h,r:(i%3)*0.8+0.6,sp:((i%5)+2)*0.16,dr:((i%7)-3)*0.05,ph:i};});}
   reset();addEventListener('resize',reset);
-  let tphase=0;
   (function loop(){
-    x.clearRect(0,0,w,h);tphase+=0.01;
-    parts.forEach(p=>{
-      p.y-=p.sp;p.x+=Math.sin(tphase+p.ph)*0.3+p.dr;
-      if(p.y<-5){p.y=h+5;}
-      if(p.x<-5)p.x=w+5;if(p.x>w+5)p.x=-5;
-      x.beginPath();x.arc(p.x,p.y,p.r,0,7);
-      x.fillStyle='rgba(174,240,106,'+(0.10+p.r*0.06)+')';x.fill();
-    });
+    x.clearRect(0,0,w,h);tp+=0.01;
+    parts.forEach(function(p){p.y-=p.sp;p.x+=Math.sin(tp+p.ph)*0.3+p.dr;if(p.y<-5)p.y=h+5;if(p.x<-5)p.x=w+5;if(p.x>w+5)p.x=-5;x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fillStyle='rgba(198,255,122,'+(0.09+p.r*0.05)+')';x.fill();});
     requestAnimationFrame(loop);
   })();
+}
+function intro(){
+  if(REDUCED)return;
+  var o=document.createElement('div');o.className='intro';
+  o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">mappa interattiva della cannabis</div></div>';
+  document.body.appendChild(o);
+  setTimeout(function(){o.classList.add('hide');},1750);
+  setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},2700);
 }
 
 /* =========================================================
@@ -850,10 +878,13 @@ function renderAll(){
   buildTerpenes();
   buildCannabinoids();
   buildFacts();
+  buildDotNav();
 }
 renderAll();
 initScroll();
+initSpotlight();
 initParticles();
+intro();
 </script>
 </body>
 </html>
