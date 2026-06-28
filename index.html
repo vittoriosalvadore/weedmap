@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WeedMap — Esperienza Interattiva sulla Cannabis</title>
-<meta name="description" content="Un viaggio 3D interattivo nella cannabis: anatomia, Indica/Sativa/Hybrid, strain, terpeni, cannabinoidi e fun facts.">
+<meta name="description" content="Un viaggio 3D interattivo nella cannabis: molecole, anatomia, Indica/Sativa/Hybrid, strain, terpeni, cannabinoidi.">
 <meta property="og:title" content="WeedMap 🌿 — Esperienza 3D sulla Cannabis">
-<meta property="og:description" content="Molecole 3D, terpeni, strain e anatomia in un'esperienza immersiva e animata.">
+<meta property="og:description" content="Molecole 3D interattive, galassia di strain, terpeni e anatomia in un'esperienza immersiva.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,11 +14,10 @@
 <script src="three.min.js"></script>
 <style>
   :root{
-    --bg:#04070500;
     --ink:#eaf7ef;--muted:#90a89a;--muted-2:#67806f;
     --green:#5fe089;--green-deep:#1f9d57;--lime:#c6ff7a;
-    --violet:#b58bff;--violet-2:#7c4ddb;--gold:#ffcf6b;--amber:#ff9b54;
-    --glass:rgba(9,16,12,.55);--glass-2:rgba(14,22,17,.7);
+    --violet:#b58bff;--violet-2:#7c4ddb;--gold:#ffcf6b;--amber:#ff9b54;--pink:#ff6fae;--cyan:#5fe9e0;
+    --glass:rgba(9,16,12,.5);--glass-2:rgba(14,22,17,.72);
     --line:rgba(150,220,170,.14);--line-2:rgba(255,255,255,.09);
     --shadow:0 40px 90px -30px rgba(0,0,0,.8);
     --radius:24px;
@@ -28,41 +27,34 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{font-family:var(--font-body);background:#04070a;color:var(--ink);min-height:100vh;overflow-x:hidden;
-    line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.1px}
+  body{font-family:var(--font-body);background:#04070a;color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.1px}
 
-  /* ---- BACKGROUND LAYERS ---- */
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
   #bg .blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.4;mix-blend-mode:screen}
   #bg .b1{width:60vw;height:60vw;left:-12vw;top:-16vw;background:radial-gradient(circle,#1f9d57,transparent 65%);animation:drift1 28s ease-in-out infinite}
   #bg .b2{width:55vw;height:55vw;right:-14vw;top:8vw;background:radial-gradient(circle,#7c4ddb,transparent 65%);animation:drift2 34s ease-in-out infinite}
   #bg .b3{width:48vw;height:48vw;left:25vw;bottom:-22vw;background:radial-gradient(circle,#2fb56a,transparent 65%);animation:drift3 31s ease-in-out infinite}
   #gl{position:fixed;inset:0;z-index:1;display:block;width:100%;height:100%}
-  #grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.045;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  #scrim{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 50% 50%,transparent 55%,rgba(2,5,4,.6))}
+  #grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  #scrim{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 50% 50%,transparent 52%,rgba(2,5,4,.65))}
 
-  /* ---- CURSOR ---- */
   .cursor-dot{position:fixed;top:0;left:0;width:7px;height:7px;border-radius:50%;background:var(--lime);z-index:400;pointer-events:none;transform:translate(-50%,-50%);mix-blend-mode:screen}
   .cursor-ring{position:fixed;top:0;left:0;width:36px;height:36px;border:1.5px solid rgba(198,255,122,.55);border-radius:50%;z-index:400;pointer-events:none;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s,background .25s,opacity .3s}
   .cursor-ring.big{width:66px;height:66px;border-color:var(--green);background:rgba(95,224,137,.07)}
   body.cursor-on{cursor:none}
-  body.cursor-on a,body.cursor-on button,body.cursor-on .strain,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .key button{cursor:none}
+  body.cursor-on a,body.cursor-on button,body.cursor-on .strain-orb,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .key button,body.cursor-on .flip,body.cursor-on .tern-handle{cursor:none}
 
   .wrap{position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 22px}
 
-  /* ---- PROGRESS + DOTNAV ---- */
   #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:linear-gradient(90deg,var(--lime),var(--green),var(--violet));box-shadow:0 0 16px var(--green)}
   #dotnav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:55;display:flex;flex-direction:column;gap:15px}
   #dotnav a{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--muted-2);position:relative;transition:.3s}
   #dotnav a:hover{border-color:var(--green);transform:scale(1.25)}
   #dotnav a.active{background:var(--green);border-color:var(--green);box-shadow:0 0 14px var(--green)}
-  #dotnav a span{position:absolute;right:24px;top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;
-    font-size:11px;font-weight:600;color:var(--ink);background:var(--glass-2);border:1px solid var(--line);padding:4px 10px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;letter-spacing:.4px;backdrop-filter:blur(8px)}
+  #dotnav a span{position:absolute;right:24px;top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font-size:11px;font-weight:600;color:var(--ink);background:var(--glass-2);border:1px solid var(--line);padding:4px 10px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;letter-spacing:.4px;backdrop-filter:blur(8px)}
   #dotnav a:hover span{opacity:1;transform:translateY(-50%) translateX(0)}
 
-  /* ---- NAV ---- */
-  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(150%);background:linear-gradient(180deg,rgba(4,8,6,.78),rgba(4,8,6,.25));border-bottom:1px solid var(--line)}
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(150%);background:linear-gradient(180deg,rgba(4,8,6,.78),rgba(4,8,6,.22));border-bottom:1px solid var(--line)}
   .nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:14px 22px}
   .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:19px}
   .brand .leaf-mini{width:28px;height:28px;animation:spin 16s linear infinite}
@@ -71,31 +63,23 @@
   .nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
   .nav-links a.active{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));font-weight:600}
 
-  /* ---- HERO ---- */
   header.hero{position:relative;z-index:5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 22px 60px}
   .hero .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border:1px solid var(--line);border-radius:999px;color:var(--lime);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;background:rgba(95,224,137,.05);backdrop-filter:blur(8px)}
   .hero .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink 1.8s infinite}
-  .hero h1{font-family:var(--font-display);font-size:clamp(64px,17vw,210px);font-weight:700;line-height:.86;letter-spacing:-5px;margin:22px 0 4px;
-    position:relative;overflow:hidden;display:inline-block}
-  .hero h1 .ttl{display:inline-block;background:linear-gradient(115deg,#f3fff7 6%,var(--lime) 36%,var(--green) 56%,var(--violet) 92%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 50px rgba(95,224,137,.3))}
+  .hero h1{font-family:var(--font-display);font-size:clamp(64px,17vw,210px);font-weight:700;line-height:.86;letter-spacing:-5px;margin:22px 0 4px;position:relative;overflow:hidden;display:inline-block}
+  .hero h1 .ttl{display:inline-block;background:linear-gradient(115deg,#f3fff7 6%,var(--lime) 36%,var(--green) 56%,var(--violet) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 50px rgba(95,224,137,.3))}
   html.anim .hero h1 .ttl{animation:rise 1.1s .2s cubic-bezier(.16,1,.3,1) both}
-  .hero h1 .shine{position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.9) 50%,transparent 62%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:shine 6s ease-in-out infinite;pointer-events:none}
+  .hero h1 .shine{position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.9) 50%,transparent 62%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:shine 6s ease-in-out infinite;pointer-events:none}
   .hero .tagline{font-family:var(--font-serif);font-style:italic;font-weight:500;font-size:clamp(20px,3.6vw,32px);color:#e1f4e6;margin-top:6px}
-  .hero p.sub{margin:22px auto 0;max-width:600px;color:var(--muted);font-size:clamp(15px,2.1vw,18px);line-height:1.7}
-  .hero .cta-row{margin-top:36px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:15px 28px;border-radius:999px;transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s,background .3s;text-decoration:none;display:inline-flex;align-items:center;gap:9px;will-change:transform}
-  .btn-primary{color:#06140c;background:linear-gradient(100deg,var(--lime),var(--green));box-shadow:0 14px 40px -10px rgba(95,224,137,.65)}
-  .btn-primary:hover{box-shadow:0 22px 54px -10px rgba(95,224,137,.85)}
-  .btn-ghost{color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line);backdrop-filter:blur(8px)}
-  .btn-ghost:hover{border-color:var(--green);background:rgba(95,224,137,.08)}
-  .scroll-cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2);font-size:11px;letter-spacing:3px}
+  .hero p.sub{margin:20px auto 0;max-width:600px;color:var(--muted);font-size:clamp(15px,2.1vw,18px);line-height:1.7}
+  .mol-switch{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .mol-switch button{font-family:var(--font-display);cursor:pointer;padding:11px 22px;border-radius:999px;font-weight:600;font-size:14.5px;border:1px solid var(--line);color:var(--muted);background:var(--glass);backdrop-filter:blur(8px);transition:.3s}
+  .mol-switch button.on{color:#06140c;background:linear-gradient(120deg,var(--lime),var(--green));border-color:transparent;box-shadow:0 12px 30px -10px var(--green);transform:translateY(-2px)}
+  .hero-hint{margin-top:18px;font-size:12px;color:var(--muted-2);letter-spacing:.4px}
+  .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2);font-size:11px;letter-spacing:3px}
   .scroll-cue .mouse{width:24px;height:38px;border:2px solid var(--muted-2);border-radius:14px;position:relative}
   .scroll-cue .mouse::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--green);animation:wheel 1.6s infinite}
-  .hero-hint{margin-top:18px;font-size:12px;color:var(--muted-2);letter-spacing:.4px}
 
-  /* ---- STATS ---- */
   #stats-band{padding:0 0 30px;z-index:5;position:relative}
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
   .stat{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:26px 18px;text-align:center;backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
@@ -103,11 +87,9 @@
   .stat-num{font-family:var(--font-display);font-size:clamp(32px,5vw,50px);font-weight:700;line-height:1;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
   .stat-lbl{margin-top:8px;color:var(--muted);font-size:13px;font-weight:500;letter-spacing:.3px}
 
-  /* ---- SECTIONS ---- */
   section{padding:80px 0;position:relative;z-index:5}
   .sec-head{text-align:center;max-width:760px;margin:0 auto 48px;position:relative}
-  .sec-head .ghost{position:absolute;top:-66px;left:50%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;
-    font-size:clamp(120px,22vw,240px);letter-spacing:-8px;color:transparent;-webkit-text-stroke:1px rgba(150,220,170,.08);z-index:-1;pointer-events:none;line-height:1}
+  .sec-head .ghost{position:absolute;top:-66px;left:50%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;font-size:clamp(120px,22vw,240px);letter-spacing:-8px;color:transparent;-webkit-text-stroke:1px rgba(150,220,170,.08);z-index:-1;pointer-events:none;line-height:1}
   .sec-head .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--green);font-weight:600;letter-spacing:3px;font-size:12px;text-transform:uppercase}
   .sec-head .kicker::before,.sec-head .kicker::after{content:"";width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--green))}
   .sec-head .kicker::after{background:linear-gradient(90deg,var(--green),transparent)}
@@ -125,10 +107,7 @@
   html.anim .reveal.in .stagger:nth-child(4){transition-delay:.22s}
   html.anim .reveal.in .stagger:nth-child(5){transition-delay:.28s}
   html.anim .reveal.in .stagger:nth-child(6){transition-delay:.34s}
-  html.anim .reveal.in .stagger:nth-child(7){transition-delay:.40s}
-  html.anim .reveal.in .stagger:nth-child(8){transition-delay:.46s}
-  html.anim .reveal.in .stagger:nth-child(9){transition-delay:.52s}
-  html.anim .reveal.in .stagger:nth-child(n+10){transition-delay:.58s}
+  html.anim .reveal.in .stagger:nth-child(n+7){transition-delay:.40s}
 
   .card{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(16px);box-shadow:var(--shadow)}
 
@@ -161,47 +140,53 @@
   .key button:hover{color:var(--ink);border-color:var(--green)}
   .key button.on{color:#06140c;background:var(--green);border-color:var(--green);font-weight:600}
 
-  /* TYPES */
-  .type-toggle{display:flex;gap:11px;justify-content:center;margin-bottom:32px;flex-wrap:wrap}
-  .type-toggle button{font-family:var(--font-display);cursor:pointer;padding:13px 30px;border-radius:999px;font-weight:600;font-size:15.5px;border:1px solid var(--line);color:var(--muted);transition:.3s;background:var(--glass);backdrop-filter:blur(8px)}
-  .type-toggle button.on{color:#06140c;transform:translateY(-2px)}
-  .type-toggle button[data-t="Indica"].on{background:linear-gradient(135deg,#c4a3ff,#7c4ddb);box-shadow:0 14px 32px -10px #7c4ddb}
-  .type-toggle button[data-t="Sativa"].on{background:linear-gradient(135deg,var(--lime),var(--green));box-shadow:0 14px 32px -10px var(--green)}
-  .type-toggle button[data-t="Hybrid"].on{background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 14px 32px -10px var(--amber)}
-  .type-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:26px;align-items:center}
+  /* TERNARY */
+  .tern-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:26px;align-items:center}
+  .tern-box{padding:24px;text-align:center}
+  .tern-box svg{width:100%;max-width:380px;height:auto;touch-action:none}
+  .tern-handle{cursor:grab}
+  .tern-handle:active{cursor:grabbing}
+  .tern-read{margin-top:14px;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-family:var(--font-display);font-size:13px}
+  .tern-read b{font-size:20px;display:block}
+  .tern-presets{margin-top:16px;display:flex;gap:8px;justify-content:center}
+  .tern-presets button{font-family:var(--font-body);cursor:pointer;font-size:12.5px;color:var(--muted);padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);transition:.25s}
+  .tern-presets button:hover{color:var(--ink);border-color:var(--green)}
   .radar-box{padding:24px}
   .radar-box svg{width:100%;height:auto}
-  .type-desc{padding:34px}
-  .type-desc h3{font-family:var(--font-display);font-size:36px;margin-bottom:8px;letter-spacing:-.6px}
-  .type-desc .badge{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:600;font-size:12.5px;margin-bottom:18px}
-  .type-desc p{color:#d8ebdd;line-height:1.75;font-size:15.5px;margin-bottom:15px}
-  .type-desc .shape{color:var(--muted);font-size:14.5px;line-height:1.65;border-left:3px solid var(--green);padding-left:15px}
+  .type-desc{padding:30px;margin-top:0}
+  .type-desc h3{font-family:var(--font-display);font-size:30px;margin-bottom:10px;letter-spacing:-.5px}
+  .type-desc p{color:#d8ebdd;line-height:1.7;font-size:15px;margin-bottom:12px}
+  .type-desc .shape{color:var(--muted);font-size:14px;line-height:1.6;border-left:3px solid var(--green);padding-left:14px}
 
-  /* STRAINS */
-  .filters{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+  /* GALAXY (strains) */
+  .filters{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
   .filters button{font-family:var(--font-body);cursor:pointer;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;border:1px solid var(--line);color:var(--muted);transition:.25s;background:var(--glass);backdrop-filter:blur(8px)}
   .filters button:hover{color:var(--ink);border-color:var(--green)}
   .filters button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));border-color:transparent}
-  .strain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:18px}
-  .strain{position:relative;padding:22px;cursor:pointer;border-radius:20px;overflow:hidden;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s,box-shadow .3s}
-  .strain::before{content:"";position:absolute;inset:0;opacity:0;transition:.45s;background:radial-gradient(280px 150px at 80% -10%,var(--accent,rgba(95,224,137,.3)),transparent 70%)}
-  .strain:hover{transform:translateY(-7px);border-color:var(--green);box-shadow:0 30px 56px -24px rgba(0,0,0,.8)}
-  .strain:hover::before{opacity:1}
-  .strain .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative}
-  .strain h3{font-family:var(--font-display);font-size:19.5px;line-height:1.15;letter-spacing:-.3px}
-  .strain .type-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .galaxy-wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:stretch}
+  .galaxy{position:relative;border-radius:var(--radius);border:1px solid var(--line);background:radial-gradient(ellipse 80% 80% at 50% 40%,rgba(124,77,219,.10),rgba(6,12,9,.4));overflow:hidden;min-height:440px;backdrop-filter:blur(8px)}
+  .galaxy .axis{position:absolute;color:var(--muted-2);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;pointer-events:none}
+  .galaxy .ax-l{left:10px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left}
+  .galaxy .ax-x1{left:14px;bottom:10px}.galaxy .ax-x2{right:14px;bottom:10px}.galaxy .ax-top{left:50%;top:8px;transform:translateX(-50%)}
+  .strain-orb{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);transition:box-shadow .3s,opacity .3s,filter .3s;display:flex;align-items:center;justify-content:center}
+  .strain-orb::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid transparent;transition:.3s}
+  .strain-orb:hover,.strain-orb.sel{z-index:3}
+  .strain-orb:hover::after,.strain-orb.sel::after{border-color:#fff}
+  .strain-orb.faded{opacity:.12;filter:grayscale(.6)}
+  .strain-orb .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:10px;white-space:nowrap;color:var(--muted);opacity:0;transition:.25s;font-weight:600}
+  .strain-orb:hover .lab,.strain-orb.sel .lab{opacity:1}
+  .strain-detail{padding:28px;display:flex;flex-direction:column;min-height:440px}
+  .strain-detail h3{font-family:var(--font-display);font-size:25px;letter-spacing:-.4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .type-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
   .chip-Indica{background:rgba(181,139,255,.18);color:#d4bcff;border:1px solid rgba(181,139,255,.4)}
   .chip-Sativa{background:rgba(198,255,122,.16);color:var(--lime);border:1px solid rgba(198,255,122,.4)}
   .chip-Hybrid{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
-  .strain .thc{margin-top:14px;font-size:13px;color:var(--muted);position:relative}
-  .strain .thc b{color:var(--ink);font-family:var(--font-display)}
-  .thc-bar{height:7px;border-radius:999px;background:rgba(255,255,255,.07);margin-top:8px;overflow:hidden}
-  .thc-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--lime));transition:width 1.2s cubic-bezier(.16,1,.3,1)}
-  .strain .more{max-height:0;opacity:.4;overflow:hidden;transition:max-height .55s ease,opacity .45s;position:relative}
-  .strain.open .more{max-height:640px;opacity:1;margin-top:16px}
-  .strain .row{font-size:13.5px;line-height:1.55;margin-bottom:10px;color:#d8ebdd}
-  .strain .row b{color:var(--green);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;font-family:var(--font-display)}
-  .strain .toggle-h{margin-top:14px;font-size:12px;color:var(--muted-2);position:relative}
+  .strain-detail .thcbig{font-family:var(--font-display);font-size:14px;color:var(--muted);margin:14px 0 4px}
+  .strain-detail .thcbig b{color:var(--ink)}
+  .thc-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:16px}
+  .thc-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--lime));transition:width 1s cubic-bezier(.16,1,.3,1)}
+  .strain-detail .row{font-size:13.5px;line-height:1.55;margin-bottom:11px;color:#d8ebdd}
+  .strain-detail .row b{color:var(--green);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;font-family:var(--font-display)}
 
   /* TERPENES */
   .terp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}
@@ -216,26 +201,37 @@
   .terp-detail{padding:34px;min-height:340px}
   .terp-detail .swatch{width:54px;height:54px;border-radius:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
   .terp-detail h3{font-family:var(--font-display);font-size:28px;margin-bottom:6px;letter-spacing:-.5px}
-  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px}
   .terp-detail .meta span{font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
-  .terp-detail .block{margin-bottom:16px}
+  .terp-detail .block{margin-bottom:14px}
   .terp-detail .block b{color:var(--green);font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
   .terp-detail .block p{color:#d8ebdd;line-height:1.65;font-size:15px}
 
-  /* CANNABINOIDS */
-  .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:17px}
-  .cann{padding:24px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
-  .cann:hover{border-color:var(--green)}
-  .cann .h{display:flex;align-items:center;gap:12px;margin-bottom:5px}
-  .cann .sigla{font-family:var(--font-display);font-size:27px;font-weight:700;letter-spacing:.5px;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .cann .psy{margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+  /* CANNABINOIDS - flip */
+  .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .flip{perspective:1400px;height:300px;cursor:pointer}
+  .flip-in{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
+  .flip.on .flip-in{transform:rotateY(180deg)}
+  .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);padding:22px;display:flex;flex-direction:column}
+  .flip-back{transform:rotateY(180deg)}
+  .flip .h{display:flex;align-items:center;gap:12px}
+  .flip .sigla{font-family:var(--font-display);font-size:28px;font-weight:700;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .flip .psy{margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
   .psy-si{background:rgba(255,155,84,.18);color:var(--amber);border:1px solid rgba(255,155,84,.4)}
   .psy-no{background:rgba(95,224,137,.16);color:var(--green);border:1px solid rgba(95,224,137,.4)}
   .psy-lieve{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
-  .cann .full{color:var(--muted);font-size:13px;margin-bottom:13px}
-  .cann .eff{color:#e6f3ea;font-size:14.5px;line-height:1.6;margin-bottom:11px}
-  .cann .note{font-size:13px;color:var(--muted);line-height:1.55;border-top:1px solid var(--line);padding-top:11px}
-  .cann .note b{color:var(--violet);font-family:var(--font-display)}
+  .flip .full{color:var(--muted);font-size:12.5px;margin:3px 0 8px}
+  .flip .glyph{flex:1;display:flex;align-items:center;justify-content:center}
+  .flip .glyph svg{width:130px;height:130px}
+  .flip .aff{margin-top:auto}
+  .aff-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--font-display)}
+  .aff-bar{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+  .aff-bar span{display:block;height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+  .flip .flip-hint{font-size:11px;color:var(--muted-2);text-align:center;margin-top:8px}
+  .flip-back .eff{color:#e6f3ea;font-size:14px;line-height:1.55;margin:8px 0 10px}
+  .flip-back .note{font-size:12.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
+  .flip-back .note b{color:var(--violet);font-family:var(--font-display)}
+  .flip-back h4{font-family:var(--font-display);font-size:18px}
 
   /* FACTS */
   .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:17px}
@@ -245,15 +241,14 @@
   .fact h4{font-family:var(--font-display);font-size:17px;margin-bottom:8px;letter-spacing:-.2px}
   .fact p{color:var(--muted);font-size:14px;line-height:1.65}
 
-  /* SHARE / FOOTER */
-  .share{max-width:760px;margin:30px auto 0;text-align:center}
-  .share .btn{margin-top:6px}
+  .share{max-width:760px;margin:34px auto 0;text-align:center}
   footer{padding:64px 22px 90px;text-align:center;border-top:1px solid var(--line);margin-top:60px;position:relative;z-index:5}
   footer .foot-leaf{width:46px;height:46px;margin:0 auto 18px;animation:sway 6s ease-in-out infinite}
   footer .disclaimer{max-width:700px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.75;background:linear-gradient(120deg,rgba(255,155,84,.07),rgba(255,155,84,.02));border:1px solid rgba(255,155,84,.22);border-radius:16px;padding:20px 24px}
   footer .made{margin-top:22px;color:var(--muted-2);font-size:13px;font-family:var(--font-display)}
+  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:14px 26px;border-radius:999px;transition:transform .3s,box-shadow .3s;display:inline-flex;align-items:center;gap:9px;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line);backdrop-filter:blur(8px)}
+  .btn:hover{transform:translateY(-3px);border-color:var(--green);background:rgba(95,224,137,.08)}
 
-  /* INTRO */
   .intro{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,#0b1610,#040706);transition:opacity 1s ease,visibility 1s}
   .intro.hide{opacity:0;visibility:hidden;pointer-events:none}
   .intro-in{text-align:center}
@@ -263,7 +258,6 @@
   .intro-bar{width:160px;height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin:22px auto 0;overflow:hidden}
   .intro-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lime),var(--green));animation:introBar 1.9s ease forwards}
 
-  /* ANIMATIONS */
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
   @keyframes pulse-ring{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
@@ -282,7 +276,7 @@
   .pistil{transform-box:fill-box;transform-origin:bottom center;animation:sway 5s ease-in-out infinite}
 
   @media (max-width:880px){
-    .anatomy-grid,.type-grid,.terp-wrap{grid-template-columns:1fr}
+    .anatomy-grid,.tern-grid,.terp-wrap,.galaxy-wrap{grid-template-columns:1fr}
     .nav-links,#dotnav{display:none}
     .stats{grid-template-columns:repeat(2,1fr)}
     .cursor-dot,.cursor-ring{display:none}
@@ -316,12 +310,11 @@
     <span class="eyebrow"><span class="pulse"></span>Esperienza 3D · Interattiva</span>
     <h1><span class="ttl">WeedMap</span><span class="shine">WeedMap</span></h1>
     <div class="tagline">la cannabis come non l'hai mai vista</div>
-    <p class="sub">Un viaggio interattivo dentro la pianta: <b>anatomia</b>, <b>Indica/Sativa/Hybrid</b>, <b>strain</b>, <b>terpeni</b> e <b>cannabinoidi</b> — con una molecola 3D che ruota davanti ai tuoi occhi.</p>
-    <div class="cta-row">
-      <a href="#anatomia" class="btn btn-primary">Inizia il viaggio →</a>
-      <a href="#terpeni" class="btn btn-ghost">🍋 Vai ai terpeni</a>
+    <p class="sub">Ruota la molecola, falla esplodere, cambiala. Poi esplora la <b>galassia degli strain</b>, miscela <b>Indica/Sativa/Hybrid</b> con le tue mani e scopri terpeni e cannabinoidi.</p>
+    <div class="mol-switch" id="molSwitch">
+      <button data-m="THC" class="on">THC</button><button data-m="CBD">CBD</button><button data-m="CBG">CBG</button>
     </div>
-    <div class="hero-hint">✦ muovi il mouse per ruotare la scena · trascina la molecola</div>
+    <div class="hero-hint">✦ clicca la molecola per farla esplodere · trascina per ruotarla · muovi il mouse</div>
   </div>
   <div class="scroll-cue"><span class="mouse"></span>SCORRI</div>
 </header>
@@ -337,7 +330,7 @@
   </section>
 
   <section id="anatomia">
-    <div class="sec-head reveal"><div class="ghost">01</div><div class="kicker">Parte 01</div><h2>Anatomia della pianta</h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi della pianta per scoprire cosa fa ciascuna.</p></div>
+    <div class="sec-head reveal"><div class="ghost">01</div><div class="kicker">Parte 01</div><h2>Anatomia della pianta</h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi per scoprire cosa fa ciascuna.</p></div>
     <div class="anatomy-grid reveal">
       <div class="plant-stage card"><svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis interattiva"></svg></div>
       <div class="info-card card" id="anatomyCard"></div>
@@ -347,23 +340,35 @@
   </section>
 
   <section id="tipi">
-    <div class="sec-head reveal"><div class="ghost">02</div><div class="kicker">Parte 02</div><h2>Indica · Sativa · Hybrid</h2><p>Le tre grandi famiglie. Seleziona un tipo per vedere il profilo degli effetti animarsi sul grafico radar.</p></div>
-    <div class="type-toggle reveal" id="typeToggle"></div>
-    <div class="type-grid reveal">
-      <div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div>
-      <div class="type-desc card" id="typeDesc"></div>
+    <div class="sec-head reveal"><div class="ghost">02</div><div class="kicker">Parte 02 · interattivo</div><h2>Miscela il tuo profilo</h2><p>Trascina il punto nel triangolo per fondere Indica, Sativa e Hybrid: il radar e il profilo si ricalcolano in tempo reale.</p></div>
+    <div class="tern-grid reveal">
+      <div class="tern-box card">
+        <svg id="tern" viewBox="0 0 300 300"></svg>
+        <div class="tern-read" id="ternRead"></div>
+        <div class="tern-presets"><button data-p="Indica">100% Indica</button><button data-p="Sativa">100% Sativa</button><button data-p="Hybrid">100% Hybrid</button></div>
+      </div>
+      <div>
+        <div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div>
+        <div class="type-desc card" id="typeDesc" style="margin-top:18px"></div>
+      </div>
     </div>
-    <p class="hint">⚠️ La divisione Indica/Sativa è una semplificazione: terpeni e cannabinoidi influenzano l'effetto più della tassonomia.</p>
+    <p class="hint">⚠️ La divisione Indica/Sativa è una semplificazione: terpeni e cannabinoidi contano più della tassonomia.</p>
   </section>
 
   <section id="strain">
-    <div class="sec-head reveal"><div class="ghost">03</div><div class="kicker">Parte 03</div><h2>Gli Strain più famosi</h2><p>Filtra per tipo e clicca una card per espanderla: genetica, terpeni, effetti e quando usarla.</p></div>
+    <div class="sec-head reveal"><div class="ghost">03</div><div class="kicker">Parte 03 · interattivo</div><h2>La galassia degli Strain</h2><p>Ogni sfera è uno strain: posizione = energia ↔ relax, altezza = potenza THC, dimensione = THC. Passa sopra o clicca per i dettagli.</p></div>
     <div class="filters reveal" id="strainFilters"></div>
-    <div class="strain-grid reveal" id="strainGrid"></div>
+    <div class="galaxy-wrap reveal">
+      <div class="galaxy" id="galaxy">
+        <div class="axis ax-top">▲ più THC</div><div class="axis ax-l">potenza</div>
+        <div class="axis ax-x1">energizzante ◀</div><div class="axis ax-x2">▶ rilassante</div>
+      </div>
+      <div class="strain-detail card" id="strainDetail"></div>
+    </div>
   </section>
 
   <section id="terpeni">
-    <div class="sec-head reveal"><div class="ghost">04</div><div class="kicker">Parte 04</div><h2>La ruota dei Terpeni</h2><p>I terpeni danno aroma ed effetto. Clicca un terpene nella ruota per vedere profilo, effetti e dove altro si trova.</p></div>
+    <div class="sec-head reveal"><div class="ghost">04</div><div class="kicker">Parte 04</div><h2>La ruota dei Terpeni</h2><p>I terpeni danno aroma ed effetto. Clicca un terpene per profilo, effetti e dove altro si trova.</p></div>
     <div class="terp-wrap reveal">
       <div class="wheel" id="terpWheel"><div class="ring-deco"></div><div class="ring-deco r2"></div><div class="ring-deco r3"></div><div class="terp-center" id="terpCenter">Seleziona un terpene →</div></div>
       <div class="terp-detail card" id="terpDetail"></div>
@@ -371,22 +376,21 @@
   </section>
 
   <section id="cannabinoidi">
-    <div class="sec-head reveal"><div class="ghost">05</div><div class="kicker">Parte 05</div><h2>I Cannabinoidi</h2><p>Oltre al THC c'è un intero alfabeto di molecole. Ecco le principali e cosa fanno.</p></div>
+    <div class="sec-head reveal"><div class="ghost">05</div><div class="kicker">Parte 05 · interattivo</div><h2>I Cannabinoidi</h2><p>Clicca una card per girarla. Davanti: molecola stilizzata e affinità relativa per i recettori CB1/CB2. Dietro: effetti e note.</p></div>
     <div class="cann-grid reveal" id="cannGrid"></div>
+    <p class="hint">Le affinità CB1/CB2 sono illustrative e semplificate a scopo didattico.</p>
   </section>
 
   <section id="facts">
     <div class="sec-head reveal"><div class="ghost">06</div><div class="kicker">Parte 06</div><h2>Fun Facts</h2><p>Curiosità vere e interessanti sulla cannabis, dalla botanica alla cultura.</p></div>
     <div class="facts-grid reveal" id="factsGrid"></div>
-    <div class="share reveal">
-      <button class="btn btn-ghost" id="shareBtn">🔗 Copia il link da condividere</button>
-    </div>
+    <div class="share reveal"><button class="btn" id="shareBtn">🔗 Copia il link da condividere</button></div>
   </section>
 </main>
 
 <footer>
   <svg class="foot-leaf" viewBox="0 0 200 200" id="footLeaf"></svg>
-  <div class="disclaimer"><b>⚠️ Contenuto educativo.</b> Questa mappa ha scopo puramente informativo e divulgativo per un pubblico adulto. Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispetta sempre le normative locali. Le percentuali di THC e gli effetti sono indicativi e variano per genetica, coltivazione e individuo. Molti effetti citati derivano da studi preclinici, non ancora confermati nell'uomo.</div>
+  <div class="disclaimer"><b>⚠️ Contenuto educativo.</b> Questa mappa ha scopo puramente informativo e divulgativo per un pubblico adulto. Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispetta sempre le normative locali. Percentuali, affinità ed effetti sono indicativi; molti derivano da studi preclinici non ancora confermati nell'uomo.</div>
   <div class="made">🌿 WeedMap — un'esperienza interattiva · 2026</div>
 </footer>
 
@@ -405,68 +409,64 @@ const DATA = {
     {id:"radici",nome:"Radici (Roots)",funzione:"Ancorano la pianta e assorbono acqua, ossigeno e nutrienti.",dettaglio:"Dalla radice a fittone (taproot) si diramano radici laterali e radichette fini che fanno il grosso dell'assorbimento. Immagazzinano riserve e dialogano con i microrganismi del suolo. Un apparato radicale sano e ossigenato è la base di una pianta vigorosa.",curiosita:"In idroponica non c'è terra: le radici pendono in soluzione nutritiva, e i funghi micorrizici possono espanderne enormemente la superficie di assorbimento."}
   ],
   profiles:[
-    {tipo:"Indica",descrizione:"Tradizionalmente associata a un effetto rilassante, fisico e sedativo (il 'body high' o 'couch-lock'), adatto alla sera, al riposo e al sollievo da tensione e dolore. ⚠️ È però una semplificazione: l'effetto reale dipende molto più dal profilo di cannabinoidi e terpeni (mircene, linalolo e cariofillene tendono al relax) che dall'etichetta.",forma:"Pianta bassa, compatta e cespugliosa (1-2 m), adatta ai climi montani dell'Hindu Kush. Foglie larghe, verde scuro, foglioline corte e tozze. Fioritura più breve, cime dense e pesanti.",assi:{relax:90,energia:20,focus:25,corpo:90,creativita:30,sonno:85,appetito:80}},
-    {tipo:"Sativa",descrizione:"Tradizionalmente associata a un effetto più cerebrale, energizzante e creativo (l'‘head high’), adatto al giorno, alla socialità e all'attività. ⚠️ Anche qui conta più il chemotipo (limonene e pinene tendono all'effetto vivace e lucido) che la specie botanica.",forma:"Pianta alta e slanciata (anche 2-4 m), struttura aperta e rami lunghi, tipica delle regioni equatoriali. Foglie strette e affusolate, verde chiaro. Fioritura più lunga, cime ariose.",assi:{relax:30,energia:85,focus:75,corpo:25,creativita:85,sonno:20,appetito:55}},
-    {tipo:"Hybrid",descrizione:"Incroci tra Indica e Sativa per combinarne le caratteristiche. Oggi quasi tutte le varietà in commercio sono ibride, quindi 'pura indica/sativa' è più marketing che realtà. Un ibrido può essere a dominanza indica, sativa o bilanciato. ⚠️ L'effetto dipende dal profilo di cannabinoidi e terpeni della singola varietà.",forma:"Aspetto intermedio e variabile secondo la dominanza: altezza media, foglie di larghezza intermedia. Le caratteristiche ereditano in proporzione variabile dai genitori.",assi:{relax:60,energia:55,focus:55,corpo:55,creativita:60,sonno:50,appetito:65}}
+    {tipo:"Indica",descrizione:"Effetto tradizionalmente rilassante, fisico e sedativo (il 'body high'), adatto alla sera e al riposo.",forma:"Pianta bassa e cespugliosa (1-2 m), foglie larghe, fioritura breve. Origine: regioni montane dell'Hindu Kush.",assi:{relax:90,energia:20,focus:25,corpo:90,creativita:30,sonno:85,appetito:80}},
+    {tipo:"Sativa",descrizione:"Effetto tradizionalmente cerebrale, energizzante e creativo (l'‘head high’), adatto al giorno e alla socialità.",forma:"Pianta alta e slanciata (2-4 m), foglie strette, fioritura lunga. Origine: regioni equatoriali.",assi:{relax:30,energia:85,focus:75,corpo:25,creativita:85,sonno:20,appetito:55}},
+    {tipo:"Hybrid",descrizione:"Incrocio tra Indica e Sativa: bilancia effetti corporei e cerebrali. Quasi tutta la cannabis moderna è ibrida.",forma:"Aspetto intermedio e variabile secondo la dominanza dei genitori.",assi:{relax:60,energia:55,focus:55,corpo:55,creativita:60,sonno:50,appetito:65}}
   ],
   strains:[
-    {nome:"Northern Lights",tipo:"Indica",genetica:"Afghani × Thai (landrace); una delle indica fondamentali da cui derivano molti ibridi moderni",thc:"16-21% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Rilassamento corporeo profondo, sedazione, calma e benessere, conciliante per il sonno.",aromi:"Terroso, dolce-resinoso, con note di pino e spezie.",adattaA:"Serale/notturno; relax e supporto al sonno."},
-    {nome:"Granddaddy Purple (GDP)",tipo:"Indica",genetica:"Purple Urkle × Big Bud",thc:"17-23% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Effetto fisico pesante e rilassante, euforia iniziale che sfuma in sedazione.",aromi:"Uva e bacche dolci, note floreali e di mosto.",adattaA:"Fine serata; pieno relax prima del riposo."},
-    {nome:"Bubba Kush",tipo:"Indica",genetica:"Discendente di OG Kush con influenze Hindu Kush (lignaggio non del tutto certo)",thc:"15-22% (varia per fenotipo)",terpeniDominanti:"Cariofillene, mircene, limonene",effetti:"Rilassamento corporeo intenso e avvolgente, tranquillità mentale, tendenza alla sedazione.",aromi:"Caffè, cacao, note terrose e dolci speziate.",adattaA:"Serale; relax casalingo, preparazione al sonno."},
-    {nome:"Hindu Kush",tipo:"Indica",genetica:"Landrace pura della catena Hindu Kush (Afghanistan/Pakistan)",thc:"15-20% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, limonene",effetti:"Calma profonda e corporea, rilassamento meditativo, senso di quiete e sicurezza.",aromi:"Terroso, sandalo, dolce-resinoso con note legnose.",adattaA:"Serale; momenti contemplativi e sonno."},
-    {nome:"Sour Diesel",tipo:"Sativa",genetica:"Probabile Chemdawg × Super Skunk (lignaggio dibattuto)",thc:"19-25% (varia per fenotipo)",terpeniDominanti:"Cariofillene, limonene, mircene",effetti:"Energia cerebrale rapida, euforia stimolante, lucidità e carica creativa.",aromi:"Diesel pungente, agrumi, note acide e leggermente skunky.",adattaA:"Diurno; produttività, socialità e attività creative."},
-    {nome:"Jack Herer",tipo:"Sativa",genetica:"Haze × (Northern Lights #5 × Shiva Skunk)",thc:"18-24% (varia per fenotipo)",terpeniDominanti:"Terpinolene, cariofillene, pinene",effetti:"Lucidità mentale, euforia creativa, energia equilibrata senza eccesso di nervosismo.",aromi:"Pino, agrumi, spezie e note terrose-resinose.",adattaA:"Diurno; lavoro creativo e concentrazione."},
-    {nome:"Durban Poison",tipo:"Sativa",genetica:"Landrace sativa pura dal Sudafrica (zona di Durban)",thc:"17-24% (varia per fenotipo)",terpeniDominanti:"Terpinolene, mircene, ocimene",effetti:"Stimolazione energica e pulita, forte focus, effetto chiaro e poco sedativo.",aromi:"Dolce-anice, agrumato, note speziate e di pino.",adattaA:"Diurno; mattina e attività che richiedono energia."},
-    {nome:"Green Crack",tipo:"Sativa",genetica:"Selezione da Skunk #1",thc:"16-24% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Carica energetica immediata, vivacità mentale, umore positivo, anti-fatica.",aromi:"Mango e agrumi tropicali, note dolci-fruttate.",adattaA:"Diurno; boost di energia e motivazione."},
-    {nome:"Blue Dream",tipo:"Hybrid",genetica:"Blueberry (indica) × Haze (sativa); leggera prevalenza sativa",thc:"17-24% (varia per fenotipo)",terpeniDominanti:"Mircene, pinene, cariofillene",effetti:"Euforia cerebrale dolce con rilassamento corporeo bilanciato, creatività senza eccessiva sedazione.",aromi:"Mirtillo e frutti di bosco, note dolci ed erbacee.",adattaA:"Diurno/pomeridiano; uso versatile."},
-    {nome:"OG Kush",tipo:"Hybrid",genetica:"Lignaggio incerto, probabile Chemdawg × Hindu Kush; ibrida bilanciata",thc:"19-26% (varia per fenotipo)",terpeniDominanti:"Mircene, limonene, cariofillene",effetti:"Euforia potente con forte rilassamento corporeo, riduzione dello stress, effetto avvolgente.",aromi:"Carburante e pino, limone, note terrose e speziate.",adattaA:"Pomeriggio-sera; decompressione e relax sociale."},
-    {nome:"Girl Scout Cookies (GSC)",tipo:"Hybrid",genetica:"OG Kush × Durban Poison; ibrida bilanciata con tendenza indica",thc:"19-28% (varia per fenotipo)",terpeniDominanti:"Cariofillene, limonene, umulene",effetti:"Euforia intensa e duratura seguita da forte rilassamento corporeo, comfort.",aromi:"Dolce e biscottoso, note di terra, menta e agrumi.",adattaA:"Pomeriggio-sera; relax appagante e momenti conviviali."},
-    {nome:"Wedding Cake",tipo:"Hybrid",genetica:"Triangle Kush × Animal Mints (famiglia GSC); ibrida a prevalenza indica",thc:"20-27% (varia per fenotipo)",terpeniDominanti:"Limonene, cariofillene, mircene",effetti:"Rilassamento profondo con euforia appagante, calma mentale e comfort fisico.",aromi:"Dolce-vanigliato e di torta, note terrose e pepate.",adattaA:"Serale; relax casalingo senza sedazione totale."}
+    {nome:"Northern Lights",tipo:"Indica",genetica:"Afghani × Thai (landrace)",thc:"16-21% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Rilassamento corporeo profondo, sedazione, calma, conciliante per il sonno.",aromi:"Terroso, dolce-resinoso, pino e spezie.",adattaA:"Serale/notturno; relax e sonno."},
+    {nome:"Granddaddy Purple",tipo:"Indica",genetica:"Purple Urkle × Big Bud",thc:"17-23% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Effetto fisico pesante, euforia che sfuma in sedazione.",aromi:"Uva e bacche dolci, note floreali.",adattaA:"Fine serata; pieno relax."},
+    {nome:"Bubba Kush",tipo:"Indica",genetica:"Discendente di OG Kush / Hindu Kush",thc:"15-22% (varia per fenotipo)",terpeniDominanti:"Cariofillene, mircene, limonene",effetti:"Rilassamento intenso e avvolgente, tranquillità, sedazione.",aromi:"Caffè, cacao, note terrose.",adattaA:"Serale; relax casalingo."},
+    {nome:"Hindu Kush",tipo:"Indica",genetica:"Landrace pura (catena Hindu Kush)",thc:"15-20% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, limonene",effetti:"Calma profonda e corporea, rilassamento meditativo.",aromi:"Terroso, sandalo, dolce-resinoso.",adattaA:"Serale; contemplazione e sonno."},
+    {nome:"Sour Diesel",tipo:"Sativa",genetica:"Chemdawg × Super Skunk (dibattuto)",thc:"19-25% (varia per fenotipo)",terpeniDominanti:"Cariofillene, limonene, mircene",effetti:"Energia cerebrale rapida, euforia, lucidità e carica creativa.",aromi:"Diesel pungente, agrumi, note acide.",adattaA:"Diurno; creatività e socialità."},
+    {nome:"Jack Herer",tipo:"Sativa",genetica:"Haze × (Northern Lights × Shiva Skunk)",thc:"18-24% (varia per fenotipo)",terpeniDominanti:"Terpinolene, cariofillene, pinene",effetti:"Lucidità mentale, euforia creativa, energia equilibrata.",aromi:"Pino, agrumi, spezie.",adattaA:"Diurno; lavoro creativo e focus."},
+    {nome:"Durban Poison",tipo:"Sativa",genetica:"Landrace sativa pura (Sudafrica)",thc:"17-24% (varia per fenotipo)",terpeniDominanti:"Terpinolene, mircene, ocimene",effetti:"Stimolazione energica e pulita, forte focus, poco sedativo.",aromi:"Dolce-anice, agrumato, pino.",adattaA:"Diurno; mattina ed energia."},
+    {nome:"Green Crack",tipo:"Sativa",genetica:"Selezione da Skunk #1",thc:"16-24% (varia per fenotipo)",terpeniDominanti:"Mircene, cariofillene, pinene",effetti:"Carica energetica immediata, vivacità mentale, anti-fatica.",aromi:"Mango e agrumi tropicali.",adattaA:"Diurno; energia e motivazione."},
+    {nome:"Blue Dream",tipo:"Hybrid",genetica:"Blueberry × Haze (sativa-dom.)",thc:"17-24% (varia per fenotipo)",terpeniDominanti:"Mircene, pinene, cariofillene",effetti:"Euforia dolce con rilassamento bilanciato, creatività.",aromi:"Mirtillo e frutti di bosco.",adattaA:"Diurno/pomeridiano; versatile."},
+    {nome:"OG Kush",tipo:"Hybrid",genetica:"Chemdawg × Hindu Kush (incerto)",thc:"19-26% (varia per fenotipo)",terpeniDominanti:"Mircene, limonene, cariofillene",effetti:"Euforia potente con forte relax corporeo, anti-stress.",aromi:"Carburante, pino, limone.",adattaA:"Pomeriggio-sera; relax sociale."},
+    {nome:"Girl Scout Cookies",tipo:"Hybrid",genetica:"OG Kush × Durban Poison",thc:"19-28% (varia per fenotipo)",terpeniDominanti:"Cariofillene, limonene, umulene",effetti:"Euforia intensa seguita da forte relax corporeo, comfort.",aromi:"Dolce e biscottoso, terra, menta.",adattaA:"Pomeriggio-sera; momenti speciali."},
+    {nome:"Wedding Cake",tipo:"Hybrid",genetica:"Triangle Kush × Animal Mints",thc:"20-27% (varia per fenotipo)",terpeniDominanti:"Limonene, cariofillene, mircene",effetti:"Rilassamento profondo con euforia appagante, comfort.",aromi:"Dolce-vanigliato, note terrose.",adattaA:"Serale; relax casalingo."}
   ],
   terpenes:[
-    {nome:"Mircene (β-mircene)",aroma:"Terroso, muschiato, erbaceo, con note di chiodi di garofano e un fondo di mango maturo. È il terpene più abbondante in molte varietà.",effetti:"Associato a rilassamento e sedazione (il famoso 'effetto divano'), con potenziali proprietà analgesiche e antinfiammatorie. Le prove sull'uomo sono ancora limitate.",ancheIn:"Mango, luppolo, citronella, timo, alloro, cardamomo.",colore:"#8a9a5b",bollePunto:"166-168 °C"},
-    {nome:"Limonene (D-limonene)",aroma:"Agrumato, fresco e vivace: scorza di limone, arancia e pompelmo.",effetti:"Riportato come elevante dell'umore e ansiolitico, con proprietà antinfiammatorie e antiossidanti nei modelli preclinici. Evidenze sull'uomo ancora preliminari.",ancheIn:"Bucce di agrumi, ginepro, menta, rosmarino.",colore:"#f4d03f",bollePunto:"176 °C"},
-    {nome:"Pinene (α-pinene)",aroma:"Resinoso e fresco di pino e aghi di conifera, con sfumature balsamiche.",effetti:"Studiato come broncodilatatore e per contrastare il calo di memoria a breve termine indotto dal THC. Dati soprattutto preclinici.",ancheIn:"Aghi di pino, rosmarino, basilico, salvia, aneto.",colore:"#3a7d44",bollePunto:"155-156 °C"},
-    {nome:"Cariofillene (β-cariofillene)",aroma:"Speziato, pepato e legnoso: pepe nero, chiodi di garofano, cannella.",effetti:"Unico terpene che lega il recettore CB2: studiato per effetti antinfiammatori, analgesici e ansiolitici. Prove cliniche ancora scarse.",ancheIn:"Pepe nero, chiodi di garofano, cannella, origano, luppolo.",colore:"#a9683f",bollePunto:"≈266 °C"},
-    {nome:"Linalolo",aroma:"Floreale e dolce, tipico della lavanda, con leggere note speziate e agrumate.",effetti:"Associato a calma, relax e supporto al sonno, con proprietà ansiolitiche e anticonvulsivanti nei modelli preclinici.",ancheIn:"Lavanda, coriandolo, basilico, bergamotto, alloro.",colore:"#b57edc",bollePunto:"198 °C"},
-    {nome:"Terpinolene",aroma:"Complesso e fresco: erbaceo, floreale, agrumato con un fondo legnoso e di pino.",effetti:"Studiato per proprietà antiossidanti, sedative e antimicrobiche; profilo descritto come leggero e bilanciante. È tra i meno studiati.",ancheIn:"Noce moscata, tea tree, lillà, cumino, mele.",colore:"#9caf88",bollePunto:"186-187 °C"},
-    {nome:"Umulene (α-umulene)",aroma:"Terroso, legnoso e luppolato: è il terpene tipico dell'aroma del luppolo nella birra.",effetti:"Riportato per proprietà antinfiammatorie, antibatteriche e di soppressione dell'appetito, spesso in sinergia col cariofillene. Dati preclinici.",ancheIn:"Luppolo, coriandolo, chiodi di garofano, basilico, salvia, ginseng.",colore:"#a67b5b",bollePunto:"198 °C"},
-    {nome:"Ocimene (β-ocimene)",aroma:"Dolce, erbaceo e fruttato con note legnose e una freschezza floreale-agrumata.",effetti:"Studiato per proprietà antinfiammatorie, antivirali e decongestionanti; talvolta associato a un effetto edificante. Evidenze preliminari.",ancheIn:"Menta, prezzemolo, basilico, mango, pepe, kumquat.",colore:"#c5d86d",bollePunto:"≈177 °C (molto volatile)"}
+    {nome:"Mircene (β-mircene)",aroma:"Terroso, muschiato, erbaceo, con note di chiodi di garofano e un fondo di mango maturo.",effetti:"Associato a rilassamento e sedazione (il famoso 'effetto divano'), con potenziali proprietà analgesiche e antinfiammatorie. Prove sull'uomo ancora limitate.",ancheIn:"Mango, luppolo, citronella, timo, alloro.",colore:"#8a9a5b",bollePunto:"166-168 °C"},
+    {nome:"Limonene (D-limonene)",aroma:"Agrumato, fresco e vivace: scorza di limone, arancia e pompelmo.",effetti:"Riportato come elevante dell'umore e ansiolitico, con proprietà antinfiammatorie nei modelli preclinici. Evidenze sull'uomo preliminari.",ancheIn:"Bucce di agrumi, ginepro, menta, rosmarino.",colore:"#f4d03f",bollePunto:"176 °C"},
+    {nome:"Pinene (α-pinene)",aroma:"Resinoso e fresco di pino e aghi di conifera, con sfumature balsamiche.",effetti:"Studiato come broncodilatatore e per contrastare il calo di memoria indotto dal THC. Dati soprattutto preclinici.",ancheIn:"Aghi di pino, rosmarino, basilico, salvia.",colore:"#3a7d44",bollePunto:"155-156 °C"},
+    {nome:"Cariofillene (β-cariofillene)",aroma:"Speziato, pepato e legnoso: pepe nero, chiodi di garofano, cannella.",effetti:"Unico terpene che lega il recettore CB2: studiato per effetti antinfiammatori e analgesici. Prove cliniche ancora scarse.",ancheIn:"Pepe nero, chiodi di garofano, cannella, origano.",colore:"#a9683f",bollePunto:"≈266 °C"},
+    {nome:"Linalolo",aroma:"Floreale e dolce, tipico della lavanda, con note speziate.",effetti:"Associato a calma, relax e supporto al sonno, con proprietà ansiolitiche nei modelli preclinici.",ancheIn:"Lavanda, coriandolo, basilico, bergamotto.",colore:"#b57edc",bollePunto:"198 °C"},
+    {nome:"Terpinolene",aroma:"Complesso e fresco: erbaceo, floreale, agrumato con fondo di pino.",effetti:"Studiato per proprietà antiossidanti, sedative e antimicrobiche; profilo leggero. Tra i meno studiati.",ancheIn:"Noce moscata, tea tree, lillà, cumino.",colore:"#9caf88",bollePunto:"186-187 °C"},
+    {nome:"Umulene (α-umulene)",aroma:"Terroso, legnoso e luppolato: il terpene tipico del luppolo nella birra.",effetti:"Riportato per proprietà antinfiammatorie e di soppressione dell'appetito, spesso in sinergia col cariofillene.",ancheIn:"Luppolo, coriandolo, chiodi di garofano, salvia.",colore:"#a67b5b",bollePunto:"198 °C"},
+    {nome:"Ocimene (β-ocimene)",aroma:"Dolce, erbaceo e fruttato con note legnose e freschezza floreale.",effetti:"Studiato per proprietà antinfiammatorie e decongestionanti; talvolta associato a un effetto edificante.",ancheIn:"Menta, prezzemolo, basilico, mango, pepe.",colore:"#c5d86d",bollePunto:"≈177 °C (volatile)"}
   ],
   cannabinoids:[
-    {sigla:"THC",nome:"Δ9-tetraidrocannabinolo",psicoattivo:"Si",effetto:"Principale composto psicoattivo: euforia e alterazione della percezione tramite l'attivazione dei recettori CB1. Ha anche proprietà analgesiche, antiemetiche e stimolanti dell'appetito.",nota:"Isolato per la prima volta nel 1964 da Raphael Mechoulam, il 'padre' della ricerca sui cannabinoidi. L'uso non medico è regolamentato dalla legge."},
-    {sigla:"CBD",nome:"Cannabidiolo",psicoattivo:"No",effetto:"Non provoca l'euforia del THC. Studiato per proprietà ansiolitiche, anticonvulsivanti e antinfiammatorie; modula indirettamente il sistema endocannabinoide.",nota:"È il principio attivo dell'Epidiolex, farmaco approvato per alcune forme rare di epilessia. Può attenuare alcuni effetti del THC."},
-    {sigla:"CBG",nome:"Cannabigerolo",psicoattivo:"No",effetto:"Cannabinoide non inebriante, studiato per possibili effetti antinfiammatori, antibatterici e neuroprotettivi; interagisce con CB1, CB2 e altri bersagli.",nota:"È la 'molecola madre': dal suo precursore (CBGA) derivano THC, CBD e CBC. Per questo nelle cime mature ne resta in genere poco."},
-    {sigla:"CBN",nome:"Cannabinolo",psicoattivo:"Lievemente",effetto:"Debolmente psicoattivo, con bassa affinità per il CB1. Spesso associato a effetti sedativi, anche se le prove cliniche sono limitate.",nota:"Si forma per ossidazione del THC con tempo, calore, aria e luce: alti livelli indicano spesso materiale vecchio o conservato male."},
-    {sigla:"THCV",nome:"Tetraidrocannabivarina",psicoattivo:"Lievemente",effetto:"Effetto dose-dipendente: a basse dosi smorza alcuni effetti del THC, ad alte dosi diventa lievemente psicoattivo. Studiata per appetito e metabolismo.",nota:"A differenza del THC, in alcuni studi sembra ridurre l'appetito (la 'diet weed'). Resta in fase sperimentale."},
-    {sigla:"CBC",nome:"Cannabicromene",psicoattivo:"No",effetto:"Non inebriante; studiato per proprietà antinfiammatorie e analgesiche e per il contributo all'effetto entourage; agisce anche sui canali TRPA1.",nota:"Deriva anch'esso dal CBGA. Agirebbe in sinergia con altri cannabinoidi, ma è tra i meno studiati nell'uomo."}
+    {sigla:"THC",nome:"Δ9-tetraidrocannabinolo",psicoattivo:"Si",cb1:92,cb2:45,effetto:"Principale composto psicoattivo: euforia e alterazione della percezione tramite i recettori CB1. Ha anche effetti analgesici, antiemetici e stimolanti dell'appetito.",nota:"Isolato nel 1964 da Raphael Mechoulam, il 'padre' della ricerca sui cannabinoidi."},
+    {sigla:"CBD",nome:"Cannabidiolo",psicoattivo:"No",cb1:12,cb2:22,effetto:"Non provoca l'euforia del THC. Studiato per proprietà ansiolitiche, anticonvulsivanti e antinfiammatorie; modula indirettamente il sistema endocannabinoide.",nota:"È il principio attivo dell'Epidiolex, farmaco per alcune epilessie. Può attenuare effetti del THC."},
+    {sigla:"CBG",nome:"Cannabigerolo",psicoattivo:"No",cb1:28,cb2:35,effetto:"Cannabinoide non inebriante, studiato per effetti antinfiammatori, antibatterici e neuroprotettivi.",nota:"È la 'molecola madre': dal precursore CBGA derivano THC, CBD e CBC."},
+    {sigla:"CBN",nome:"Cannabinolo",psicoattivo:"Lievemente",cb1:38,cb2:42,effetto:"Debolmente psicoattivo, bassa affinità per il CB1. Spesso associato a effetti sedativi (prove cliniche limitate).",nota:"Si forma per ossidazione del THC: alti livelli indicano materiale vecchio."},
+    {sigla:"THCV",nome:"Tetraidrocannabivarina",psicoattivo:"Lievemente",cb1:48,cb2:40,effetto:"Effetto dose-dipendente: a basse dosi smorza alcuni effetti del THC, ad alte dosi diventa lievemente psicoattivo.",nota:"In alcuni studi riduce l'appetito (la 'diet weed'). Sperimentale."},
+    {sigla:"CBC",nome:"Cannabicromene",psicoattivo:"No",cb1:10,cb2:58,effetto:"Non inebriante; studiato per proprietà antinfiammatorie e per l'effetto entourage; agisce anche sui canali TRPA1.",nota:"Deriva dal CBGA. Agirebbe in sinergia con altri cannabinoidi."}
   ],
   facts:[
-    {emoji:"♀️",titolo:"Una pianta dioica",testo:"La cannabis è tipicamente dioica: esistono piante maschili e femminili separate. Sono le femmine non fecondate (sinsemilla) a produrre le infiorescenze più ricche di resina e cannabinoidi."},
-    {emoji:"🌿",titolo:"Canapa e marijuana, stessa specie",testo:"Canapa industriale e cannabis da consumo appartengono entrambe a Cannabis sativa: la distinzione legale si basa sul contenuto di THC, non sulla botanica."},
-    {emoji:"🧪",titolo:"Oltre 500 composti",testo:"La pianta contiene più di 500 composti chimici identificati, tra cui oltre 100 cannabinoidi diversi insieme a terpeni e flavonoidi."},
-    {emoji:"🧠",titolo:"Il sistema endocannabinoide",testo:"Il corpo umano ha un sistema endocannabinoide con recettori CB1 e CB2 che regola appetito, dolore, umore e memoria, scoperto proprio studiando come agisce il THC."},
-    {emoji:"😌",titolo:"Anandamide, la molecola della beatitudine",testo:"L'anandamide è un endocannabinoide prodotto dal nostro corpo: il suo nome deriva dal sanscrito ananda, che significa beatitudine o gioia."},
-    {emoji:"🤝",titolo:"L'effetto entourage",testo:"È l'ipotesi secondo cui cannabinoidi e terpeni agiscano in sinergia, producendo un effetto complessivo diverso da quello dei singoli composti isolati."},
-    {emoji:"⚗️",titolo:"THC e CBD a confronto",testo:"Il THC è il principale composto psicoattivo responsabile dello 'sballo', mentre il CBD non provoca effetti psicotropi ed è studiato per usi terapeutici."},
-    {emoji:"🕓",titolo:"Perché si dice 4/20",testo:"Il termine '420' nasce nei primi anni '70 da un gruppo di studenti californiani (i Waldos) che si trovava alle 16:20. Oggi il 20 aprile è celebrato come giornata della cannabis."},
-    {emoji:"📜",titolo:"Una storia antichissima",testo:"La cannabis è coltivata da migliaia di anni: tracce del suo uso risalgono ad almeno 2.500 anni fa in Asia centrale, dove veniva impiegata anche in riti funerari."},
-    {emoji:"📄",titolo:"La fibra che ha fatto la storia",testo:"La canapa è una delle fibre tessili più antiche al mondo, usata per corde, vele e carta nel corso dei secoli."},
-    {emoji:"🔬",titolo:"I tricomi, fabbriche di resina",testo:"La resina ricca di cannabinoidi è prodotta da minuscole ghiandole, i tricomi, presenti soprattutto sulle infiorescenze femminili e visibili come cristalli scintillanti."},
-    {emoji:"🪴",titolo:"Il nome lo diede Linneo",testo:"Il nome scientifico Cannabis sativa fu assegnato dal botanico Carl Linneo nel 1753; in latino 'sativa' significa semplicemente 'coltivata, seminata'."}
+    {emoji:"♀️",titolo:"Una pianta dioica",testo:"Esistono piante maschili e femminili separate. Sono le femmine non fecondate (sinsemilla) a produrre le infiorescenze più ricche di resina."},
+    {emoji:"🌿",titolo:"Canapa e marijuana, stessa specie",testo:"Appartengono entrambe a Cannabis sativa: la distinzione legale si basa sul contenuto di THC, non sulla botanica."},
+    {emoji:"🧪",titolo:"Oltre 500 composti",testo:"La pianta contiene più di 500 composti chimici, tra cui oltre 100 cannabinoidi insieme a terpeni e flavonoidi."},
+    {emoji:"🧠",titolo:"Il sistema endocannabinoide",testo:"Il corpo umano ha recettori CB1 e CB2 che regolano appetito, dolore, umore e memoria, scoperti studiando il THC."},
+    {emoji:"😌",titolo:"Anandamide, la molecola della beatitudine",testo:"Endocannabinoide prodotto dal corpo: il nome deriva dal sanscrito ananda, che significa beatitudine."},
+    {emoji:"🤝",titolo:"L'effetto entourage",testo:"Cannabinoidi e terpeni agirebbero in sinergia, producendo un effetto diverso da quello dei singoli composti isolati."},
+    {emoji:"⚗️",titolo:"THC e CBD a confronto",testo:"Il THC è il principale composto psicoattivo; il CBD non provoca effetti psicotropi ed è studiato per usi terapeutici."},
+    {emoji:"🕓",titolo:"Perché si dice 4/20",testo:"Il '420' nasce negli anni '70 da studenti californiani (i Waldos) che si trovavano alle 16:20. Il 20 aprile è la loro giornata."},
+    {emoji:"📜",titolo:"Una storia antichissima",testo:"Coltivata da migliaia di anni: tracce d'uso risalgono ad almeno 2.500 anni fa in Asia centrale."},
+    {emoji:"📄",titolo:"La fibra che ha fatto la storia",testo:"La canapa è una delle fibre tessili più antiche al mondo, usata per corde, vele e carta."},
+    {emoji:"🔬",titolo:"I tricomi, fabbriche di resina",testo:"La resina ricca di cannabinoidi è prodotta da minuscole ghiandole, i tricomi, visibili come cristalli scintillanti."},
+    {emoji:"🪴",titolo:"Il nome lo diede Linneo",testo:"Il nome Cannabis sativa fu assegnato da Carl Linneo nel 1753; 'sativa' in latino significa 'coltivata'."}
   ]
 };
 
 var REDUCED = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 var FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+function hexA(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
 
 /* ===================== LEAF ===================== */
-function leafSVG(c1,c2,id){
-  var bl=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];
-  var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><g transform="translate(100,108)">';
-  bl.forEach(function(b){s+='<g class="leaflet" transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/></g>';});
-  return s+'<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';
-}
+function leafSVG(c1,c2,id){var bl=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><g transform="translate(100,108)">';bl.forEach(function(b){s+='<g class="leaflet" transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/></g>';});return s+'<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';}
 document.getElementById('brandLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lb');
 document.getElementById('footLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lf');
 
@@ -474,23 +474,17 @@ document.getElementById('footLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lf');
 function buildPlant(){
   var svg=document.getElementById('plantSvg');
   var s='<defs><linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc07a"/><stop offset="1" stop-color="#2c7d44"/></linearGradient><radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#7fe39a"/><stop offset="1" stop-color="#2f9d57"/></radialGradient><radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#8be0a0"/><stop offset="1" stop-color="#3a8f57"/></radialGradient></defs>';
-  s+='<g data-part="radici" class="glow-part">';
-  for(var i=-3;i<=3;i++){s+='<path d="M200,560 q '+(i*16)+',22 '+(i*30)+',44" stroke="#c79a6a" stroke-width="'+(3-Math.abs(i)*0.3)+'" fill="none" opacity=".85"/>';}
-  s+='</g><g data-part="gambo" class="glow-part"><rect x="195" y="250" width="10" height="312" rx="5" fill="url(#stemG)"/></g>';
+  s+='<g data-part="radici" class="glow-part">';for(var i=-3;i<=3;i++){s+='<path d="M200,560 q '+(i*16)+',22 '+(i*30)+',44" stroke="#c79a6a" stroke-width="'+(3-Math.abs(i)*0.3)+'" fill="none" opacity=".85"/>';}s+='</g>';
+  s+='<g data-part="gambo" class="glow-part"><rect x="195" y="250" width="10" height="312" rx="5" fill="url(#stemG)"/></g>';
   function fanLeaf(cx,cy,rot,scale){var g='<g transform="translate('+cx+','+cy+') rotate('+rot+') scale('+scale+')">';var bl=[{a:0,len:70},{a:26,len:54},{a:-26,len:54},{a:50,len:36},{a:-50,len:36}];bl.forEach(function(b){g+='<g transform="rotate('+b.a+')"><path d="M0,0 C12,-'+(b.len*0.35)+' 6,-'+(b.len*0.8)+' 0,-'+b.len+' C-6,-'+(b.len*0.8)+' -12,-'+(b.len*0.35)+' 0,0 Z" fill="url(#colaG)" stroke="#2c7d44" stroke-width="1"/></g>';});return g+'</g>';}
   s+='<g data-part="nodi" class="glow-part"><circle cx="200" cy="420" r="7" fill="#3a8f57"/><circle cx="200" cy="350" r="7" fill="#3a8f57"/></g>';
   s+='<g data-part="foglieventaglio" class="glow-part">'+fanLeaf(196,420,-118,0.9)+fanLeaf(204,420,118,0.9)+fanLeaf(196,350,-125,0.7)+fanLeaf(204,350,125,0.7)+'</g>';
   s+='<g data-part="cola" class="glow-part">';
   var buds=[[200,120,30],[178,150,24],[222,150,24],[200,165,26],[165,185,20],[235,185,20],[190,195,22],[210,195,22],[200,225,24],[178,215,18],[222,215,18]];
-  s+='<g data-part="fogliezucchero" class="glow-part" opacity=".95">';
-  [[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>';});
-  s+='</g><g data-part="calice" class="glow-part">';
-  buds.forEach(function(b){s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>';});
-  s+='</g></g><g data-part="pistilli" class="glow-part">';
-  [[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p,i){s+='<path class="pistil" style="animation-delay:'+((i%5)*0.3)+'s" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>';});
-  s+='</g><g data-part="tricomi" class="glow-part">';
-  for(var t=0;t<70;t++){var ang=(t*53)%360,rad=(t*7)%70+8,cx=200+Math.cos(ang)*rad*0.7,cy=170+Math.sin(ang)*rad-(t%3)*4;if(cy>110&&cy<245&&cx>150&&cx<250){s+='<circle class="tricho" style="animation-delay:'+((t%7)*0.25)+'s" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(1+(t%3)*0.6).toFixed(1)+'" fill="#eafff0"/>';}}
-  s+='</g>';
+  s+='<g data-part="fogliezucchero" class="glow-part" opacity=".95">';[[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>';});s+='</g>';
+  s+='<g data-part="calice" class="glow-part">';buds.forEach(function(b){s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>';});s+='</g></g>';
+  s+='<g data-part="pistilli" class="glow-part">';[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p,i){s+='<path class="pistil" style="animation-delay:'+((i%5)*0.3)+'s" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>';});s+='</g>';
+  s+='<g data-part="tricomi" class="glow-part">';for(var t=0;t<70;t++){var ang=(t*53)%360,rad=(t*7)%70+8,cx=200+Math.cos(ang)*rad*0.7,cy=170+Math.sin(ang)*rad-(t%3)*4;if(cy>110&&cy<245&&cx>150&&cx<250){s+='<circle class="tricho" style="animation-delay:'+((t%7)*0.25)+'s" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(1+(t%3)*0.6).toFixed(1)+'" fill="#eafff0"/>';}}s+='</g>';
   [{id:"cola",x:200,y:100,n:1},{id:"calice",x:235,y:170,n:2},{id:"pistilli",x:165,y:135,n:3},{id:"tricomi",x:200,y:200,n:4},{id:"foglieventaglio",x:140,y:415,n:5},{id:"fogliezucchero",x:150,y:205,n:6},{id:"nodi",x:200,y:355,n:7},{id:"gambo",x:205,y:500,n:8},{id:"radici",x:200,y:590,n:9}].forEach(function(sp){s+='<g class="hotspot" data-spot="'+sp.id+'"><circle class="hit" cx="'+sp.x+'" cy="'+sp.y+'" r="20"/><circle class="ring" cx="'+sp.x+'" cy="'+sp.y+'" r="13"/><circle class="dot" cx="'+sp.x+'" cy="'+sp.y+'" r="10"/><text class="num" x="'+sp.x+'" y="'+sp.y+'">'+sp.n+'</text></g>';});
   svg.innerHTML=s;
   var groups={};DATA.anatomy.forEach(function(p){groups[p.id]=svg.querySelector('[data-part="'+p.id+'"]');});
@@ -503,57 +497,161 @@ function buildPlant(){
 function renderAnatomy(id){var i=DATA.anatomy.findIndex(function(p){return p.id===id;});var p=DATA.anatomy[i];document.getElementById('anatomyCard').innerHTML='<span class="tagnum">'+(i+1)+'</span><h3>'+p.nome+'</h3><div class="role">'+p.funzione+'</div><div class="desc">'+p.dettaglio+'</div><div class="fun"><div class="fun-box"><b>Lo sapevi?</b> '+p.curiosita+'</div></div>';}
 function buildAnatomyKey(){var k=document.getElementById('anatomyKey');k.innerHTML=DATA.anatomy.map(function(p,i){return '<button data-k="'+p.id+'">'+(i+1)+'. '+p.nome.split(' (')[0]+'</button>';}).join('');k.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){window._focusPart(b.dataset.k);});});}
 
-/* ===================== RADAR ===================== */
+/* ===================== RADAR (blendabile) ===================== */
 var AXES=[["relax","Relax"],["energia","Energia"],["focus","Focus"],["corpo","Corpo"],["creativita","Creatività"],["sonno","Sonno"],["appetito","Appetito"]];
 var RC=180,RR=120,radarCurrent=AXES.map(function(){return 0;}),radarAnim=null;
-var TYPE_COLORS={Indica:"#b58bff",Sativa:"#c6ff7a",Hybrid:"#ffcf6b"};
 function radarPoint(idx,val){var a=(Math.PI*2*idx/AXES.length)-Math.PI/2,r=RR*val/100;return [RC+Math.cos(a)*r,RC+Math.sin(a)*r];}
 function buildRadarFrame(){var s='';[25,50,75,100].forEach(function(p){s+='<polygon points="'+AXES.map(function(_,i){return radarPoint(i,p).join(',');}).join(' ')+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';});AXES.forEach(function(ax,i){var pt=radarPoint(i,100);s+='<line x1="'+RC+'" y1="'+RC+'" x2="'+pt[0]+'" y2="'+pt[1]+'" stroke="rgba(255,255,255,.08)"/>';var lp=radarPoint(i,124);s+='<text x="'+lp[0]+'" y="'+lp[1]+'" fill="#90a89a" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">'+ax[1]+'</text>';});s+='<polygon id="radarPoly" points="" fill="rgba(95,224,137,.22)" stroke="#5fe089" stroke-width="2.5" stroke-linejoin="round"/><g id="radarDots"></g>';document.getElementById('radar').innerHTML=s;}
 function drawRadarShape(vals,col){document.getElementById('radarPoly').setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>';}).join('');}
-function hexA(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
-function setRadar(type){var prof=DATA.profiles.find(function(p){return p.tipo===type;});var target=AXES.map(function(ax){return prof.assi[ax[0]];});var col=TYPE_COLORS[type];document.getElementById('radarPoly').setAttribute('fill',hexA(col,.22));document.getElementById('radarPoly').setAttribute('stroke',col);var start=radarCurrent.slice();drawRadarShape(target,col);if(!REDUCED){var t0=performance.now(),dur=750;if(radarAnim)cancelAnimationFrame(radarAnim);(function step(now){var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});drawRadarShape(radarCurrent,col);if(k<1)radarAnim=requestAnimationFrame(step);})(performance.now());}radarCurrent=target.slice();var bc={Indica:"rgba(181,139,255,.2)",Sativa:"rgba(198,255,122,.18)",Hybrid:"rgba(255,207,107,.18)"};document.getElementById('typeDesc').innerHTML='<h3 style="color:'+col+'">'+prof.tipo+'</h3><span class="badge" style="background:'+bc[type]+';color:'+col+'">'+prof.tipo+' · profilo tipico</span><p>'+prof.descrizione+'</p><div class="shape"><b style="color:'+col+'">Aspetto:</b> '+prof.forma+'</div>';document.querySelectorAll('#typeToggle button').forEach(function(b){b.classList.toggle('on',b.dataset.t===type);});}
-function buildTypes(){var tt=document.getElementById('typeToggle');tt.innerHTML=DATA.profiles.map(function(p){return '<button data-t="'+p.tipo+'">'+p.tipo+'</button>';}).join('');tt.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setRadar(b.dataset.t);});});buildRadarFrame();}
+function mixColors(w){ // w={Indica,Sativa,Hybrid}
+  var C={Indica:[181,139,255],Sativa:[198,255,122],Hybrid:[255,207,107]};
+  var r=C.Indica[0]*w.Indica+C.Sativa[0]*w.Sativa+C.Hybrid[0]*w.Hybrid;
+  var g=C.Indica[1]*w.Indica+C.Sativa[1]*w.Sativa+C.Hybrid[1]*w.Hybrid;
+  var b=C.Indica[2]*w.Indica+C.Sativa[2]*w.Sativa+C.Hybrid[2]*w.Hybrid;
+  return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';
+}
+function applyBlend(w){
+  var P={};DATA.profiles.forEach(function(p){P[p.tipo]=p;});
+  var target=AXES.map(function(ax){return P.Indica.assi[ax[0]]*w.Indica+P.Sativa.assi[ax[0]]*w.Sativa+P.Hybrid.assi[ax[0]]*w.Hybrid;});
+  var col=mixColors(w);
+  document.getElementById('radarPoly').setAttribute('fill',col.replace('rgb','rgba').replace(')',',0.22)'));
+  document.getElementById('radarPoly').setAttribute('stroke',col);
+  var start=radarCurrent.slice();drawRadarShape(target,col);
+  if(!REDUCED){var t0=performance.now(),dur=450;if(radarAnim)cancelAnimationFrame(radarAnim);(function step(now){var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});drawRadarShape(radarCurrent,col);if(k<1)radarAnim=requestAnimationFrame(step);})(performance.now());}
+  radarCurrent=target.slice();
+  // readout
+  var pi=Math.round(w.Indica*100),ps=Math.round(w.Sativa*100),ph=100-pi-ps;
+  document.getElementById('ternRead').innerHTML='<div style="color:#b58bff"><b>'+pi+'%</b>Indica</div><div style="color:#c6ff7a"><b>'+ps+'%</b>Sativa</div><div style="color:#ffcf6b"><b>'+ph+'%</b>Hybrid</div>';
+  // description: dominant
+  var dom=w.Indica>=w.Sativa&&w.Indica>=w.Hybrid?'Indica':(w.Sativa>=w.Hybrid?'Sativa':'Hybrid');
+  var dp=P[dom];
+  document.getElementById('typeDesc').innerHTML='<h3 style="color:'+col+'">Miscela a dominanza '+dom+'</h3><p>'+dp.descrizione+'</p><div class="shape"><b style="color:'+col+'">Aspetto tipico ('+dom+'):</b> '+dp.forma+'</div>';
+  // update tern handle position
+  positionTernHandle(w);
+}
 
-/* ===================== STRAINS ===================== */
+/* ===================== TERNARY ===================== */
+var TA={x:150,y:34},TB={x:36,y:262},TC={x:264,y:262}; // Sativa top, Indica bl, Hybrid br
+var ternHandle,ternWeights={Indica:0.34,Sativa:0.33,Hybrid:0.33};
+function baryFromPoint(px,py){
+  var det=(TB.y-TC.y)*(TA.x-TC.x)+(TC.x-TB.x)*(TA.y-TC.y);
+  var a=((TB.y-TC.y)*(px-TC.x)+(TC.x-TB.x)*(py-TC.y))/det;
+  var b=((TC.y-TA.y)*(px-TC.x)+(TA.x-TC.x)*(py-TC.y))/det;
+  var c=1-a-b;
+  a=Math.max(0,a);b=Math.max(0,b);c=Math.max(0,c);var sum=a+b+c||1;
+  return {Sativa:a/sum,Indica:b/sum,Hybrid:c/sum};
+}
+function pointFromBary(w){return {x:TA.x*w.Sativa+TB.x*w.Indica+TC.x*w.Hybrid,y:TA.y*w.Sativa+TB.y*w.Indica+TC.y*w.Hybrid};}
+function positionTernHandle(w){if(!ternHandle)return;var p=pointFromBary(w);ternHandle.setAttribute('cx',p.x);ternHandle.setAttribute('cy',p.y);}
+function buildTernary(){
+  var svg=document.getElementById('tern');
+  svg.innerHTML='<defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6ff7a" stop-opacity=".25"/><stop offset=".5" stop-color="#b58bff" stop-opacity=".18"/><stop offset="1" stop-color="#ffcf6b" stop-opacity=".25"/></linearGradient></defs>'+
+    '<polygon points="'+TA.x+','+TA.y+' '+TB.x+','+TB.y+' '+TC.x+','+TC.y+'" fill="url(#tg)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>'+
+    '<text x="'+TA.x+'" y="'+(TA.y-10)+'" fill="#c6ff7a" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Sativa</text>'+
+    '<text x="'+(TB.x-4)+'" y="'+(TB.y+22)+'" fill="#b58bff" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Indica</text>'+
+    '<text x="'+(TC.x+4)+'" y="'+(TC.y+22)+'" fill="#ffcf6b" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Hybrid</text>'+
+    '<circle id="ternHandle" class="tern-handle" cx="150" cy="183" r="13" fill="#0b1610" stroke="#fff" stroke-width="2.5"/>'+
+    '<circle id="ternHandleGlow" cx="150" cy="183" r="20" fill="rgba(255,255,255,.06)" pointer-events="none"/>';
+  ternHandle=document.getElementById('tern').querySelector('#ternHandle');
+  var dragging=false;
+  function pt(e){var r=svg.getBoundingClientRect();var x=( (e.clientX-r.left)/r.width)*300;var y=((e.clientY-r.top)/r.height)*300;return {x:x,y:y};}
+  function setFrom(e){var p=pt(e);var w=baryFromPoint(p.x,p.y);ternWeights=w;applyBlend(w);var g=document.getElementById('ternHandleGlow');var hp=pointFromBary(w);g.setAttribute('cx',hp.x);g.setAttribute('cy',hp.y);}
+  ternHandle.addEventListener('pointerdown',function(e){dragging=true;ternHandle.setPointerCapture&&ternHandle.setPointerCapture(e.pointerId);e.preventDefault();});
+  svg.addEventListener('pointerdown',function(e){dragging=true;setFrom(e);});
+  window.addEventListener('pointermove',function(e){if(dragging)setFrom(e);});
+  window.addEventListener('pointerup',function(){dragging=false;});
+  document.querySelectorAll('.tern-presets button').forEach(function(b){b.addEventListener('click',function(){var t=b.dataset.p;var w={Indica:0,Sativa:0,Hybrid:0};w[t]=1;ternWeights=w;applyBlend(w);var g=document.getElementById('ternHandleGlow');var hp=pointFromBary(w);g.setAttribute('cx',hp.x);g.setAttribute('cy',hp.y);});});
+}
+
+/* ===================== STRAIN GALAXY ===================== */
 function thcMid(s){var m=s.match(/(\d+)\D+(\d+)/);if(m)return (+m[1]+ +m[2])/2;var m2=s.match(/(\d+)/);return m2?+m2[1]:20;}
-function buildStrains(filter){filter=filter||"Tutti";var grid=document.getElementById('strainGrid');var list=DATA.strains.filter(function(s){return filter==="Tutti"||s.tipo===filter;});var acc={Indica:"rgba(181,139,255,.28)",Sativa:"rgba(198,255,122,.24)",Hybrid:"rgba(255,207,107,.24)"};grid.innerHTML=list.map(function(s){var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));return '<div class="strain stagger" style="--accent:'+acc[s.tipo]+'"><div class="top"><h3>'+s.nome+'</h3><span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></div><div class="thc">THC tipico: <b>'+s.thc+'</b><div class="thc-bar"><span data-pct="'+pct+'"></span></div></div><div class="more"><div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div></div><div class="toggle-h">▾ clicca per dettagli</div></div>';}).join('');grid.querySelectorAll('.strain').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('open');card.querySelector('.toggle-h').textContent=card.classList.contains('open')?'▴ chiudi':'▾ clicca per dettagli';});});setTimeout(function(){grid.querySelectorAll('.thc-bar span').forEach(function(b){b.style.width=b.dataset.pct+'%';});},120);}
-function buildStrainFilters(){var f=document.getElementById('strainFilters');f.innerHTML=["Tutti","Indica","Sativa","Hybrid"].map(function(o,i){return '<button data-f="'+o+'" class="'+(i===0?'on':'')+'">'+o+'</button>';}).join('');f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){f.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');buildStrains(b.dataset.f);});});}
+function strainAxisX(s){ // 0 (energizzante) .. 1 (rilassante)
+  var base=s.tipo==='Sativa'?0.18:s.tipo==='Indica'?0.82:0.5;
+  var jitter=((s.nome.charCodeAt(0)+s.nome.charCodeAt(s.nome.length-1))%10-5)/45;
+  return Math.max(0.06,Math.min(0.94,base+jitter));
+}
+function buildGalaxy(filter){
+  filter=filter||'Tutti';
+  var g=document.getElementById('galaxy');
+  g.querySelectorAll('.strain-orb').forEach(function(n){n.remove();});
+  var maxT=30,minT=14;
+  DATA.strains.forEach(function(s,idx){
+    var x=strainAxisX(s);
+    var tm=thcMid(s.thc);
+    var y=1-((tm-minT)/(maxT-minT)); // top = more thc
+    y=Math.max(0.08,Math.min(0.92,y));
+    var size=22+ (tm-minT)/(maxT-minT)*26;
+    var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
+    var o=document.createElement('div');
+    o.className='strain-orb';o.dataset.idx=idx;o.dataset.tipo=s.tipo;
+    o.style.left=(8+x*84)+'%';o.style.top=(10+y*80)+'%';
+    o.style.width=size+'px';o.style.height=size+'px';
+    o.style.background='radial-gradient(circle at 35% 30%,#ffffff,'+col+' 55%,'+hexA(col,.2)+')';
+    o.style.boxShadow='0 0 '+(size*0.7)+'px '+hexA(col,.7);
+    if(filter!=='Tutti'&&s.tipo!==filter)o.classList.add('faded');
+    o.innerHTML='<span class="lab">'+s.nome+'</span>';
+    o.addEventListener('mouseenter',function(){showStrain(idx);});
+    o.addEventListener('click',function(){showStrain(idx);g.querySelectorAll('.strain-orb').forEach(function(n){n.classList.remove('sel');});o.classList.add('sel');});
+    g.appendChild(o);
+  });
+}
+function showStrain(idx){
+  var s=DATA.strains[idx];var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
+  var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));
+  document.getElementById('strainDetail').innerHTML='<h3>'+s.nome+' <span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></h3>'+
+    '<div class="thcbig">THC tipico: <b>'+s.thc+'</b></div><div class="thc-bar"><span style="width:0" data-w="'+pct+'"></span></div>'+
+    '<div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div>';
+  setTimeout(function(){var b=document.querySelector('#strainDetail .thc-bar span');if(b)b.style.width=b.dataset.w+'%';},40);
+}
+function buildStrainFilters(){var f=document.getElementById('strainFilters');f.innerHTML=["Tutti","Indica","Sativa","Hybrid"].map(function(o,i){return '<button data-f="'+o+'" class="'+(i===0?'on':'')+'">'+o+'</button>';}).join('');f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){f.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');buildGalaxy(b.dataset.f);});});}
 
 /* ===================== TERPENE WHEEL ===================== */
 function buildTerpenes(){var wheel=document.getElementById('terpWheel'),T=DATA.terpenes,R=42;T.forEach(function(t,i){var a=(Math.PI*2*i/T.length)-Math.PI/2,x=50+Math.cos(a)*R,y=50+Math.sin(a)*R;var node=document.createElement('div');node.className='terp-node';node.style.left=x+'%';node.style.top=y+'%';node.style.setProperty('--tc',t.colore);node.style.borderColor=hexA(t.colore,.6);node.innerHTML=t.nome.split(' (')[0];node.dataset.i=i;node.addEventListener('click',function(){selectTerp(i);});wheel.appendChild(node);});selectTerp(0);}
-function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';});document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ Ebollizione '+t.bollePunto+'</span></div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>';}
+function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';});
+  var inStrains=DATA.strains.filter(function(s){return s.terpeniDominanti.toLowerCase().indexOf(t.nome.split(' (')[0].toLowerCase())>=0;}).map(function(s){return s.nome;});
+  document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';
+  document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ '+t.bollePunto+'</span>'+(inStrains.length?'<span>🌿 in '+inStrains.length+' strain</span>':'')+'</div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>'+(inStrains.length?'<div class="block"><b>Strain dominanti</b><p>'+inStrains.join(', ')+'</p></div>':'');}
 
-/* ===================== CANNABINOIDS + FACTS ===================== */
-function buildCannabinoids(){document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psicoattivo":"Lievemente psic.";return '<div class="cann stagger tilt"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div></div>';}).join('');enableTilt();}
-function buildFacts(){document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){return '<div class="fact stagger tilt"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';}).join('');enableTilt();}
-function enableTilt(){if(!FINE||REDUCED)return;document.querySelectorAll('.tilt:not([data-tilt])').forEach(function(el){el.setAttribute('data-tilt','1');el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect();var px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;el.style.transform='perspective(900px) rotateX('+(-py*7).toFixed(2)+'deg) rotateY('+(px*7).toFixed(2)+'deg) translateY(-6px)';});el.addEventListener('pointerleave',function(){el.style.transform='';});});}
+/* ===================== CANNABINOIDS (flip + glyph) ===================== */
+function molGlyph(seed,col){ // stylized hexagon-ring molecule glyph
+  var cx=65,cy=65;var s='<svg viewBox="0 0 130 130">';
+  function ring(ox,oy,r){var pts=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+seed;pts.push([ox+Math.cos(a)*r,oy+Math.sin(a)*r]);}var d='';for(var j=0;j<6;j++){d+=(j?'L':'M')+pts[j][0].toFixed(1)+','+pts[j][1].toFixed(1)+' ';}d+='Z';return {d:d,pts:pts};}
+  var r1=ring(cx-14,cy,22);var r2=ring(cx+18,cy+6,18);
+  s+='<path d="'+r1.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".9"/>';
+  s+='<path d="'+r2.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".7"/>';
+  // tail
+  s+='<path d="M'+(cx+34)+','+(cy+2)+' l 14,8 l 12,-7 l 13,7" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".6" stroke-linecap="round" stroke-linejoin="round"/>';
+  // atoms
+  r1.pts.forEach(function(p,i){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i%3===0?4.2:3)+'" fill="'+(i===1?'#ff8a4a':col)+'"/>';});
+  r2.pts.forEach(function(p){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="'+col+'"/>';});
+  s+='<circle cx="'+(cx-14)+'" cy="'+cy+'" r="3" fill="#fff" opacity=".5"/>';
+  return s+'</svg>';
+}
+function buildCannabinoids(){
+  document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){
+    var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";
+    var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";
+    var col=c.psicoattivo==="Si"?'#ff9b54':c.psicoattivo==="No"?'#5fe089':'#ffcf6b';
+    var seed=(c.sigla.charCodeAt(0))%6*0.4;
+    return '<div class="flip stagger"><div class="flip-in">'+
+      '<div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div>'+
+      '<div class="glyph">'+molGlyph(seed,col)+'</div>'+
+      '<div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:linear-gradient(90deg,#5fe089,#c6ff7a)"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:linear-gradient(90deg,#b58bff,#7c4ddb)"></span></div>'+c.cb2+'</div></div>'+
+      '<div class="flip-hint">↻ clicca per gli effetti</div></div>'+
+      '<div class="flip-face flip-back"><h4 style="color:'+col+'">'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div><div class="flip-hint">↻ clicca per tornare</div></div>'+
+      '</div></div>';
+  }).join('');
+  document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});
+}
+function animateAffinity(){document.querySelectorAll('.aff-bar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
 
-/* ===================== COUNTERS ===================== */
+/* ===================== FACTS ===================== */
+function buildFacts(){document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){return '<div class="fact stagger"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';}).join('');}
+
+/* ===================== COUNTERS / CURSOR / SHARE ===================== */
 function animateCount(el){var target=+el.dataset.target,suf=el.dataset.suffix||'';if(REDUCED){el.textContent=target+suf;return;}var t0=null,dur=1500;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
-
-/* ===================== CURSOR ===================== */
-function initCursor(){
-  if(!FINE||REDUCED)return;
-  var dot=document.createElement('div');dot.className='cursor-dot';
-  var ring=document.createElement('div');ring.className='cursor-ring';
-  document.body.appendChild(dot);document.body.appendChild(ring);document.body.classList.add('cursor-on');
-  var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
-  window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
-  document.addEventListener('mouseover',function(e){if(e.target.closest('a,button,.strain,.terp-node,.hotspot,.key button,.stat,.cann,.fact'))ring.classList.add('big');});
-  document.addEventListener('mouseout',function(e){if(e.target.closest('a,button,.strain,.terp-node,.hotspot,.key button,.stat,.cann,.fact'))ring.classList.remove('big');});
-  (function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
-}
-
-/* ===================== SHARE ===================== */
-function initShare(){
-  var b=document.getElementById('shareBtn');if(!b)return;
-  b.addEventListener('click',function(){
-    var url=location.href;
-    function ok(){var o=b.textContent;b.textContent='✓ Link copiato!';setTimeout(function(){b.textContent=o;},1800);}
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,function(){ok();});}
-    else{try{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){ok();}}
-  });
-}
+function initCursor(){if(!FINE||REDUCED)return;var dot=document.createElement('div');dot.className='cursor-dot';var ring=document.createElement('div');ring.className='cursor-ring';document.body.appendChild(dot);document.body.appendChild(ring);document.body.classList.add('cursor-on');var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});document.addEventListener('mouseover',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.add('big');});document.addEventListener('mouseout',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.remove('big');});(function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();}
+function initShare(){var b=document.getElementById('shareBtn');if(!b)return;b.addEventListener('click',function(){var url=location.href;function ok(){var o=b.textContent;b.textContent='✓ Link copiato!';setTimeout(function(){b.textContent=o;},1800);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,ok);}else{try{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){ok();}}});}
 
 /* ===================== SCROLL ===================== */
 var scrollNorm=0;
@@ -567,37 +665,60 @@ function initScroll(){
     setTimeout(function(){document.querySelectorAll('.reveal:not(.in)').forEach(function(el){el.classList.add('in');});},1500);
     var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animateCount(e.target);sio.unobserve(e.target);}});},{threshold:.5});
     document.querySelectorAll('.stat-num').forEach(function(el){sio.observe(el);});
-  }
+    var aio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animateAffinity();aio.disconnect();}});},{threshold:.2});
+    var cg=document.getElementById('cannGrid');if(cg)aio.observe(cg);
+  } else { animateAffinity(); }
   var navLinks=Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
   var dotLinks=Array.prototype.slice.call(document.querySelectorAll('#dotnav a'));
   var secEls=["anatomia","tipi","strain","terpeni","cannabinoidi","facts"].map(function(id){return document.getElementById(id);});
   var ticking=false;
-  function onScroll(){
-    var h=document.documentElement;
-    var max=h.scrollHeight-h.clientHeight;
-    scrollNorm=max>0?h.scrollTop/max:0;
-    document.getElementById('progress').style.width=(scrollNorm*100)+'%';
-    var idx=0;secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<170)idx=i;});
-    navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});
-    var dotIdx=h.scrollTop>120?idx+1:0;dotLinks.forEach(function(l,i){l.classList.toggle('active',i===dotIdx);});
-    ticking=false;
-  }
+  function onScroll(){var h=document.documentElement;var max=h.scrollHeight-h.clientHeight;scrollNorm=max>0?h.scrollTop/max:0;document.getElementById('progress').style.width=(scrollNorm*100)+'%';var idx=0;secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<170)idx=i;});navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});var dotIdx=h.scrollTop>120?idx+1:0;dotLinks.forEach(function(l,i){l.classList.toggle('active',i===dotIdx);});ticking=false;}
   window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(onScroll);ticking=true;}});
   onScroll();
 }
 
-/* ===================== 3D SCENE (Three.js) ===================== */
+/* ===================== 3D MOLECULE SCENE ===================== */
+function buildMoleculeData(type){
+  var atoms=[],bonds=[];
+  function hex(cx,cy,cz,r,tilt){var a=[];for(var k=0;k<6;k++){var ang=k/6*Math.PI*2;a.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r*Math.cos(tilt),cz+Math.sin(ang)*r*Math.sin(tilt)]);}return a;}
+  function addRing(ring,el){var base=atoms.length;ring.forEach(function(p){atoms.push({p:p,el:el||'C'});});for(var k=0;k<6;k++){bonds.push([base+k,base+(k+1)%6]);}return base;}
+  function chain(fromIdx,len,dir){var prev=fromIdx;for(var t=0;t<len;t++){var bp=atoms[prev].p;var np=[bp[0]+dir[0],bp[1]+dir[1]+((t%2)?0.35:-0.35),bp[2]+dir[2]*((t%2)?1:-1)];atoms.push({p:np,el:'C'});bonds.push([prev,atoms.length-1]);prev=atoms.length-1;}return prev;}
+  function oxy(nearIdx,off){var bp=atoms[nearIdx].p;atoms.push({p:[bp[0]+off[0],bp[1]+off[1],bp[2]+off[2]],el:'O'});bonds.push([nearIdx,atoms.length-1]);}
+  if(type==='THC'){
+    var a=addRing(hex(-2.6,0,0,1.5,0.12),'C');
+    var b=addRing(hex(0.1,0.2,0.5,1.5,0.5),'C');
+    var c=addRing(hex(2.6,-0.2,0.2,1.5,0.85),'C');
+    bonds.push([a+0,b+3]);bonds.push([b+0,c+3]);
+    oxy(b+4,[0.2,1.2,0.4]); // pyran-ish O
+    oxy(a+2,[-1.0,-0.9,0.1]); // OH
+    chain(a+4,5,[-1.0,-0.5,0.3]); // pentyl
+    oxy(c+1,[0.8,0.9,0.2]);
+  } else if(type==='CBD'){
+    var a2=addRing(hex(-2.2,0,0,1.5,0.12),'C');
+    var b2=addRing(hex(2.2,0.4,0.6,1.5,0.5),'C');
+    bonds.push([a2+0,b2+3]); // single link (not fused)
+    oxy(a2+1,[-0.6,1.1,0.1]);oxy(a2+3,[-0.6,-1.1,0.1]); // 2 OH
+    chain(a2+4,5,[-1.0,-0.5,0.3]); // pentyl
+    chain(b2+1,2,[1.0,0.6,0.4]); // isopropenyl-ish
+  } else { // CBG
+    var a3=addRing(hex(-3.0,0,0,1.5,0.12),'C');
+    oxy(a3+1,[-0.6,1.1,0.1]);oxy(a3+3,[-0.6,-1.1,0.1]);
+    chain(a3+4,5,[-1.0,-0.5,0.3]); // pentyl
+    chain(a3+0,8,[1.15,0.0,0.25]); // geranyl (lungo, lineare)
+  }
+  // center
+  var cx=0,cy=0,cz=0;atoms.forEach(function(at){cx+=at.p[0];cy+=at.p[1];cz+=at.p[2];});cx/=atoms.length;cy/=atoms.length;cz/=atoms.length;
+  atoms.forEach(function(at){at.p[0]-=cx;at.p[1]-=cy;at.p[2]-=cz;});
+  return {atoms:atoms,bonds:bonds};
+}
+
 function initGL(){
   if(typeof THREE==='undefined')return;
-  var canvas=document.getElementById('gl');
-  var renderer;
-  try{ renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'}); }
-  catch(e){ return; }
+  var canvas=document.getElementById('gl');var renderer;
+  try{renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-  var scene=new THREE.Scene();
-  scene.fog=new THREE.FogExp2(0x05130c,0.021);
-  var camera=new THREE.PerspectiveCamera(60,(innerWidth||1)/(innerHeight||1),0.1,120);
-  camera.position.set(0,0,17);
+  var scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x05130c,0.02);
+  var camera=new THREE.PerspectiveCamera(60,(innerWidth||1)/(innerHeight||1),0.1,140);camera.position.set(0,0,17);
   var curW=0,curH=0;
   function sizeGL(){var w=canvas.clientWidth||window.innerWidth,h=canvas.clientHeight||window.innerHeight;if(w<=0||h<=0)return;if(w===curW&&h===curH)return;curW=w;curH=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   sizeGL();
@@ -605,102 +726,95 @@ function initGL(){
   function dotTex(){var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d');var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.85)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(32,32,32,0,7);g.fill();return new THREE.CanvasTexture(c);}
   var tex=dotTex();
 
-  // particle field
-  var N=2600,posA=new Float32Array(N*3),colA=new Float32Array(N*3);
-  var pal=[[0.37,0.88,0.54],[0.78,1.0,0.48],[0.71,0.55,1.0]];
-  for(var i=0;i<N;i++){var r=7+Math.pow(Math.random(),0.6)*34;var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);posA[i*3]=r*Math.sin(ph)*Math.cos(th);posA[i*3+1]=r*Math.sin(ph)*Math.sin(th)*0.72;posA[i*3+2]=r*Math.cos(ph);var c=pal[(Math.random()*pal.length)|0];colA[i*3]=c[0];colA[i*3+1]=c[1];colA[i*3+2]=c[2];}
+  var N=2600,posA=new Float32Array(N*3),colA=new Float32Array(N*3);var pal=[[0.37,0.88,0.54],[0.78,1.0,0.48],[0.71,0.55,1.0]];
+  for(var i=0;i<N;i++){var r=7+Math.pow(Math.random(),0.6)*34;var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);posA[i*3]=r*Math.sin(ph)*Math.cos(th);posA[i*3+1]=r*Math.sin(ph)*Math.sin(th)*0.72;posA[i*3+2]=r*Math.cos(ph);var cc=pal[(Math.random()*pal.length)|0];colA[i*3]=cc[0];colA[i*3+1]=cc[1];colA[i*3+2]=cc[2];}
   var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(posA,3));pg.setAttribute('color',new THREE.BufferAttribute(colA,3));
-  var pm=new THREE.PointsMaterial({size:0.24,map:tex,vertexColors:true,transparent:true,opacity:.92,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
-  var points=new THREE.Points(pg,pm);scene.add(points);
+  var points=new THREE.Points(pg,new THREE.PointsMaterial({size:0.24,map:tex,vertexColors:true,transparent:true,opacity:.92,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));scene.add(points);
 
   scene.add(new THREE.AmbientLight(0x335544,0.9));
   var l1=new THREE.PointLight(0x5fe089,1.5,90);l1.position.set(9,7,13);scene.add(l1);
   var l2=new THREE.PointLight(0xb58bff,1.3,90);l2.position.set(-11,-5,9);scene.add(l2);
 
-  // molecule
-  var mol=new THREE.Group();
-  function hex(cx,cy,cz,r,tilt){var a=[];for(var k=0;k<6;k++){var ang=k/6*Math.PI*2;a.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r*Math.cos(tilt),cz+Math.sin(ang)*r*Math.sin(tilt)]);}return a;}
-  var atoms=[],bonds=[];
-  function addRing(ring,el){var base=atoms.length;ring.forEach(function(p){atoms.push({p:p,el:el||'C'});});for(var k=0;k<6;k++){bonds.push([base+k,base+(k+1)%6]);}return base;}
-  var b1=addRing(hex(-1.7,0,0,1.55,0.15),'C');
-  var b2=addRing(hex(1.35,0.35,0.7,1.55,0.6),'C');
-  bonds.push([b1+0,b2+3]);bonds.push([b1+5,b2+2]);
-  atoms.push({p:[atoms[b1+1].p[0]-1.0,atoms[b1+1].p[1]+0.9,0.1],el:'O'});bonds.push([b1+1,atoms.length-1]);
-  atoms.push({p:[atoms[b1+3].p[0]-1.0,atoms[b1+3].p[1]-0.9,-0.1],el:'O'});bonds.push([b1+3,atoms.length-1]);
-  var start=atoms[b2+0].p,prev=b2+0;
-  for(var tt=0;tt<5;tt++){var np=[start[0]+1.05*(tt+1),start[1]-0.5*(tt+1)+((tt%2)?0.5:0),start[2]+((tt%2)?0.5:-0.4)];atoms.push({p:np,el:'C'});bonds.push([prev,atoms.length-1]);prev=atoms.length-1;}
+  // orbits
+  var orbits=new THREE.Group();
+  var oCols=[0x5fe089,0xb58bff,0xc6ff7a];
+  for(var oi=0;oi<3;oi++){var tg=new THREE.Mesh(new THREE.TorusGeometry(6.4+oi*0.5,0.05,8,80),new THREE.MeshBasicMaterial({color:oCols[oi],transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false}));tg.rotation.x=Math.PI*0.5*oi+0.4;tg.rotation.y=oi*0.7;orbits.add(tg);}
+  scene.add(orbits);
 
-  var cGeo=new THREE.SphereGeometry(0.36,20,20),oGeo=new THREE.SphereGeometry(0.32,20,20);
-  var cMat=new THREE.MeshStandardMaterial({color:0x0e1a12,emissive:0x4fd07a,emissiveIntensity:0.85,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
-  var oMat=new THREE.MeshStandardMaterial({color:0x2a120a,emissive:0xff7a3c,emissiveIntensity:1.0,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
-  var bMat=new THREE.MeshStandardMaterial({color:0x10241a,emissive:0x2f9d57,emissiveIntensity:0.5,roughness:0.5,transparent:true,opacity:1});
-  var spriteMats=[];
-  atoms.forEach(function(a){var m=new THREE.Mesh(a.el==='O'?oGeo:cGeo,a.el==='O'?oMat:cMat);m.position.set(a.p[0],a.p[1],a.p[2]);mol.add(m);var sm=new THREE.SpriteMaterial({map:tex,color:a.el==='O'?0xff8a4a:0x6fe39a,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false});var sp=new THREE.Sprite(sm);sp.scale.set(1.6,1.6,1.6);sp.position.copy(m.position);mol.add(sp);spriteMats.push(sm);});
-  bonds.forEach(function(b){var a=atoms[b[0]].p,c=atoms[b[1]].p;var va=new THREE.Vector3(a[0],a[1],a[2]),vc=new THREE.Vector3(c[0],c[1],c[2]);var len=va.distanceTo(vc);var geo=new THREE.CylinderGeometry(0.075,0.075,len,10);var m=new THREE.Mesh(geo,bMat);m.position.copy(va.clone().add(vc).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vc.clone().sub(va).normalize());mol.add(m);});
-  mol.scale.set(0.0001,0.0001,0.0001);
-  scene.add(mol);
+  var mol=new THREE.Group();scene.add(mol);
+  var atomMeshes=[],mats=[],spriteMats=[],cGeo=new THREE.SphereGeometry(0.38,20,20),oGeo=new THREE.SphereGeometry(0.34,20,20);
+  function clearMol(){while(mol.children.length){var ch=mol.children.pop();if(ch.geometry&&ch.geometry.dispose&&ch.geometry!==cGeo&&ch.geometry!==oGeo)ch.geometry.dispose();}atomMeshes=[];mats=[];spriteMats=[];}
+  function buildMol(type){
+    clearMol();
+    var data=buildMoleculeData(type);
+    var cMat=new THREE.MeshStandardMaterial({color:0x0e1a12,emissive:0x4fd07a,emissiveIntensity:0.85,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
+    var oMat=new THREE.MeshStandardMaterial({color:0x2a120a,emissive:0xff7a3c,emissiveIntensity:1.0,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
+    var bMat=new THREE.MeshStandardMaterial({color:0x10241a,emissive:0x2f9d57,emissiveIntensity:0.5,roughness:0.5,transparent:true,opacity:1});
+    mats=[cMat,oMat,bMat];
+    data.atoms.forEach(function(a){var m=new THREE.Mesh(a.el==='O'?oGeo:cGeo,a.el==='O'?oMat:cMat);m.position.set(a.p[0],a.p[1],a.p[2]);m.userData.base=new THREE.Vector3(a.p[0],a.p[1],a.p[2]);m.userData.dir=m.userData.base.clone().normalize();mol.add(m);atomMeshes.push(m);var sm=new THREE.SpriteMaterial({map:tex,color:a.el==='O'?0xff8a4a:0x6fe39a,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false});var sp=new THREE.Sprite(sm);sp.scale.set(1.7,1.7,1.7);sp.position.copy(m.position);sp.userData.atom=m;mol.add(sp);spriteMats.push(sm);});
+    data.bonds.forEach(function(b){var a=data.atoms[b[0]].p,c=data.atoms[b[1]].p;var va=new THREE.Vector3(a[0],a[1],a[2]),vc=new THREE.Vector3(c[0],c[1],c[2]);var len=va.distanceTo(vc);if(len<0.001)return;var geo=new THREE.CylinderGeometry(0.08,0.08,len,9);var m=new THREE.Mesh(geo,bMat);m.position.copy(va.clone().add(vc).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vc.clone().sub(va).normalize());mol.add(m);});
+    switchT=0; // play grow
+  }
+  buildMol('THC');
 
-  // interaction state
-  var mxN=0,myN=0,sxN=0,syN=0,dragX=0,dragY=0,dragging=false,lastPX=0,lastPY=0,autoRot=0;
+  var mxN=0,myN=0,sxN=0,syN=0,dragX=0,dragY=0,dragging=false,lastPX=0,lastPY=0,autoRot=0,explode=0,switchT=1,moved=0;
   window.addEventListener('mousemove',function(e){mxN=(e.clientX/innerWidth)*2-1;myN=(e.clientY/innerHeight)*2-1;});
   canvas.style.pointerEvents='none';
-  // drag on whole window when near center handled via molecule drag using window pointer (since canvas pointer-events none, attach to window but only when pointer over hero area)
-  window.addEventListener('pointerdown',function(e){if(e.clientY < innerHeight*0.92 && window.scrollY < innerHeight*0.8){dragging=true;lastPX=e.clientX;lastPY=e.clientY;}});
-  window.addEventListener('pointerup',function(){dragging=false;});
-  window.addEventListener('pointermove',function(e){if(dragging){dragY+=(e.clientX-lastPX)*0.006;dragX+=(e.clientY-lastPY)*0.006;lastPX=e.clientX;lastPY=e.clientY;}});
-
+  function inHero(e){return window.scrollY < innerHeight*0.85;}
+  window.addEventListener('pointerdown',function(e){if(inHero(e)&&e.clientY<innerHeight*0.9){dragging=true;moved=0;lastPX=e.clientX;lastPY=e.clientY;}});
+  window.addEventListener('pointerup',function(e){if(dragging&&moved<6&&inHero(e)){explode=1;}dragging=false;});
+  window.addEventListener('pointermove',function(e){if(dragging){var dx=e.clientX-lastPX,dy=e.clientY-lastPY;moved+=Math.abs(dx)+Math.abs(dy);dragY+=dx*0.006;dragX+=dy*0.006;lastPX=e.clientX;lastPY=e.clientY;}});
   window.addEventListener('resize',sizeGL);
-  window.__weedGL={renderer:renderer,scene:scene,camera:camera,size:sizeGL};
+  window.__weedGL={renderer:renderer,scene:scene,camera:camera,size:sizeGL,build:buildMol,atoms:function(){return atomMeshes.length;}};
+
+  document.querySelectorAll('#molSwitch button').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('#molSwitch button').forEach(function(x){x.classList.remove('on');});btn.classList.add('on');buildMol(btn.dataset.m);});});
 
   var t0=performance.now();
   function frame(now){
     sizeGL();
     var t=(now-t0)/1000;
     sxN+=(mxN-sxN)*0.05;syN+=(myN-syN)*0.05;
-    camera.position.x+=(sxN*2.6-camera.position.x)*0.06;
-    camera.position.y+=(-syN*1.8-camera.position.y)*0.06;
-    camera.lookAt(0,0,0);
+    camera.position.x+=(sxN*2.6-camera.position.x)*0.06;camera.position.y+=(-syN*1.8-camera.position.y)*0.06;camera.lookAt(0,0,0);
     points.rotation.y=t*0.02;points.rotation.x=t*0.008;
+    orbits.rotation.y+=0.004;orbits.rotation.x+=0.0016;
+    orbits.children.forEach(function(o,k){o.rotation.z+=0.003*(k+1);});
     autoRot+=0.0032;
-    var grow=Math.min(1,t/1.3);grow=1-Math.pow(1-grow,3);
-    var sc=grow*1.55*(1-scrollNorm*0.4);if(sc<0.0001)sc=0.0001;
+    switchT=Math.min(1,switchT+0.045);var grow=1-Math.pow(1-switchT,3);
+    explode*=0.94;if(explode<0.001)explode=0;
+    var sc=grow*1.5*(1-scrollNorm*0.4);if(sc<0.0001)sc=0.0001;
     mol.scale.setScalar(sc);
-    mol.rotation.y=autoRot+dragY;
-    mol.rotation.x=0.25+dragX;
+    mol.rotation.y=autoRot+dragY;mol.rotation.x=0.25+dragX;
     mol.position.y=-scrollNorm*3.2;
+    orbits.scale.setScalar((1-scrollNorm*0.4));orbits.position.y=mol.position.y;
     var op=Math.max(0.1,1-scrollNorm*2.1);
-    cMat.opacity=op;oMat.opacity=op;bMat.opacity=op;
-    for(var s=0;s<spriteMats.length;s++)spriteMats[s].opacity=op*0.55;
+    for(var mi=0;mi<mats.length;mi++)mats[mi].opacity=op;
+    for(var si=0;si<spriteMats.length;si++)spriteMats[si].opacity=op*0.55;
+    orbits.children.forEach(function(o){o.material.opacity=0.5*op;});
+    // explode displacement
+    var pushf=1+explode*1.6;
+    for(var ai=0;ai<atomMeshes.length;ai++){var m=atomMeshes[ai];m.position.copy(m.userData.base).multiplyScalar(pushf);}
     renderer.render(scene,camera);
     rafGL=requestAnimationFrame(frame);
   }
   var rafGL;
-  if(REDUCED){ sizeGL(); mol.scale.setScalar(1.5); renderer.render(scene,camera); }
-  else { rafGL=requestAnimationFrame(frame); }
+  if(REDUCED){sizeGL();mol.scale.setScalar(1.5);renderer.render(scene,camera);}else{rafGL=requestAnimationFrame(frame);}
 }
 
 /* ===================== INTRO ===================== */
-function intro(){
-  if(REDUCED)return;
-  var o=document.createElement('div');o.className='intro';
-  o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">esperienza interattiva</div><div class="intro-bar"><i></i></div></div>';
-  document.body.appendChild(o);
-  setTimeout(function(){o.classList.add('hide');},2000);
-  setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},3000);
-}
+function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">esperienza interattiva</div><div class="intro-bar"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},2000);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},3000);}
 
 /* ===================== INIT ===================== */
 function renderAll(){
   buildPlant();buildAnatomyKey();window._focusPart('tricomi');
-  buildTypes();setRadar('Indica');
-  buildStrainFilters();buildStrains('Tutti');
+  buildRadarFrame();buildTernary();applyBlend({Indica:0.34,Sativa:0.33,Hybrid:0.33});
+  buildStrainFilters();buildGalaxy('Tutti');showStrain(0);
   buildTerpenes();buildCannabinoids();buildFacts();buildDotNav();
 }
 renderAll();
 initScroll();
 initCursor();
 initShare();
-try{ initGL(); }catch(e){ /* il contenuto resta perfettamente visibile senza 3D */ }
+try{initGL();}catch(e){}
 intro();
 </script>
 </body>
