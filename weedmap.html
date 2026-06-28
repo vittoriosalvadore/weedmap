@@ -78,12 +78,13 @@
   .sec-head .kicker{color:var(--green);font-weight:800;letter-spacing:3px;font-size:12.5px;text-transform:uppercase}
   .sec-head h2{font-size:clamp(28px,4.6vw,44px);font-weight:850;margin:10px 0 12px;letter-spacing:-.5px}
   .sec-head p{color:var(--muted);font-size:16px;line-height:1.65}
-  /* Contenuto visibile per default; l'animazione di reveal si attiva SOLO se
-     JS aggiunge la classe .anim su <html>. Così, se l'IntersectionObserver non
-     scatta (visualizzatori in-app, browser particolari), nulla resta nascosto. */
-  .reveal{transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
-  html.anim .reveal{opacity:0;transform:translateY(34px)}
-  html.anim .reveal.in{opacity:1;transform:none}
+  /* Entrata "slide-up" che NON nasconde mai il contenuto: l'opacità resta 1.
+     Anche se il reveal non scatta (webview/in-app, tab in background, niente JS),
+     tutto è comunque pienamente visibile — al massimo spostato di pochi px.
+     L'animazione si attiva solo se JS aggiunge la classe .anim su <html>. */
+  .reveal{transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+  html.anim .reveal{transform:translateY(28px)}
+  html.anim .reveal.in{transform:none}
 
   /* ---------- ANATOMY ---------- */
   .anatomy-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.05fr;gap:28px;align-items:stretch}
