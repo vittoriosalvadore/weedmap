@@ -3,351 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WeedMap — Esperienza Interattiva sulla Cannabis</title>
-<meta name="description" content="Un viaggio a scorrimento nella cannabis: molecole 3D, strain, terpeni, cannabinoidi, anatomia e cannabis vs alcol.">
-<meta property="og:title" content="WeedMap 🌿 — Esperienza 3D sulla Cannabis">
-<meta property="og:description" content="Molecole 3D interattive, galassia di strain, terpeni, cannabinoidi e confronto cannabis vs alcol.">
-<meta property="og:type" content="website">
+<title>WeedMap — GLASSHOUSE · Il Vivaio Rompibile</title>
+<meta name="description" content="Un vivaio 3D rompibile: spacca il barattolo, esplora strain, terpeni, cannabinoidi e cannabis vs alcol.">
+<meta property="og:title" content="WeedMap 🌿 — GLASSHOUSE, il vivaio rompibile">
+<meta property="og:description" content="Afferra, lancia e spacca il barattolo iridescente. Poi esplora strain, terpeni e cannabinoidi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="three.min.js"></script>
+<script src="cannon.min.js"></script>
 <style>
   :root{
-    --ink:#eaf7ef;--muted:#90a89a;--muted-2:#67806f;
-    --green:#5fe089;--green-deep:#1f9d57;--lime:#c6ff7a;
-    --violet:#b58bff;--violet-2:#7c4ddb;--gold:#ffcf6b;--amber:#ff9b54;
-    --glass:rgba(9,16,12,.5);--glass-2:rgba(14,22,17,.72);
-    --line:rgba(150,220,170,.14);
-    --shadow:0 40px 90px -30px rgba(0,0,0,.8);
-    --radius:24px;
-    --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+    --paper:#F4EFE6;--paper-2:#fbf8f1;--lime:#A8E10C;--terra:#E9692C;--cyan:#5BE8FF;--magenta:#FF4FD8;--ink:#141008;
+    --ink-50:rgba(20,16,8,.5);--ink-15:rgba(20,16,8,.15);
+    --font-display:"Hanken Grotesk","Segoe UI",system-ui,sans-serif;
     --font-body:"Inter","Segoe UI",system-ui,sans-serif;
-    --font-serif:"Fraunces",Georgia,serif;
+    --font-mono:"Space Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{font-family:var(--font-body);background:#04070a;color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.1px}
+  body{font-family:var(--font-body);background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.55;-webkit-font-smoothing:antialiased}
+  #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  /* AMBIENT BACKGROUND (non blocca: pointer-events none, dietro tutto) */
-  #bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-  #bg .blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.30;mix-blend-mode:screen}
-  #bg .b1{width:60vw;height:60vw;left:-12vw;top:-16vw;background:radial-gradient(circle,#1f9d57,transparent 65%);animation:drift1 30s ease-in-out infinite}
-  #bg .b2{width:55vw;height:55vw;right:-14vw;top:30vh;background:radial-gradient(circle,#7c4ddb,transparent 65%);animation:drift2 36s ease-in-out infinite}
-  #bg .b3{width:48vw;height:48vw;left:25vw;bottom:-22vw;background:radial-gradient(circle,#2fb56a,transparent 65%);animation:drift3 33s ease-in-out infinite}
-  #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-  .cursor-dot{position:fixed;top:0;left:0;width:7px;height:7px;border-radius:50%;background:var(--lime);z-index:400;pointer-events:none;transform:translate(-50%,-50%);mix-blend-mode:screen}
-  .cursor-ring{position:fixed;top:0;left:0;width:36px;height:36px;border:1.5px solid rgba(198,255,122,.55);border-radius:50%;z-index:400;pointer-events:none;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s,background .25s,opacity .3s}
-  .cursor-ring.big{width:64px;height:64px;border-color:var(--green);background:rgba(95,224,137,.07)}
+  .cursor{position:fixed;top:0;left:0;z-index:500;pointer-events:none;font-size:24px;transform:translate(-50%,-50%);transition:transform .08s}
   body.cursor-on{cursor:none}
-  body.cursor-on a,body.cursor-on button,body.cursor-on .strain-orb,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .key button,body.cursor-on .flip,body.cursor-on .tern-handle{cursor:none}
+  body.cursor-on a,body.cursor-on button,body.cursor-on #gl,body.cursor-on .strain-orb,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .flip,body.cursor-on .tern-handle,body.cursor-on .key button{cursor:none}
 
-  .wrap{position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 22px}
-  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:linear-gradient(90deg,var(--lime),var(--green),var(--violet));box-shadow:0 0 16px var(--green)}
-  #dotnav{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:55;display:flex;flex-direction:column;gap:14px}
-  #dotnav a{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--muted-2);position:relative;transition:.3s;cursor:pointer}
-  #dotnav a:hover{border-color:var(--green);transform:scale(1.25)}
-  #dotnav a.active{background:var(--green);border-color:var(--green);box-shadow:0 0 14px var(--green)}
-  #dotnav a span{position:absolute;right:24px;top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font-size:11px;font-weight:600;color:var(--ink);background:var(--glass-2);border:1px solid var(--line);padding:4px 10px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;letter-spacing:.4px;backdrop-filter:blur(8px)}
-  #dotnav a:hover span{opacity:1;transform:translateY(-50%) translateX(0)}
+  #progress{position:fixed;top:0;left:0;height:5px;width:0;z-index:60;background:var(--ink)}
+  #progress::after{content:"";position:absolute;right:0;top:0;height:100%;width:40px;background:var(--lime)}
 
-  nav{position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:blur(18px) saturate(150%);background:linear-gradient(180deg,rgba(4,8,6,.7),rgba(4,8,6,0));border-bottom:1px solid transparent;transition:background .4s,border-color .4s}
-  nav.solid{background:linear-gradient(180deg,rgba(4,8,6,.9),rgba(4,8,6,.55));border-color:var(--line)}
-  .nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 22px}
-  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:19px;cursor:pointer}
-  .brand .leaf-mini{width:27px;height:27px;animation:spin 16s linear infinite}
-  .nav-links{margin-left:auto;display:flex;gap:3px;flex-wrap:wrap}
-  .nav-links a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;padding:8px 12px;border-radius:999px;transition:.25s;white-space:nowrap}
-  .nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
-  .nav-links a.active{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));font-weight:600}
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:2px solid transparent;transition:.3s}
+  nav.solid{background:var(--paper);border-color:var(--ink)}
+  .brand{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:900;font-size:20px;letter-spacing:-.5px;cursor:pointer;text-transform:uppercase}
+  .brand .chip{background:var(--lime);border:2px solid var(--ink);padding:2px 8px;box-shadow:3px 3px 0 var(--ink)}
+  .nav-links{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
+  .nav-links a{font-family:var(--font-mono);color:var(--ink);text-decoration:none;font-size:12px;font-weight:700;padding:7px 11px;transition:.15s;text-transform:uppercase;border:2px solid transparent}
+  .nav-links a:hover{background:var(--ink);color:var(--paper)}
+  .nav-links a.active{background:var(--lime);border-color:var(--ink)}
 
-  /* HERO — il 3D vive QUI dentro e scorre via (non blocca le sezioni sotto) */
-  .hero{position:relative;min-height:100svh;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  /* HERO — vivaio 3D rompibile */
+  .hero{position:relative;height:100svh;height:100vh;overflow:hidden}
   #gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block;touch-action:none}
-  .hero-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(4,7,10,.72) 0%,rgba(4,7,10,.12) 26%,rgba(4,7,10,0) 50%,rgba(4,7,10,.55) 82%,rgba(4,7,10,.95) 100%)}
-  .hero-top{position:relative;z-index:2;text-align:center;padding:88px 22px 0;pointer-events:none}
-  .hero-top .eyebrow{pointer-events:auto;display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border:1px solid var(--line);border-radius:999px;color:var(--lime);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;background:rgba(95,224,137,.05);backdrop-filter:blur(8px)}
-  .hero-top .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink 1.8s infinite}
-  .hero-top h1{font-family:var(--font-display);font-size:clamp(60px,15vw,180px);font-weight:700;line-height:.84;letter-spacing:-4px;margin:18px 0 2px;display:inline-block;overflow:hidden}
-  .hero-top h1 .ttl{display:inline-block;background:linear-gradient(115deg,#f3fff7 6%,var(--lime) 36%,var(--green) 56%,var(--violet) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 50px rgba(95,224,137,.35))}
-  html.anim .hero-top h1 .ttl{animation:rise 1.1s .15s cubic-bezier(.16,1,.3,1) both}
-  .hero-top .tagline{font-family:var(--font-serif);font-style:italic;font-weight:500;font-size:clamp(18px,3.2vw,28px);color:#e1f4e6;text-shadow:0 2px 20px rgba(0,0,0,.6)}
-  .hero-bottom{position:relative;z-index:2;margin-top:auto;text-align:center;padding:0 22px 30px}
-  .mol-tag{font-family:var(--font-display);font-size:13px;color:var(--muted);letter-spacing:1px;margin-bottom:12px}
-  .mol-tag b{color:var(--lime)}
-  .mol-switch{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
-  .mol-switch button{font-family:var(--font-display);cursor:pointer;padding:11px 22px;border-radius:999px;font-weight:600;font-size:14.5px;border:1px solid var(--line);color:var(--muted);background:rgba(9,16,12,.6);backdrop-filter:blur(10px);transition:.3s}
-  .mol-switch button.on{color:#06140c;background:linear-gradient(120deg,var(--lime),var(--green));border-color:transparent;box-shadow:0 12px 30px -12px var(--green);transform:translateY(-2px)}
-  .hero-hint{margin-top:14px;font-size:12px;color:var(--muted-2);letter-spacing:.4px}
-  .scroll-cue{margin-top:16px;display:inline-flex;flex-direction:column;align-items:center;gap:7px;color:var(--muted-2);font-size:11px;letter-spacing:3px}
-  .scroll-cue .mouse{width:23px;height:36px;border:2px solid var(--muted-2);border-radius:13px;position:relative}
-  .scroll-cue .mouse::after{content:"";position:absolute;left:50%;top:6px;width:4px;height:7px;margin-left:-2px;border-radius:2px;background:var(--green);animation:wheel 1.6s infinite}
+  .hero-ui{position:absolute;inset:0;z-index:2;pointer-events:none;display:flex;flex-direction:column;padding:84px 22px 24px}
+  .hero-ui .tagchip{pointer-events:auto;align-self:flex-start;font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:7px 13px;letter-spacing:1px}
+  .hero-ui h1{font-family:var(--font-display);font-weight:900;font-size:clamp(60px,15vw,180px);line-height:.82;letter-spacing:-5px;margin:14px 0 0;text-transform:uppercase}
+  .hero-ui h1 .o{color:var(--lime);-webkit-text-stroke:3px var(--ink)}
+  .hero-ui .sub{font-family:var(--font-mono);font-size:clamp(13px,2vw,16px);max-width:420px;margin-top:10px;font-weight:700}
+  .hero-ctrl{margin-top:auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center;pointer-events:auto}
+  .bigbtn{font-family:var(--font-display);cursor:pointer;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.5px;padding:14px 24px;border:2px solid var(--ink);background:var(--paper);box-shadow:5px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+  .bigbtn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+  .bigbtn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+  .bigbtn.smash{background:var(--magenta);color:var(--ink)}
+  .bigbtn.rebuild{background:var(--cyan)}
+  .hero-hint{font-family:var(--font-mono);font-size:12px;font-weight:700;opacity:.7}
+  .data-pop{position:absolute;right:22px;bottom:96px;z-index:3;max-width:300px;background:var(--paper);border:2px solid var(--ink);box-shadow:7px 7px 0 var(--ink);padding:16px 18px;transform:translateY(20px) rotate(-1.5deg);opacity:0;transition:.4s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  .data-pop.show{opacity:1;transform:translateY(0) rotate(-1.5deg)}
+  .data-pop .k{font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;background:var(--lime);border:2px solid var(--ink);display:inline-block;padding:2px 7px;margin-bottom:8px}
+  .data-pop h4{font-family:var(--font-display);font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:-.5px;line-height:1}
+  .data-pop p{font-family:var(--font-mono);font-size:12px;margin-top:6px;line-height:1.5}
+  .gl-fallback{position:absolute;inset:0;z-index:1;display:none;align-items:center;justify-content:center;text-align:center;font-family:var(--font-mono);font-weight:700;padding:30px}
 
   /* SECTIONS */
-  section.sec{padding:96px 0;position:relative;z-index:5}
-  .sec-head{text-align:center;max-width:780px;margin:0 auto 50px;position:relative}
-  .sec-head .ghost{position:absolute;top:-72px;left:50%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;font-size:clamp(120px,22vw,240px);letter-spacing:-8px;color:transparent;-webkit-text-stroke:1px rgba(150,220,170,.07);z-index:-1;pointer-events:none;line-height:1}
-  .sec-head .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--green);font-weight:600;letter-spacing:3px;font-size:12px;text-transform:uppercase}
-  .sec-head .kicker::before,.sec-head .kicker::after{content:"";width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--green))}
-  .sec-head .kicker::after{background:linear-gradient(90deg,var(--green),transparent)}
-  .sec-head h2{font-family:var(--font-display);font-size:clamp(34px,5.4vw,58px);font-weight:700;margin:14px 0 12px;letter-spacing:-1.4px;line-height:1.02}
-  .sec-head p{color:var(--muted);font-size:16.5px;line-height:1.7}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px;position:relative;z-index:5}
+  section.sec{padding:80px 0}
+  .sec-head{margin:0 0 44px;position:relative}
+  .sec-num{font-family:var(--font-display);font-weight:900;font-size:clamp(70px,12vw,150px);line-height:.8;color:transparent;-webkit-text-stroke:2px var(--ink);letter-spacing:-6px}
+  .sec-head .tag{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:5px 11px;display:inline-block;margin-bottom:10px}
+  .sec-head h2{font-family:var(--font-display);font-weight:900;font-size:clamp(34px,6vw,64px);line-height:.92;letter-spacing:-2px;text-transform:uppercase;margin:6px 0 12px}
+  .sec-head p{font-family:var(--font-body);max-width:620px;font-size:16px;color:var(--ink);opacity:.85}
+  .accent{color:var(--terra)}
 
-  .reveal{transition:transform .9s cubic-bezier(.16,1,.3,1)}
-  html.anim .reveal{transform:translateY(48px)}
+  .reveal{transition:transform .7s cubic-bezier(.34,1.56,.64,1)}
+  html.anim .reveal{transform:translateY(-44px)}
   html.anim .reveal.in{transform:none}
-  html.anim .stagger{transform:translateY(26px)}
-  html.anim .reveal.in .stagger{transform:none;transition:transform .75s cubic-bezier(.16,1,.3,1)}
-  html.anim .reveal.in .stagger:nth-child(1){transition-delay:.04s}
-  html.anim .reveal.in .stagger:nth-child(2){transition-delay:.09s}
-  html.anim .reveal.in .stagger:nth-child(3){transition-delay:.14s}
-  html.anim .reveal.in .stagger:nth-child(4){transition-delay:.19s}
-  html.anim .reveal.in .stagger:nth-child(5){transition-delay:.24s}
-  html.anim .reveal.in .stagger:nth-child(6){transition-delay:.29s}
-  html.anim .reveal.in .stagger:nth-child(n+7){transition-delay:.34s}
+  html.anim .stagger{transform:translateY(-26px)}
+  html.anim .reveal.in .stagger{transform:none;transition:transform .6s cubic-bezier(.34,1.56,.64,1)}
+  html.anim .reveal.in .stagger:nth-child(1){transition-delay:.03s}
+  html.anim .reveal.in .stagger:nth-child(2){transition-delay:.08s}
+  html.anim .reveal.in .stagger:nth-child(3){transition-delay:.13s}
+  html.anim .reveal.in .stagger:nth-child(4){transition-delay:.18s}
+  html.anim .reveal.in .stagger:nth-child(5){transition-delay:.23s}
+  html.anim .reveal.in .stagger:nth-child(6){transition-delay:.28s}
+  html.anim .reveal.in .stagger:nth-child(n+7){transition-delay:.33s}
 
-  .card{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+  .card{background:var(--paper-2);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+  .mono{font-family:var(--font-mono);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 
-  #stats{padding:30px 0 10px}
+  /* STATS */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-  .stat{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:26px 16px;text-align:center;backdrop-filter:blur(14px);transition:transform .35s,border-color .3s}
-  .stat:hover{border-color:var(--green);transform:translateY(-4px)}
-  .stat-num{font-family:var(--font-display);font-size:clamp(30px,4.8vw,46px);font-weight:700;line-height:1;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .stat-lbl{margin-top:7px;color:var(--muted);font-size:12.5px}
+  .stat{background:var(--paper-2);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:22px 16px;text-align:left}
+  .stat-num{font-family:var(--font-display);font-weight:900;font-size:clamp(34px,5vw,52px);line-height:.9}
+  .stat-lbl{font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;margin-top:6px}
+  .stat:nth-child(1){background:var(--lime)}.stat:nth-child(3){background:var(--cyan)}
 
   /* ANATOMY */
-  .anatomy-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.05fr;gap:28px;align-items:stretch}
-  .plant-stage{position:relative;padding:16px;overflow:hidden}
-  .plant-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 32%,rgba(95,224,137,.12),transparent 60%)}
-  .plant-stage svg{position:relative;width:100%;height:auto;display:block}
+  .anatomy-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.05fr;gap:24px;align-items:stretch}
+  .plant-stage{position:relative;padding:14px;background:var(--paper-2);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+  .plant-stage svg{width:100%;height:auto;display:block}
   .hotspot{cursor:pointer}
   .hotspot .hit{fill:transparent}
-  .hotspot .ring{fill:rgba(95,224,137,.16);stroke:var(--green);stroke-width:1.6;transition:.3s;transform-box:fill-box;transform-origin:center;animation:pulse-ring 2.6s ease-out infinite}
-  .hotspot .dot{fill:var(--lime);transition:.3s}
-  .hotspot .num{fill:#06140c;font-family:var(--font-display);font-size:11px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .hotspot:hover .ring,.hotspot.active .ring{fill:rgba(198,255,122,.34);stroke:var(--lime);stroke-width:2.6}
-  .hotspot:hover .dot,.hotspot.active .dot{fill:#fff}
-  .glow-part{transition:.45s;transform-box:fill-box;transform-origin:center}
-  .dim{opacity:.22;filter:saturate(.5)}
-  .focus-part{opacity:1;filter:drop-shadow(0 0 12px var(--lime))}
-  .info-card{padding:30px;display:flex;flex-direction:column;min-height:380px}
-  .info-card .tagnum{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;font-family:var(--font-display);font-weight:700;font-size:17px;background:linear-gradient(135deg,var(--green),var(--green-deep));color:#06140c}
-  .info-card h3{font-family:var(--font-display);font-size:26px;margin:16px 0 5px;letter-spacing:-.5px;line-height:1.15}
-  .info-card .role{color:var(--green);font-weight:600;font-size:14.5px;margin-bottom:15px}
-  .info-card .desc{color:#d8ebdd;line-height:1.75;font-size:15.5px}
-  .info-card .fun{margin-top:auto;padding-top:20px}
-  .fun-box{background:linear-gradient(120deg,rgba(124,77,219,.16),rgba(124,77,219,.05));border:1px solid rgba(181,139,255,.3);border-radius:16px;padding:15px 17px;color:#eddfff;font-size:14px;line-height:1.6}
-  .fun-box b{color:var(--violet);font-family:var(--font-display)}
-  .hint{color:var(--muted-2);font-size:13px;text-align:center;margin-top:16px}
-  .key{margin-top:18px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
-  .key button{font-family:var(--font-body);cursor:pointer;font-size:12.5px;color:var(--muted);padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.02);transition:.25s}
-  .key button:hover{color:var(--ink);border-color:var(--green)}
-  .key button.on{color:#06140c;background:var(--green);border-color:var(--green);font-weight:600}
+  .hotspot .ring{fill:rgba(168,225,12,.4);stroke:var(--ink);stroke-width:2;transition:.2s}
+  .hotspot .dot{fill:var(--lime);stroke:var(--ink);stroke-width:2;transition:.2s}
+  .hotspot .num{fill:var(--ink);font-family:var(--font-display);font-size:11px;font-weight:900;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .hotspot:hover .ring,.hotspot.active .ring{fill:var(--magenta)}
+  .hotspot:hover .dot,.hotspot.active .dot{fill:var(--terra)}
+  .glow-part{transition:.3s}
+  .dim{opacity:.28}
+  .focus-part{opacity:1}
+  .info-card{padding:26px;display:flex;flex-direction:column;min-height:360px;background:var(--paper-2);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+  .info-card .tagnum{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;font-family:var(--font-display);font-weight:900;font-size:18px;background:var(--lime);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+  .info-card h3{font-family:var(--font-display);font-weight:900;font-size:24px;text-transform:uppercase;letter-spacing:-.5px;margin:16px 0 5px;line-height:1.05}
+  .info-card .role{font-family:var(--font-mono);font-weight:700;font-size:13px;text-transform:uppercase;color:var(--terra);margin-bottom:14px}
+  .info-card .desc{font-size:14.5px;line-height:1.65}
+  .info-card .fun{margin-top:auto;padding-top:18px}
+  .fun-box{background:var(--lime);border:2px solid var(--ink);padding:13px 15px;font-size:13.5px;line-height:1.5}
+  .fun-box b{font-family:var(--font-display);font-weight:900}
+  .hint{font-family:var(--font-mono);font-size:12px;font-weight:700;text-align:center;margin-top:16px;opacity:.7}
+  .key{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .key button{font-family:var(--font-mono);cursor:pointer;font-size:12px;font-weight:700;color:var(--ink);padding:7px 12px;border:2px solid var(--ink);background:var(--paper);transition:.15s}
+  .key button:hover{background:var(--ink);color:var(--paper)}
+  .key button.on{background:var(--lime)}
 
   /* TERNARY */
-  .tern-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:26px;align-items:center}
-  .tern-box{padding:24px;text-align:center}
-  .tern-box svg{width:100%;max-width:380px;height:auto;touch-action:none}
+  .tern-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:24px;align-items:center}
+  .tern-box{padding:22px;text-align:center}
+  .tern-box svg{width:100%;max-width:360px;height:auto;touch-action:none}
   .tern-handle{cursor:grab}.tern-handle:active{cursor:grabbing}
-  .tern-read{margin-top:14px;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-family:var(--font-display);font-size:13px}
-  .tern-read b{font-size:20px;display:block}
-  .tern-presets{margin-top:16px;display:flex;gap:8px;justify-content:center}
-  .tern-presets button{font-family:var(--font-body);cursor:pointer;font-size:12.5px;color:var(--muted);padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);transition:.25s}
-  .tern-presets button:hover{color:var(--ink);border-color:var(--green)}
-  .radar-box{padding:24px}.radar-box svg{width:100%;height:auto}
-  .type-desc{padding:28px;margin-top:18px}
-  .type-desc h3{font-family:var(--font-display);font-size:28px;margin-bottom:10px;letter-spacing:-.5px}
-  .type-desc p{color:#d8ebdd;line-height:1.7;font-size:15px;margin-bottom:12px}
-  .type-desc .shape{color:var(--muted);font-size:14px;line-height:1.6;border-left:3px solid var(--green);padding-left:14px}
+  .tern-read{margin-top:14px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;font-family:var(--font-display);font-weight:900;font-size:13px;text-transform:uppercase}
+  .tern-read b{font-size:22px;display:block}
+  .tern-presets{margin-top:14px;display:flex;gap:8px;justify-content:center}
+  .tern-presets button{font-family:var(--font-mono);cursor:pointer;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink);padding:7px 12px;border:2px solid var(--ink);background:var(--paper);transition:.15s}
+  .tern-presets button:hover{background:var(--ink);color:var(--paper)}
+  .radar-box{padding:22px}.radar-box svg{width:100%;height:auto}
+  .type-desc{padding:24px;margin-top:16px}
+  .type-desc h3{font-family:var(--font-display);font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:-.5px;margin-bottom:10px}
+  .type-desc p{font-size:14.5px;line-height:1.6;margin-bottom:10px}
+  .type-desc .shape{font-family:var(--font-mono);font-size:12.5px;line-height:1.55;border-left:3px solid var(--ink);padding-left:13px}
 
   /* GALAXY */
-  .filters{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
-  .filters button{font-family:var(--font-body);cursor:pointer;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;border:1px solid var(--line);color:var(--muted);transition:.25s;background:var(--glass)}
-  .filters button:hover{color:var(--ink);border-color:var(--green)}
-  .filters button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));border-color:transparent}
-  .galaxy-wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:stretch}
-  .galaxy{position:relative;border-radius:var(--radius);border:1px solid var(--line);background:radial-gradient(ellipse 80% 80% at 50% 40%,rgba(124,77,219,.10),rgba(6,12,9,.45));overflow:hidden;min-height:460px;backdrop-filter:blur(8px)}
-  .galaxy .axis{position:absolute;color:var(--muted-2);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;pointer-events:none}
-  .galaxy .ax-l{left:10px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left}
-  .galaxy .ax-x1{left:14px;bottom:10px}.galaxy .ax-x2{right:14px;bottom:10px}.galaxy .ax-top{left:50%;top:8px;transform:translateX(-50%)}
-  .strain-orb{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);transition:box-shadow .3s,opacity .3s,filter .3s}
-  .strain-orb::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid transparent;transition:.3s}
-  .strain-orb:hover,.strain-orb.sel{z-index:3}
-  .strain-orb:hover::after,.strain-orb.sel::after{border-color:#fff}
-  .strain-orb.faded{opacity:.12;filter:grayscale(.6)}
-  .strain-orb .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:10px;white-space:nowrap;color:var(--muted);opacity:0;transition:.25s;font-weight:600}
+  .filters{display:flex;gap:9px;justify-content:flex-start;flex-wrap:wrap;margin-bottom:22px}
+  .filters button{font-family:var(--font-mono);cursor:pointer;padding:9px 16px;font-weight:700;font-size:12px;text-transform:uppercase;border:2px solid var(--ink);color:var(--ink);background:var(--paper);transition:.15s}
+  .filters button:hover{background:var(--ink);color:var(--paper)}
+  .filters button.on{background:var(--lime)}
+  .galaxy-wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:stretch}
+  .galaxy{position:relative;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);background:var(--paper-2);background-image:linear-gradient(var(--ink-15) 1px,transparent 1px),linear-gradient(90deg,var(--ink-15) 1px,transparent 1px);background-size:40px 40px;overflow:hidden;min-height:460px}
+  .galaxy .axis{position:absolute;font-family:var(--font-mono);font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--ink);opacity:.6;pointer-events:none}
+  .galaxy .ax-l{left:8px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left}
+  .galaxy .ax-x1{left:12px;bottom:8px}.galaxy .ax-x2{right:12px;bottom:8px}.galaxy .ax-top{left:50%;top:6px;transform:translateX(-50%)}
+  .strain-orb{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .15s}
+  .strain-orb:hover,.strain-orb.sel{transform:translate(-50%,-50%) scale(1.15);z-index:3}
+  .strain-orb.faded{opacity:.25}
+  .strain-orb .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-family:var(--font-mono);font-size:10px;white-space:nowrap;font-weight:700;opacity:0;transition:.2s}
   .strain-orb:hover .lab,.strain-orb.sel .lab{opacity:1}
-  .strain-detail{padding:28px;display:flex;flex-direction:column;min-height:460px}
-  .strain-detail h3{font-family:var(--font-display);font-size:25px;letter-spacing:-.4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .type-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
-  .chip-Indica{background:rgba(181,139,255,.18);color:#d4bcff;border:1px solid rgba(181,139,255,.4)}
-  .chip-Sativa{background:rgba(198,255,122,.16);color:var(--lime);border:1px solid rgba(198,255,122,.4)}
-  .chip-Hybrid{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
-  .strain-detail .thcbig{font-family:var(--font-display);font-size:14px;color:var(--muted);margin:14px 0 4px}
-  .strain-detail .thcbig b{color:var(--ink)}
-  .thc-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:16px}
-  .thc-bar span{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--lime));transition:width 1s cubic-bezier(.16,1,.3,1)}
-  .strain-detail .row{font-size:13.5px;line-height:1.55;margin-bottom:11px;color:#d8ebdd}
-  .strain-detail .row b{color:var(--green);display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;font-family:var(--font-display)}
+  .strain-detail{padding:24px;display:flex;flex-direction:column;min-height:460px}
+  .strain-detail h3{font-family:var(--font-display);font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:-.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;line-height:1}
+  .type-chip{font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border:2px solid var(--ink)}
+  .chip-Indica{background:var(--magenta)}.chip-Sativa{background:var(--lime)}.chip-Hybrid{background:var(--terra);color:var(--paper)}
+  .strain-detail .thcbig{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;margin:14px 0 4px}
+  .thc-bar{height:14px;border:2px solid var(--ink);background:var(--paper);overflow:hidden;margin-bottom:16px}
+  .thc-bar span{display:block;height:100%;width:0;background:var(--lime);transition:width 1s cubic-bezier(.34,1.56,.64,1)}
+  .strain-detail .row{font-size:13px;line-height:1.5;margin-bottom:10px}
+  .strain-detail .row b{font-family:var(--font-mono);font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--terra);display:block;margin-bottom:1px}
 
   /* TERPENES */
-  .terp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}
-  .wheel{position:relative;width:min(460px,86vw);aspect-ratio:1;margin:0 auto}
-  .wheel .ring-deco{position:absolute;inset:5%;border-radius:50%;border:1px dashed rgba(198,255,122,.22);animation:spin 46s linear infinite}
-  .wheel .ring-deco.r2{inset:17%;border-color:rgba(181,139,255,.2);animation-duration:68s;animation-direction:reverse}
-  .wheel .ring-deco.r3{inset:29%;border-color:rgba(95,224,137,.12);animation-duration:56s}
-  .terp-node{position:absolute;top:50%;left:50%;width:82px;height:82px;margin:-41px 0 0 -41px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-family:var(--font-display);font-weight:600;font-size:12.5px;border:2px solid rgba(255,255,255,.14);background:rgba(10,18,13,.85);color:var(--ink);backdrop-filter:blur(6px);transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .3s;line-height:1.1;padding:4px}
-  .terp-node:hover{transform:scale(1.14)}
-  .terp-node.on{transform:scale(1.2);box-shadow:0 0 0 4px rgba(255,255,255,.08),0 0 34px var(--tc)}
-  .terp-center{position:absolute;top:50%;left:50%;width:35%;height:35%;margin:-17.5% 0 0 -17.5%;border-radius:50%;background:radial-gradient(circle at 50% 32%,rgba(255,255,255,.07),rgba(6,12,9,.95));border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);padding:12px}
-  .terp-detail{padding:34px;min-height:340px}
-  .terp-detail .swatch{width:54px;height:54px;border-radius:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
-  .terp-detail h3{font-family:var(--font-display);font-size:28px;margin-bottom:6px;letter-spacing:-.5px}
-  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 18px}
-  .terp-detail .meta span{font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
-  .terp-detail .block{margin-bottom:14px}
-  .terp-detail .block b{color:var(--green);font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
-  .terp-detail .block p{color:#d8ebdd;line-height:1.65;font-size:15px}
+  .terp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+  .wheel{position:relative;width:min(440px,86vw);aspect-ratio:1;margin:0 auto}
+  .wheel .ring-deco{position:absolute;inset:8%;border-radius:50%;border:2px dashed var(--ink);opacity:.25;animation:spin 50s linear infinite}
+  .wheel .ring-deco.r2{inset:22%;animation-duration:70s;animation-direction:reverse}
+  .terp-node{position:absolute;top:50%;left:50%;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-family:var(--font-display);font-weight:800;font-size:12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .2s;line-height:1.05;padding:4px;text-transform:uppercase}
+  .terp-node:hover{transform:scale(1.12)}
+  .terp-node.on{transform:scale(1.18);box-shadow:5px 5px 0 var(--ink)}
+  .terp-center{position:absolute;top:50%;left:50%;width:36%;height:36%;margin:-18% 0 0 -18%;border-radius:50%;background:var(--paper-2);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:10px}
+  .terp-detail{padding:30px;min-height:330px}
+  .terp-detail .swatch{width:54px;height:54px;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);margin-bottom:14px}
+  .terp-detail h3{font-family:var(--font-display);font-weight:900;font-size:26px;text-transform:uppercase;letter-spacing:-.5px;margin-bottom:6px}
+  .terp-detail .meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+  .terp-detail .meta span{font-family:var(--font-mono);font-size:11px;font-weight:700;padding:5px 10px;border:2px solid var(--ink)}
+  .terp-detail .block{margin-bottom:12px}
+  .terp-detail .block b{font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--terra);display:block;margin-bottom:3px}
+  .terp-detail .block p{font-size:14px;line-height:1.55}
 
   /* CANNABINOIDS */
   .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
-  .flip{perspective:1400px;height:300px;cursor:pointer}
-  .flip-in{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
+  .flip{perspective:1400px;height:290px;cursor:pointer}
+  .flip-in{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.34,1.56,.64,1);transform-style:preserve-3d}
   .flip.on .flip-in{transform:rotateY(180deg)}
-  .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);padding:22px;display:flex;flex-direction:column}
-  .flip-back{transform:rotateY(180deg)}
-  .flip .h{display:flex;align-items:center;gap:12px}
-  .flip .sigla{font-family:var(--font-display);font-size:28px;font-weight:700;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .flip .psy{margin-left:auto;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
-  .psy-si{background:rgba(255,155,84,.18);color:var(--amber);border:1px solid rgba(255,155,84,.4)}
-  .psy-no{background:rgba(95,224,137,.16);color:var(--green);border:1px solid rgba(95,224,137,.4)}
-  .psy-lieve{background:rgba(255,207,107,.16);color:var(--gold);border:1px solid rgba(255,207,107,.4)}
-  .flip .full{color:var(--muted);font-size:12.5px;margin:3px 0 8px}
+  .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--paper-2);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:20px;display:flex;flex-direction:column}
+  .flip-back{transform:rotateY(180deg);background:var(--ink);color:var(--paper)}
+  .flip .h{display:flex;align-items:center;gap:10px}
+  .flip .sigla{font-family:var(--font-display);font-weight:900;font-size:30px;letter-spacing:-1px}
+  .flip .psy{margin-left:auto;font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 9px;border:2px solid var(--ink)}
+  .psy-si{background:var(--terra);color:var(--paper)}.psy-no{background:var(--lime)}.psy-lieve{background:var(--cyan)}
+  .flip .full{font-family:var(--font-mono);font-size:11px;font-weight:700;margin:3px 0 8px;opacity:.7}
   .flip .glyph{flex:1;display:flex;align-items:center;justify-content:center}
-  .flip .glyph svg{width:130px;height:130px}
-  .flip .aff{margin-top:auto}
-  .aff-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--font-display)}
-  .aff-bar{flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
-  .aff-bar span{display:block;height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.16,1,.3,1)}
-  .flip .flip-hint{font-size:11px;color:var(--muted-2);text-align:center;margin-top:8px}
-  .flip-back .eff{color:#e6f3ea;font-size:14px;line-height:1.55;margin:8px 0 10px}
-  .flip-back .note{font-size:12.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:10px}
-  .flip-back .note b{color:var(--violet);font-family:var(--font-display)}
-  .flip-back h4{font-family:var(--font-display);font-size:18px}
+  .flip .glyph svg{width:120px;height:120px}
+  .aff-row{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10px;font-weight:700;margin-top:6px}
+  .aff-bar{flex:1;height:10px;border:2px solid var(--ink);background:var(--paper);overflow:hidden}
+  .aff-bar span{display:block;height:100%;width:0;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
+  .flip .flip-hint{font-family:var(--font-mono);font-size:10px;font-weight:700;text-align:center;margin-top:8px;opacity:.6}
+  .flip-back h4{font-family:var(--font-display);font-weight:900;font-size:20px}
+  .flip-back .eff{font-size:13.5px;line-height:1.5;margin:8px 0 10px}
+  .flip-back .note{font-family:var(--font-mono);font-size:11px;line-height:1.45;border-top:2px solid var(--paper);padding-top:9px}
+  .flip-back .note b{color:var(--lime)}
+  .flip-back .flip-hint{color:var(--paper);opacity:.6}
 
   /* WEED vs ALCOL */
-  .vs-legend{text-align:center;color:var(--muted-2);font-size:12.5px;margin:-30px auto 26px;max-width:640px;line-height:1.5}
-  .vs-legend b{color:var(--muted)}
-  .vs-rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(345px,1fr));gap:16px;margin-bottom:30px}
-  .vs-row{padding:22px}
-  .vs-title{font-family:var(--font-display);font-size:17.5px;font-weight:600;letter-spacing:-.2px}
-  .vs-line{display:flex;align-items:center;gap:10px;margin-top:12px}
-  .vs-tag{font-size:12px;width:96px;flex-shrink:0;font-weight:600;font-family:var(--font-display)}
-  .vs-tag.al{color:var(--amber)}.vs-tag.ca{color:var(--green)}
-  .vbar{flex:1;height:13px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
-  .vbar span{display:block;height:100%;width:0;border-radius:999px;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
-  .vbar .va{background:linear-gradient(90deg,#ff9b54,#ff5d6c)}
-  .vbar .vc{background:linear-gradient(90deg,#5fe089,#c6ff7a)}
-  .vs-num{font-family:var(--font-display);font-size:12px;color:var(--muted);width:28px;text-align:right}
-  .vs-sub{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;padding-left:106px}
-  .vs-take{margin-top:13px;font-size:12.5px;color:#d8ebdd;border-top:1px solid var(--line);padding-top:11px}
-  .vs-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:26px}
-  .vs-stat{padding:22px 16px;border-radius:16px;background:var(--glass);border:1px solid var(--line);text-align:center;backdrop-filter:blur(12px)}
-  .vs-statnum{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.05;background:linear-gradient(120deg,#ff9b54,#ffcf6b);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .vs-statlbl{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.4}
-  .vs-statsrc{font-size:10.5px;color:var(--muted-2);margin-top:7px}
-  .vs-balance{padding:22px 24px;margin-bottom:24px;line-height:1.7;font-size:14.5px;color:#d8ebdd}
-  .vs-balance b{color:var(--gold);font-family:var(--font-display)}
-  .vs-sources{font-size:12.5px;color:var(--muted)}
-  .vs-sources h4{font-family:var(--font-display);color:var(--ink);margin-bottom:10px;font-size:14px}
-  .vs-sources a,.vs-sources span{display:inline-block;margin:3px 12px 3px 0;color:var(--green);text-decoration:none;border-bottom:1px dashed rgba(95,224,137,.4)}
-  .vs-sources a:hover{border-bottom-style:solid}
-  .vs-sources span{color:var(--muted);border-bottom-color:var(--line)}
+  .vs-legend{font-family:var(--font-mono);font-size:12px;font-weight:700;margin:0 0 22px;max-width:640px;line-height:1.5}
+  .vs-rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(345px,1fr));gap:16px;margin-bottom:28px}
+  .vs-row{padding:20px}
+  .vs-title{font-family:var(--font-display);font-weight:900;font-size:17px;text-transform:uppercase;letter-spacing:-.3px}
+  .vs-line{display:flex;align-items:center;gap:9px;margin-top:11px}
+  .vs-tag{font-family:var(--font-mono);font-size:11px;font-weight:700;width:90px;flex-shrink:0;text-transform:uppercase}
+  .vbar{flex:1;height:14px;border:2px solid var(--ink);background:var(--paper);overflow:hidden}
+  .vbar span{display:block;height:100%;width:0;transition:width 1.1s cubic-bezier(.34,1.56,.64,1)}
+  .vbar .va{background:var(--terra)}.vbar .vc{background:var(--lime)}
+  .vs-num{font-family:var(--font-display);font-weight:900;font-size:13px;width:26px;text-align:right}
+  .vs-sub{font-size:12.5px;margin-top:4px;line-height:1.45;padding-left:99px;opacity:.85}
+  .vs-take{font-family:var(--font-mono);font-size:11.5px;margin-top:12px;border-top:2px solid var(--ink);padding-top:10px}
+  .vs-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+  .vs-stat{padding:20px 16px;background:var(--paper-2);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink)}
+  .vs-stat:nth-child(even){background:var(--terra);color:var(--paper)}
+  .vs-statnum{font-family:var(--font-display);font-weight:900;font-size:28px;line-height:1}
+  .vs-statlbl{font-size:12.5px;margin-top:7px;line-height:1.35}
+  .vs-statsrc{font-family:var(--font-mono);font-size:9.5px;margin-top:7px;opacity:.7}
+  .vs-balance{padding:22px;margin-bottom:22px;line-height:1.65;font-size:14px;background:var(--lime)}
+  .vs-balance b{font-family:var(--font-display);font-weight:900}
+  .vs-sources{font-family:var(--font-mono);font-size:11.5px}
+  .vs-sources h4{font-family:var(--font-display);font-weight:900;font-size:14px;text-transform:uppercase;margin-bottom:9px}
+  .vs-sources a,.vs-sources span{display:inline-block;margin:3px 10px 3px 0;color:var(--ink);text-decoration:none;border-bottom:2px solid var(--terra)}
+  .vs-sources a:hover{background:var(--lime)}
 
   /* FACTS */
-  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px}
-  .fact{padding:22px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s}
-  .fact:hover{border-color:var(--violet);transform:translateY(-5px)}
-  .fact .emoji{font-size:32px;display:block;margin-bottom:10px}
-  .fact h4{font-family:var(--font-display);font-size:16.5px;margin-bottom:7px;letter-spacing:-.2px}
-  .fact p{color:var(--muted);font-size:13.5px;line-height:1.6}
+  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:16px}
+  .fact{padding:20px;background:var(--paper-2);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);transition:transform .15s}
+  .fact:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+  .fact:nth-child(4n+1){background:var(--lime)}.fact:nth-child(4n+3){background:var(--cyan)}
+  .fact .emoji{font-size:30px;display:block;margin-bottom:9px}
+  .fact h4{font-family:var(--font-display);font-weight:900;font-size:16px;text-transform:uppercase;letter-spacing:-.3px;margin-bottom:6px;line-height:1.05}
+  .fact p{font-size:13px;line-height:1.5}
 
-  .share{max-width:760px;margin:40px auto 0;text-align:center}
-  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:14px 26px;border-radius:999px;transition:transform .3s,box-shadow .3s;display:inline-flex;align-items:center;gap:9px;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line)}
-  .btn:hover{transform:translateY(-3px);border-color:var(--green);background:rgba(95,224,137,.08)}
-  footer{padding:40px 22px 70px;text-align:center;border-top:1px solid var(--line);margin-top:50px;position:relative;z-index:5}
-  footer .disclaimer{max-width:700px;margin:0 auto;color:var(--muted);font-size:12.5px;line-height:1.7;background:linear-gradient(120deg,rgba(255,155,84,.07),rgba(255,155,84,.02));border:1px solid rgba(255,155,84,.22);border-radius:16px;padding:18px 22px}
-  footer .made{margin-top:18px;color:var(--muted-2);font-size:13px;font-family:var(--font-display)}
+  .share{margin-top:34px;text-align:center}
+  .btn{font-family:var(--font-display);cursor:pointer;font-weight:800;font-size:15px;text-transform:uppercase;padding:14px 24px;border:2px solid var(--ink);background:var(--lime);box-shadow:5px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+  footer{padding:40px 22px 70px;border-top:2px solid var(--ink);margin-top:50px}
+  footer .disclaimer{max-width:720px;margin:0 auto;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;background:var(--paper-2);border:2px solid var(--ink);padding:18px 20px}
+  footer .disclaimer b{color:var(--terra)}
+  footer .made{margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:12px;font-weight:700}
 
-  .intro{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,#0b1610,#040706);transition:opacity 1s ease,visibility 1s}
+  .intro{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;background:var(--paper);transition:opacity .7s,visibility .7s}
   .intro.hide{opacity:0;visibility:hidden;pointer-events:none}
   .intro-in{text-align:center}
-  .intro-in svg{width:120px;height:120px;filter:drop-shadow(0 0 36px rgba(95,224,137,.55));animation:introLeaf 1.6s cubic-bezier(.16,1,.3,1) both}
-  .intro-title{font-family:var(--font-display);font-weight:700;font-size:46px;letter-spacing:-1.5px;margin-top:14px;background:linear-gradient(115deg,#f3fff7,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent;animation:introUp 1s .4s cubic-bezier(.16,1,.3,1) both}
-  .intro-sub{color:var(--muted);font-size:12px;letter-spacing:4px;text-transform:uppercase;margin-top:9px;animation:introUp 1s .6s cubic-bezier(.16,1,.3,1) both}
-  .intro-bar{width:160px;height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin:20px auto 0;overflow:hidden}
-  .intro-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lime),var(--green));animation:introBar 1.8s ease forwards}
+  .intro-in .big{font-family:var(--font-display);font-weight:900;font-size:64px;text-transform:uppercase;letter-spacing:-3px}
+  .intro-in .big span{color:var(--lime);-webkit-text-stroke:2px var(--ink)}
+  .intro-in .ld{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;margin-top:8px}
+  .intro-bar{width:180px;height:8px;border:2px solid var(--ink);margin:16px auto 0;overflow:hidden}
+  .intro-bar i{display:block;height:100%;width:0;background:var(--lime);animation:ld 1.6s ease forwards}
 
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes pulse-ring{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
-  @keyframes shimmer{0%,100%{opacity:.45}50%{opacity:1}}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-  @keyframes wheel{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(11px);opacity:0}}
-  @keyframes rise{0%{transform:translateY(115%) rotate(6deg)}100%{transform:translateY(0) rotate(0)}}
-  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,6vh) scale(1.15)}}
-  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-7vw,5vh) scale(1.1)}}
-  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5vw,-6vh) scale(1.2)}}
-  @keyframes introLeaf{0%{transform:scale(.4) rotate(-30deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
-  @keyframes introUp{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
-  @keyframes introBar{0%{width:0}100%{width:100%}}
-  .tricho{animation:shimmer 2.8s ease-in-out infinite}
-  .pistil{transform-box:fill-box;transform-origin:bottom center}
+  @keyframes ld{to{width:100%}}
 
   @media (max-width:880px){
     .anatomy-grid,.tern-grid,.terp-wrap,.galaxy-wrap{grid-template-columns:1fr}
-    .nav-links,#dotnav{display:none}
-    .stats{grid-template-columns:repeat(2,1fr)}
-    .cursor-dot,.cursor-ring{display:none}
+    .nav-links{display:none}.stats{grid-template-columns:repeat(2,1fr)}
+    .cursor{display:none}
   }
-  @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}.reveal,.stagger{transform:none!important}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal,.stagger{transform:none!important}}
 </style>
 </head>
 <body>
-<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 <div id="grain"></div>
 <div id="progress"></div>
-<div id="dotnav"></div>
 
 <nav id="nav">
-  <div class="nav-in">
-    <div class="brand" data-go="top"><svg class="leaf-mini" viewBox="0 0 200 200" id="brandLeaf"></svg><span>Weed<span style="color:var(--lime)">Map</span></span></div>
-    <div class="nav-links">
-      <a href="#top">Molecole</a><a href="#strain">Strain</a><a href="#terpeni">Terpeni</a><a href="#cannabinoidi">Cannabinoidi</a><a href="#tipi">Indica/Sativa</a><a href="#anatomia">Anatomia</a><a href="#vsalcol">Vs Alcol</a><a href="#facts">Facts</a>
-    </div>
+  <div class="brand" data-go="top">🌿 <span class="chip">WeedMap</span></div>
+  <div class="nav-links">
+    <a href="#top">Vivaio</a><a href="#strain">Strain</a><a href="#terpeni">Terpeni</a><a href="#cannabinoidi">Cannabinoidi</a><a href="#tipi">Tipi</a><a href="#anatomia">Anatomia</a><a href="#vsalcol">Vs Alcol</a><a href="#facts">Facts</a>
   </div>
 </nav>
 
-<!-- HERO con molecola 3D contenuta -->
 <header class="hero" id="top">
   <canvas id="gl"></canvas>
-  <div class="hero-scrim"></div>
-  <div class="hero-top">
-    <span class="eyebrow"><span class="pulse"></span>Esperienza 3D · Scorri per esplorare</span>
-    <h1><span class="ttl">WeedMap</span></h1>
-    <div class="tagline">la cannabis come non l'hai mai vista</div>
+  <div class="gl-fallback" id="glFallback">Il tuo browser non supporta WebGL — le sezioni qui sotto funzionano comunque. Scorri ↓</div>
+  <div class="hero-ui">
+    <span class="tagchip">GLASSHOUSE · il vivaio rompibile</span>
+    <h1>WEED<span class="o">MAP</span></h1>
+    <div class="sub">Afferra il barattolo, lancialo, <b>spaccalo</b>. Fisica vera. Poi scorri ↓</div>
+    <div class="hero-ctrl">
+      <button class="bigbtn smash" id="smashBtn">💥 Spacca</button>
+      <button class="bigbtn rebuild" id="rebuildBtn">↺ Ricomponi</button>
+      <span class="hero-hint">trascina per lanciare · clic per afferrare</span>
+    </div>
   </div>
-  <div class="hero-bottom">
-    <div class="mol-tag">Molecola in 3D — <b>trascina</b> per ruotare · <b>clic</b> per esplodere</div>
-    <div class="mol-switch" id="molSwitch"><button data-m="THC" class="on">THC</button><button data-m="CBD">CBD</button><button data-m="CBG">CBG</button></div>
-    <div class="hero-hint" id="molInfo"></div>
-    <div class="scroll-cue"><span class="mouse"></span>SCORRI</div>
-  </div>
+  <div class="data-pop" id="dataPop"></div>
 </header>
 
 <main>
   <div class="wrap">
-    <section class="sec" id="stats" style="padding-top:40px">
+    <section class="sec" id="stats" style="padding-top:54px">
       <div class="stats reveal">
         <div class="stat stagger"><div class="stat-num" data-target="100" data-suffix="+">100+</div><div class="stat-lbl">Cannabinoidi</div></div>
         <div class="stat stagger"><div class="stat-num" data-target="500" data-suffix="+">500+</div><div class="stat-lbl">Composti</div></div>
@@ -357,49 +309,49 @@
     </section>
 
     <section class="sec" id="strain">
-      <div class="sec-head reveal"><div class="ghost">01</div><div class="kicker">Parte 01 · interattivo</div><h2>La galassia degli Strain</h2><p>Ogni sfera è uno strain: posizione = energia ↔ relax, altezza = potenza THC, dimensione = THC. Passa sopra o clicca.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">01</div><div class="tag">SCHEDA · interattivo</div><h2>La galassia degli <span class="accent">strain</span></h2><p>Ogni sfera è uno strain: posizione = energia ↔ relax, altezza = potenza THC, dimensione = THC. Passa sopra o clicca.</p></div>
       <div class="filters reveal" id="strainFilters"></div>
       <div class="galaxy-wrap reveal">
-        <div class="galaxy" id="galaxy"><div class="axis ax-top">▲ più THC</div><div class="axis ax-l">potenza</div><div class="axis ax-x1">energizzante ◀</div><div class="axis ax-x2">▶ rilassante</div></div>
+        <div class="galaxy" id="galaxy"><div class="axis ax-top">▲ + THC</div><div class="axis ax-l">potenza</div><div class="axis ax-x1">energico ◀</div><div class="axis ax-x2">▶ relax</div></div>
         <div class="strain-detail card" id="strainDetail"></div>
       </div>
     </section>
 
     <section class="sec" id="terpeni">
-      <div class="sec-head reveal"><div class="ghost">02</div><div class="kicker">Parte 02</div><h2>La ruota dei Terpeni</h2><p>I terpeni danno aroma ed effetto. Clicca un terpene per profilo, effetti e dove altro si trova.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">02</div><div class="tag">SCHEDA</div><h2>La ruota dei <span class="accent">terpeni</span></h2><p>I terpeni danno aroma ed effetto. Clicca un terpene per profilo, effetti e dove altro si trova.</p></div>
       <div class="terp-wrap reveal">
-        <div class="wheel" id="terpWheel"><div class="ring-deco"></div><div class="ring-deco r2"></div><div class="ring-deco r3"></div><div class="terp-center" id="terpCenter">Seleziona un terpene →</div></div>
+        <div class="wheel" id="terpWheel"><div class="ring-deco"></div><div class="ring-deco r2"></div><div class="terp-center" id="terpCenter">Seleziona →</div></div>
         <div class="terp-detail card" id="terpDetail"></div>
       </div>
     </section>
 
     <section class="sec" id="cannabinoidi">
-      <div class="sec-head reveal"><div class="ghost">03</div><div class="kicker">Parte 03 · interattivo</div><h2>I Cannabinoidi</h2><p>Clicca una card per girarla: davanti molecola e affinità CB1/CB2, dietro effetti e note.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">03</div><div class="tag">SCHEDA · interattivo</div><h2>I <span class="accent">cannabinoidi</span></h2><p>Clicca una card per girarla: davanti molecola e affinità CB1/CB2, dietro effetti e note.</p></div>
       <div class="cann-grid reveal" id="cannGrid"></div>
-      <p class="hint">Le affinità CB1/CB2 sono illustrative e semplificate a scopo didattico.</p>
+      <p class="hint">Affinità CB1/CB2 illustrative a scopo didattico.</p>
     </section>
 
     <section class="sec" id="tipi">
-      <div class="sec-head reveal"><div class="ghost">04</div><div class="kicker">Parte 04 · interattivo</div><h2>Miscela il tuo profilo</h2><p>Trascina il punto nel triangolo per fondere Indica, Sativa e Hybrid: radar e profilo si ricalcolano dal vivo.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">04</div><div class="tag">SCHEDA · interattivo</div><h2>Miscela il <span class="accent">profilo</span></h2><p>Trascina il punto nel triangolo per fondere Indica, Sativa e Hybrid: radar e profilo si ricalcolano dal vivo.</p></div>
       <div class="tern-grid reveal">
-        <div class="tern-box card"><svg id="tern" viewBox="0 0 300 300"></svg><div class="tern-read" id="ternRead"></div><div class="tern-presets"><button data-p="Indica">100% Indica</button><button data-p="Sativa">100% Sativa</button><button data-p="Hybrid">100% Hybrid</button></div></div>
+        <div class="tern-box card"><svg id="tern" viewBox="0 0 300 300"></svg><div class="tern-read" id="ternRead"></div><div class="tern-presets"><button data-p="Indica">100% Ind</button><button data-p="Sativa">100% Sat</button><button data-p="Hybrid">100% Hyb</button></div></div>
         <div><div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div><div class="type-desc card" id="typeDesc"></div></div>
       </div>
-      <p class="hint">⚠️ La divisione Indica/Sativa è una semplificazione: terpeni e cannabinoidi contano più della tassonomia.</p>
+      <p class="hint">⚠️ Indica/Sativa è una semplificazione: terpeni e cannabinoidi contano più della tassonomia.</p>
     </section>
 
     <section class="sec" id="anatomia">
-      <div class="sec-head reveal"><div class="ghost">05</div><div class="kicker">Parte 05</div><h2>Anatomia della pianta</h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">05</div><div class="tag">SCHEDA</div><h2>Anatomia della <span class="accent">pianta</span></h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti.</p></div>
       <div class="anatomy-grid reveal">
-        <div class="plant-stage card"><svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis interattiva"></svg></div>
-        <div class="info-card card" id="anatomyCard"></div>
+        <div class="plant-stage"><svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis"></svg></div>
+        <div class="info-card" id="anatomyCard"></div>
       </div>
       <div class="key reveal" id="anatomyKey"></div>
     </section>
 
     <section class="sec" id="vsalcol">
-      <div class="sec-head reveal"><div class="ghost">06</div><div class="kicker">Parte 06 · basato su fonti</div><h2>Cannabis vs Alcol</h2><p id="vsIntro"></p></div>
-      <div class="vs-legend reveal">Le barre indicano il <b>rischio / la gravità relativi</b> su quella dimensione (più lunga = più rischio). Confronto educativo, non un invito al consumo.</div>
+      <div class="sec-head reveal"><div class="sec-num">06</div><div class="tag">SCHEDA · basato su fonti</div><h2>Cannabis vs <span class="accent">alcol</span></h2><p id="vsIntro"></p></div>
+      <div class="vs-legend reveal">[ BARRE = rischio/gravità relativi · più lunga = più rischio · confronto educativo, non un invito al consumo ]</div>
       <div class="vs-rows reveal" id="vsRows"></div>
       <div class="vs-stats reveal" id="vsStats"></div>
       <div class="vs-balance card reveal" id="vsBalance"></div>
@@ -407,31 +359,31 @@
     </section>
 
     <section class="sec" id="facts">
-      <div class="sec-head reveal"><div class="ghost">07</div><div class="kicker">Parte 07</div><h2>Fun Facts</h2><p>22 curiosità vere e interessanti, dalla botanica alla storia alla chimica.</p></div>
+      <div class="sec-head reveal"><div class="sec-num">07</div><div class="tag">SCHEDA</div><h2>Fun <span class="accent">facts</span></h2><p>22 curiosità vere, dalla botanica alla storia alla chimica.</p></div>
       <div class="facts-grid reveal" id="factsGrid"></div>
-      <div class="share reveal"><button class="btn" id="shareBtn">🔗 Copia il link da condividere</button></div>
+      <div class="share reveal"><button class="btn" id="shareBtn">🔗 Copia il link</button></div>
     </section>
   </div>
 </main>
 
 <footer>
-  <div class="disclaimer"><b>⚠️ Contenuto educativo.</b> Scopo puramente informativo per un pubblico adulto. Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispetta le normative locali. Percentuali, affinità ed effetti sono indicativi; molti derivano da studi preclinici non ancora confermati nell'uomo.</div>
-  <div class="made">🌿 WeedMap — un'esperienza interattiva · 2026</div>
+  <div class="disclaimer"><b>⚠️ CONTENUTO EDUCATIVO.</b> Scopo informativo per un pubblico adulto. Non è consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispettale. Percentuali, affinità ed effetti sono indicativi; molti derivano da studi preclinici non ancora confermati nell'uomo.</div>
+  <div class="made">🌿 WEEDMAP · GLASSHOUSE — un'esperienza interattiva · 2026</div>
 </footer>
 
 <script>
 /* ===================== DATI ===================== */
 const DATA = {
   anatomy: [
-    {id:"cola",nome:"Cola (Cima / infiorescenza apicale)",funzione:"Il grappolo fiorito che si forma sui punti di crescita, dove i fiori sono più densi.",dettaglio:"La cola è un addensamento di calici, pistilli e fogliame minore attorno a un nodo o all'apice del fusto. La cola apicale, in cima alla pianta, è la più grande; cole più piccole crescono lungo i rami. È la porzione più ambita perché concentra il maggior numero di fiori e principi attivi.",curiosita:"Tecniche come il topping o la LST (low stress training) interrompono la dominanza apicale per moltiplicare il numero di cole invece di averne una sola."},
-    {id:"calice",nome:"Calice (Calyx)",funzione:"La struttura a goccia che forma il fiore femminile e protegge gli organi riproduttivi.",dettaglio:"Il calice è una piccola guaina ricoperta di tricomi che ospita l'ovulo e da cui emergono i pistilli. Accumulandosi a centinaia forma la struttura compatta della cima. Botanicamente il termine è improprio (la struttura corretta è il perigonio bratteale), ma 'calyx' resta il termine d'uso comune.",curiosita:"Il rapporto calici/foglie (calyx-to-leaf ratio) è un indice di qualità: più calici e meno foglie significano cime più resinose e pregiate."},
-    {id:"pistilli",nome:"Pistilli (Stimmi / Stigmas)",funzione:"I filamenti che escono dai calici per catturare il polline.",dettaglio:"I pistilli sono i sottili 'peletti' che emergono a coppie da ogni calice; la punta appiccicosa è lo stimma. All'inizio sono bianchi, poi virano ad arancione, rosso e marrone con la maturazione: il loro colore è uno degli indicatori visivi più usati per stimare la raccolta.",curiosita:"Il colore dei pistilli NON determina la potenza: per la maturità reale i coltivatori guardano i tricomi al microscopio, non gli stimmi."},
-    {id:"tricomi",nome:"Tricomi (Trichomes)",funzione:"Le ghiandole resinose microscopiche che producono cannabinoidi e terpeni.",dettaglio:"Appaiono come una patina cristallina e appiccicosa su calici e foglie; i più importanti sono i capitato-peduncolati, a forma di fungo. Oltre a produrre THC, CBD e terpeni, difendono la pianta da erbivori, funghi e raggi UV. Sono ciò che dà alle cime l'aspetto 'brinato' e il profumo.",curiosita:"Al microscopio: trasparenti = acerbi, lattiginosi = picco di THC, ambrati = effetti più sedativi. L'hashish è essenzialmente tricomi separati e compressi."},
-    {id:"foglieventaglio",nome:"Foglie a ventaglio (Fan leaves)",funzione:"I 'pannelli solari' della pianta: fanno la fotosintesi.",dettaglio:"Sono le grandi foglie palmate a forma di mano, con 5-11 o più foglioline. Catturano la luce e producono gli zuccheri per la crescita. Contengono pochissima resina, perciò vengono rimosse durante la potatura e la rifinitura (trimming).",curiosita:"Aiutano a distinguere i tipi: foglie larghe e tozze tendono all'Indica, foglie strette e affusolate alla Sativa."},
-    {id:"fogliezucchero",nome:"Foglie dello zucchero (Sugar leaves)",funzione:"Piccole foglie tra i fiori, ricoperte di tricomi.",dettaglio:"Crescono frammiste ai fiori dentro la cola e sembrano cosparse di zucchero a velo per via dei tricomi. Vengono ritagliate durante il trimming ma, essendo resinose, non si buttano: si usano per estratti, hashish o edibili.",curiosita:"Il taglio può essere 'wet' (da fresche) o 'dry' (dopo l'essiccazione): il dry trim protegge meglio tricomi e terpeni."},
-    {id:"nodi",nome:"Nodi (Nodes)",funzione:"I punti del fusto da cui nascono rami, foglie e fiori.",dettaglio:"Il nodo è la giunzione tra fusto e ramo o picciolo; il tratto tra due nodi è l'internodo. La spaziatura dipende da genetica e luce: nodi ravvicinati danno piante più compatte e produttive. È qui che compaiono i pre-fiori che rivelano il sesso della pianta.",curiosita:"Internodi corti e ravvicinati = aspetto Indica cespuglioso; internodi lunghi = portamento Sativa slanciato."},
-    {id:"gambo",nome:"Fusto (Stem)",funzione:"La struttura portante e l'autostrada di acqua e nutrienti.",dettaglio:"Il fusto principale regge l'intera pianta e da esso partono i rami. Al suo interno lo xilema porta acqua e minerali verso l'alto e il floema distribuisce gli zuccheri delle foglie. Un fusto robusto sostiene il peso crescente delle cime in fioritura.",curiosita:"Dalle fibre del fusto di canapa si fanno tessuti, carta e corde da millenni; il 'super cropping' piega lo stelo per rinforzarlo."},
-    {id:"radici",nome:"Radici (Roots)",funzione:"Ancorano la pianta e assorbono acqua, ossigeno e nutrienti.",dettaglio:"Dalla radice a fittone (taproot) si diramano radici laterali e radichette fini che fanno il grosso dell'assorbimento. Immagazzinano riserve e dialogano con i microrganismi del suolo. Un apparato radicale sano e ossigenato è la base di una pianta vigorosa.",curiosita:"In idroponica non c'è terra: le radici pendono in soluzione nutritiva, e i funghi micorrizici possono espanderne enormemente la superficie di assorbimento."}
+    {id:"cola",nome:"Cola (Cima / infiorescenza apicale)",funzione:"Il grappolo fiorito che si forma sui punti di crescita, dove i fiori sono più densi.",dettaglio:"La cola è un addensamento di calici, pistilli e fogliame minore attorno a un nodo o all'apice del fusto. La cola apicale, in cima alla pianta, è la più grande; cole più piccole crescono lungo i rami. È la porzione più ambita perché concentra il maggior numero di fiori e principi attivi.",curiosita:"Tecniche come il topping o la LST interrompono la dominanza apicale per moltiplicare il numero di cole invece di averne una sola."},
+    {id:"calice",nome:"Calice (Calyx)",funzione:"La struttura a goccia che forma il fiore femminile e protegge gli organi riproduttivi.",dettaglio:"Il calice è una piccola guaina ricoperta di tricomi che ospita l'ovulo e da cui emergono i pistilli. Accumulandosi a centinaia forma la struttura compatta della cima. Botanicamente il termine è improprio (la struttura corretta è il perigonio bratteale), ma 'calyx' resta il termine d'uso comune.",curiosita:"Il rapporto calici/foglie è un indice di qualità: più calici e meno foglie significano cime più resinose."},
+    {id:"pistilli",nome:"Pistilli (Stimmi)",funzione:"I filamenti che escono dai calici per catturare il polline.",dettaglio:"I pistilli sono i sottili 'peletti' che emergono a coppie da ogni calice; la punta appiccicosa è lo stimma. All'inizio sono bianchi, poi virano ad arancione, rosso e marrone con la maturazione: il loro colore è uno degli indicatori visivi più usati per stimare la raccolta.",curiosita:"Il colore dei pistilli NON determina la potenza: per la maturità reale si guardano i tricomi al microscopio."},
+    {id:"tricomi",nome:"Tricomi (Trichomes)",funzione:"Le ghiandole resinose microscopiche che producono cannabinoidi e terpeni.",dettaglio:"Appaiono come una patina cristallina e appiccicosa su calici e foglie; i più importanti sono i capitato-peduncolati, a forma di fungo. Oltre a produrre THC, CBD e terpeni, difendono la pianta da erbivori, funghi e raggi UV. Danno alle cime l'aspetto 'brinato'.",curiosita:"Trasparenti = acerbi, lattiginosi = picco di THC, ambrati = più sedativi. L'hashish è essenzialmente tricomi compressi."},
+    {id:"foglieventaglio",nome:"Foglie a ventaglio (Fan leaves)",funzione:"I 'pannelli solari' della pianta: fanno la fotosintesi.",dettaglio:"Sono le grandi foglie palmate a forma di mano, con 5-11 o più foglioline. Catturano la luce e producono gli zuccheri per la crescita. Contengono pochissima resina, perciò vengono rimosse durante la rifinitura (trimming).",curiosita:"Foglie larghe e tozze tendono all'Indica, foglie strette e affusolate alla Sativa."},
+    {id:"fogliezucchero",nome:"Foglie dello zucchero (Sugar leaves)",funzione:"Piccole foglie tra i fiori, ricoperte di tricomi.",dettaglio:"Crescono frammiste ai fiori dentro la cola e sembrano cosparse di zucchero a velo per via dei tricomi. Vengono ritagliate durante il trimming ma, essendo resinose, si usano per estratti, hashish o edibili.",curiosita:"Il taglio può essere 'wet' (da fresche) o 'dry': il dry trim protegge meglio tricomi e terpeni."},
+    {id:"nodi",nome:"Nodi (Nodes)",funzione:"I punti del fusto da cui nascono rami, foglie e fiori.",dettaglio:"Il nodo è la giunzione tra fusto e ramo; il tratto tra due nodi è l'internodo. La spaziatura dipende da genetica e luce: nodi ravvicinati danno piante più compatte. È qui che compaiono i pre-fiori che rivelano il sesso.",curiosita:"Internodi corti = aspetto Indica cespuglioso; internodi lunghi = portamento Sativa slanciato."},
+    {id:"gambo",nome:"Fusto (Stem)",funzione:"La struttura portante e l'autostrada di acqua e nutrienti.",dettaglio:"Il fusto principale regge l'intera pianta. Al suo interno lo xilema porta acqua e minerali verso l'alto e il floema distribuisce gli zuccheri delle foglie. Un fusto robusto sostiene il peso crescente delle cime in fioritura.",curiosita:"Dalle fibre del fusto di canapa si fanno tessuti, carta e corde da millenni."},
+    {id:"radici",nome:"Radici (Roots)",funzione:"Ancorano la pianta e assorbono acqua, ossigeno e nutrienti.",dettaglio:"Dalla radice a fittone si diramano radici laterali e radichette fini che fanno il grosso dell'assorbimento. Immagazzinano riserve e dialogano con i microrganismi del suolo. Un apparato radicale sano è la base di una pianta vigorosa.",curiosita:"In idroponica non c'è terra: le radici pendono in soluzione nutritiva e i funghi micorrizici ne espandono l'assorbimento."}
   ],
   profiles:[
     {tipo:"Indica",descrizione:"Effetto tradizionalmente rilassante, fisico e sedativo (il 'body high'), adatto alla sera e al riposo.",forma:"Pianta bassa e cespugliosa (1-2 m), foglie larghe, fioritura breve. Origine: regioni montane dell'Hindu Kush.",assi:{relax:90,energia:20,focus:25,corpo:90,creativita:30,sonno:85,appetito:80}},
@@ -453,113 +405,103 @@ const DATA = {
     {nome:"Wedding Cake",tipo:"Hybrid",genetica:"Triangle Kush × Animal Mints",thc:"20-27% (varia per fenotipo)",terpeniDominanti:"Limonene, cariofillene, mircene",effetti:"Rilassamento profondo con euforia appagante, comfort.",aromi:"Dolce-vanigliato, note terrose.",adattaA:"Serale; relax casalingo."}
   ],
   terpenes:[
-    {nome:"Mircene (β-mircene)",aroma:"Terroso, muschiato, erbaceo, con note di chiodi di garofano e un fondo di mango maturo.",effetti:"Associato a rilassamento e sedazione (il famoso 'effetto divano'), con potenziali proprietà analgesiche e antinfiammatorie. Prove sull'uomo ancora limitate.",ancheIn:"Mango, luppolo, citronella, timo, alloro.",colore:"#8a9a5b",bollePunto:"166-168 °C"},
-    {nome:"Limonene (D-limonene)",aroma:"Agrumato, fresco e vivace: scorza di limone, arancia e pompelmo.",effetti:"Riportato come elevante dell'umore e ansiolitico, con proprietà antinfiammatorie nei modelli preclinici. Evidenze sull'uomo preliminari.",ancheIn:"Bucce di agrumi, ginepro, menta, rosmarino.",colore:"#f4d03f",bollePunto:"176 °C"},
+    {nome:"Mircene (β-mircene)",aroma:"Terroso, muschiato, erbaceo, con note di chiodi di garofano e un fondo di mango maturo.",effetti:"Associato a rilassamento e sedazione (il famoso 'effetto divano'), con potenziali proprietà analgesiche e antinfiammatorie. Prove sull'uomo ancora limitate.",ancheIn:"Mango, luppolo, citronella, timo, alloro.",colore:"#A8E10C",bollePunto:"166-168 °C"},
+    {nome:"Limonene (D-limonene)",aroma:"Agrumato, fresco e vivace: scorza di limone, arancia e pompelmo.",effetti:"Riportato come elevante dell'umore e ansiolitico, con proprietà antinfiammatorie nei modelli preclinici.",ancheIn:"Bucce di agrumi, ginepro, menta, rosmarino.",colore:"#f4d03f",bollePunto:"176 °C"},
     {nome:"Pinene (α-pinene)",aroma:"Resinoso e fresco di pino e aghi di conifera, con sfumature balsamiche.",effetti:"Studiato come broncodilatatore e per contrastare il calo di memoria indotto dal THC. Dati soprattutto preclinici.",ancheIn:"Aghi di pino, rosmarino, basilico, salvia.",colore:"#3a7d44",bollePunto:"155-156 °C"},
-    {nome:"Cariofillene (β-cariofillene)",aroma:"Speziato, pepato e legnoso: pepe nero, chiodi di garofano, cannella.",effetti:"Unico terpene che lega il recettore CB2: studiato per effetti antinfiammatori e analgesici. Prove cliniche ancora scarse.",ancheIn:"Pepe nero, chiodi di garofano, cannella, origano.",colore:"#a9683f",bollePunto:"≈266 °C"},
+    {nome:"Cariofillene (β-cariofillene)",aroma:"Speziato, pepato e legnoso: pepe nero, chiodi di garofano, cannella.",effetti:"Unico terpene che lega il recettore CB2: studiato per effetti antinfiammatori e analgesici. Prove cliniche ancora scarse.",ancheIn:"Pepe nero, chiodi di garofano, cannella, origano.",colore:"#E9692C",bollePunto:"≈266 °C"},
     {nome:"Linalolo",aroma:"Floreale e dolce, tipico della lavanda, con note speziate.",effetti:"Associato a calma, relax e supporto al sonno, con proprietà ansiolitiche nei modelli preclinici.",ancheIn:"Lavanda, coriandolo, basilico, bergamotto.",colore:"#b57edc",bollePunto:"198 °C"},
     {nome:"Terpinolene",aroma:"Complesso e fresco: erbaceo, floreale, agrumato con fondo di pino.",effetti:"Studiato per proprietà antiossidanti, sedative e antimicrobiche; profilo leggero. Tra i meno studiati.",ancheIn:"Noce moscata, tea tree, lillà, cumino.",colore:"#9caf88",bollePunto:"186-187 °C"},
     {nome:"Umulene (α-umulene)",aroma:"Terroso, legnoso e luppolato: il terpene tipico del luppolo nella birra.",effetti:"Riportato per proprietà antinfiammatorie e di soppressione dell'appetito, spesso in sinergia col cariofillene.",ancheIn:"Luppolo, coriandolo, chiodi di garofano, salvia.",colore:"#a67b5b",bollePunto:"198 °C"},
-    {nome:"Ocimene (β-ocimene)",aroma:"Dolce, erbaceo e fruttato con note legnose e freschezza floreale.",effetti:"Studiato per proprietà antinfiammatorie e decongestionanti; talvolta associato a un effetto edificante.",ancheIn:"Menta, prezzemolo, basilico, mango, pepe.",colore:"#c5d86d",bollePunto:"≈177 °C (volatile)"}
+    {nome:"Ocimene (β-ocimene)",aroma:"Dolce, erbaceo e fruttato con note legnose e freschezza floreale.",effetti:"Studiato per proprietà antinfiammatorie e decongestionanti; talvolta associato a un effetto edificante.",ancheIn:"Menta, prezzemolo, basilico, mango, pepe.",colore:"#5BE8FF",bollePunto:"≈177 °C (volatile)"}
   ],
   cannabinoids:[
     {sigla:"THC",nome:"Δ9-tetraidrocannabinolo",psicoattivo:"Si",cb1:92,cb2:45,effetto:"Principale composto psicoattivo: euforia e alterazione della percezione tramite i recettori CB1. Ha anche effetti analgesici, antiemetici e stimolanti dell'appetito.",nota:"Isolato nel 1964 da Raphael Mechoulam, il 'padre' della ricerca sui cannabinoidi."},
-    {sigla:"CBD",nome:"Cannabidiolo",psicoattivo:"No",cb1:12,cb2:22,effetto:"Non provoca l'euforia del THC. Studiato per proprietà ansiolitiche, anticonvulsivanti e antinfiammatorie; modula indirettamente il sistema endocannabinoide.",nota:"È il principio attivo dell'Epidiolex, farmaco per alcune epilessie. Può attenuare effetti del THC."},
+    {sigla:"CBD",nome:"Cannabidiolo",psicoattivo:"No",cb1:12,cb2:22,effetto:"Non provoca l'euforia del THC. Studiato per proprietà ansiolitiche, anticonvulsivanti e antinfiammatorie; modula indirettamente il sistema endocannabinoide.",nota:"È il principio attivo dell'Epidiolex, farmaco per alcune epilessie."},
     {sigla:"CBG",nome:"Cannabigerolo",psicoattivo:"No",cb1:28,cb2:35,effetto:"Cannabinoide non inebriante, studiato per effetti antinfiammatori, antibatterici e neuroprotettivi.",nota:"È la 'molecola madre': dal precursore CBGA derivano THC, CBD e CBC."},
     {sigla:"CBN",nome:"Cannabinolo",psicoattivo:"Lievemente",cb1:38,cb2:42,effetto:"Debolmente psicoattivo, bassa affinità per il CB1. Spesso associato a effetti sedativi (prove cliniche limitate).",nota:"Si forma per ossidazione del THC: alti livelli indicano materiale vecchio."},
     {sigla:"THCV",nome:"Tetraidrocannabivarina",psicoattivo:"Lievemente",cb1:48,cb2:40,effetto:"Effetto dose-dipendente: a basse dosi smorza alcuni effetti del THC, ad alte dosi diventa lievemente psicoattivo.",nota:"In alcuni studi riduce l'appetito (la 'diet weed'). Sperimentale."},
     {sigla:"CBC",nome:"Cannabicromene",psicoattivo:"No",cb1:10,cb2:58,effetto:"Non inebriante; studiato per proprietà antinfiammatorie e per l'effetto entourage; agisce anche sui canali TRPA1.",nota:"Deriva dal CBGA. Agirebbe in sinergia con altri cannabinoidi."}
   ],
-  molecules:{
-    THC:{formula:"C₂₁H₃₀O₂"}, CBD:{formula:"C₂₁H₃₀O₂"}, CBG:{formula:"C₂₁H₃₂O₂"}
-  },
   facts:[
     {emoji:"♀️",titolo:"Una pianta dioica",testo:"Esistono piante maschili e femminili separate. Sono le femmine non fecondate (sinsemilla) a produrre le infiorescenze più ricche di resina."},
-    {emoji:"🌿",titolo:"Canapa e marijuana, stessa specie",testo:"Appartengono entrambe a Cannabis sativa: la distinzione legale si basa sul contenuto di THC, non sulla botanica."},
+    {emoji:"🌿",titolo:"Canapa = stessa specie",testo:"Canapa e marijuana appartengono entrambe a Cannabis sativa: la distinzione legale si basa sul contenuto di THC, non sulla botanica."},
     {emoji:"🧪",titolo:"Oltre 500 composti",testo:"La pianta contiene più di 500 composti chimici, tra cui oltre 100 cannabinoidi insieme a terpeni e flavonoidi."},
-    {emoji:"🧠",titolo:"Il sistema endocannabinoide",testo:"Il corpo umano ha recettori CB1 e CB2 che regolano appetito, dolore, umore e memoria, scoperti studiando il THC."},
-    {emoji:"😌",titolo:"Anandamide, la molecola della beatitudine",testo:"Endocannabinoide prodotto dal corpo: il nome deriva dal sanscrito ananda, che significa beatitudine."},
+    {emoji:"🧠",titolo:"Sistema endocannabinoide",testo:"Il corpo umano ha recettori CB1 e CB2 che regolano appetito, dolore, umore e memoria, scoperti studiando il THC."},
+    {emoji:"😌",titolo:"Anandamide",testo:"Endocannabinoide prodotto dal corpo: il nome deriva dal sanscrito ananda, che significa beatitudine."},
     {emoji:"🤝",titolo:"L'effetto entourage",testo:"Cannabinoidi e terpeni agirebbero in sinergia, producendo un effetto diverso da quello dei singoli composti isolati."},
-    {emoji:"⚗️",titolo:"THC e CBD a confronto",testo:"Il THC è il principale composto psicoattivo; il CBD non provoca effetti psicotropi ed è studiato per usi terapeutici."},
-    {emoji:"🕓",titolo:"Perché si dice 4/20",testo:"Il '420' nasce negli anni '70 da studenti californiani (i Waldos) che si trovavano alle 16:20. Il 20 aprile è la loro giornata."},
-    {emoji:"📜",titolo:"Una storia antichissima",testo:"Coltivata da migliaia di anni: tracce d'uso risalgono ad almeno 2.500 anni fa in Asia centrale."},
-    {emoji:"📄",titolo:"La fibra che ha fatto la storia",testo:"La canapa è una delle fibre tessili più antiche al mondo, usata per corde, vele e carta."},
-    {emoji:"🔬",titolo:"I tricomi, fabbriche di resina",testo:"La resina ricca di cannabinoidi è prodotta da minuscole ghiandole, i tricomi, visibili come cristalli scintillanti."},
-    {emoji:"🪴",titolo:"Il nome lo diede Linneo",testo:"Il nome Cannabis sativa fu assegnato da Carl Linneo nel 1753; 'sativa' in latino significa 'coltivata'."},
-    {emoji:"🔥",titolo:"Serve il calore (decarbossilazione)",testo:"La cannabis cruda contiene THCA, non psicoattivo: solo il calore lo converte in THC attivo. Per questo gli edibili vanno 'attivati'."},
-    {emoji:"🧫",titolo:"Il primo cannabinoide isolato",testo:"Il CBN fu identificato tra fine '800 e inizio '900, molto prima di CBD (anni '40) e THC (1964)."},
-    {emoji:"🍫",titolo:"Perché vengono i 'munchies'",testo:"Il THC attiva recettori che regolano fame e percezione del gusto, aumentando l'appetito e il piacere del cibo."},
+    {emoji:"⚗️",titolo:"THC vs CBD",testo:"Il THC è il principale composto psicoattivo; il CBD non provoca effetti psicotropi ed è studiato per usi terapeutici."},
+    {emoji:"🕓",titolo:"Perché 4/20",testo:"Il '420' nasce negli anni '70 da studenti californiani (i Waldos) che si trovavano alle 16:20. Il 20 aprile è la loro giornata."},
+    {emoji:"📜",titolo:"Storia antichissima",testo:"Coltivata da migliaia di anni: tracce d'uso risalgono ad almeno 2.500 anni fa in Asia centrale."},
+    {emoji:"📄",titolo:"La fibra della storia",testo:"La canapa è una delle fibre tessili più antiche al mondo, usata per corde, vele e carta."},
+    {emoji:"🔬",titolo:"Tricomi = fabbriche",testo:"La resina ricca di cannabinoidi è prodotta da minuscole ghiandole, i tricomi, visibili come cristalli scintillanti."},
+    {emoji:"🪴",titolo:"Lo battezzò Linneo",testo:"Il nome Cannabis sativa fu assegnato da Carl Linneo nel 1753; 'sativa' in latino significa 'coltivata'."},
+    {emoji:"🔥",titolo:"Serve il calore",testo:"La cannabis cruda contiene THCA, non psicoattivo: solo il calore lo converte in THC attivo. Per questo gli edibili vanno 'attivati'."},
+    {emoji:"🧫",titolo:"Primo cannabinoide isolato",testo:"Il CBN fu identificato tra fine '800 e inizio '900, molto prima di CBD (anni '40) e THC (1964)."},
+    {emoji:"🍫",titolo:"I 'munchies'",testo:"Il THC attiva recettori che regolano fame e gusto, aumentando l'appetito e il piacere del cibo."},
     {emoji:"💜",titolo:"Le varietà viola",testo:"Alcuni strain diventano viola per gli antociani, pigmenti che emergono col freddo a fine fioritura — non c'entra la potenza."},
-    {emoji:"💨",titolo:"Vaporizzare ≠ bruciare",testo:"La vaporizzazione rilascia cannabinoidi e terpeni a temperature inferiori alla combustione, producendo meno sottoprodotti irritanti."},
-    {emoji:"🧬",titolo:"Un'impronta aromatica unica",testo:"Ogni varietà ha un proprio profilo di terpeni e cannabinoidi: una sorta di 'impronta digitale' chimica."},
-    {emoji:"🏛️",titolo:"Un brevetto… del governo USA",testo:"Il brevetto US 6.630.507 rivendica l'uso di alcuni cannabinoidi come antiossidanti e neuroprotettori: è detenuto dal governo statunitense."},
-    {emoji:"🏃",titolo:"Anche correre attiva il sistema",testo:"Il 'runner's high' è legato anche agli endocannabinoidi come l'anandamide, non solo alle endorfine."},
-    {emoji:"🌍",titolo:"La canapa che pulisce il suolo",testo:"La canapa è studiata per il fitorisanamento: può assorbire metalli e contaminanti dal terreno mentre cresce."},
-    {emoji:"🗣️",titolo:"'Marijuana' vs 'cannabis'",testo:"'Cannabis' è il nome botanico; il termine 'marijuana' si diffuse negli USA nel primo Novecento ed entrò nel linguaggio comune."}
+    {emoji:"💨",titolo:"Vaporizzare ≠ bruciare",testo:"La vaporizzazione rilascia cannabinoidi e terpeni a temperature inferiori alla combustione, con meno sottoprodotti irritanti."},
+    {emoji:"🧬",titolo:"Impronta unica",testo:"Ogni varietà ha un proprio profilo di terpeni e cannabinoidi: una sorta di 'impronta digitale' chimica."},
+    {emoji:"🏛️",titolo:"Brevetto del governo USA",testo:"Il brevetto US 6.630.507 rivendica l'uso di alcuni cannabinoidi come antiossidanti e neuroprotettori: è del governo statunitense."},
+    {emoji:"🏃",titolo:"Anche correre",testo:"Il 'runner's high' è legato anche agli endocannabinoidi come l'anandamide, non solo alle endorfine."},
+    {emoji:"🌍",titolo:"Canapa che pulisce",testo:"La canapa è studiata per il fitorisanamento: può assorbire metalli e contaminanti dal terreno mentre cresce."},
+    {emoji:"🗣️",titolo:"'Marijuana' vs 'cannabis'",testo:"'Cannabis' è il nome botanico; 'marijuana' si diffuse negli USA nel primo Novecento ed entrò nel linguaggio comune."}
   ],
   vsAlcohol:{
     "intro":"Alcol e cannabis sono due sostanze psicoattive con profili di rischio molto diversi: non esiste una sostanza \"sicura\", ma le dimensioni del danno cambiano molto a seconda di cosa si misura. I dati mostrano che l'alcol provoca un carico di mortalità, dipendenza e danno sociale nettamente superiore, mentre la cannabis presenta rischi specifici e tutt'altro che trascurabili, soprattutto sulla salute mentale. Confronto descrittivo, non un incoraggiamento al consumo né un parere medico.",
     "rows":[
       {"key":"overdose","label":"Overdose letale acuta","icon":"💀","alcohol":{"level":85,"text":"Avvelenamento acuto da alcol ben documentato e letale (depressione respiratoria, arresto cardiaco). Margine ristretto tra ebbrezza e morte: BAC ~0,40-0,50% spesso fatale."},"cannabis":{"level":5,"text":"Overdose tossica letale da sola cannabis praticamente assente: DEA e NIDA non riportano casi di morte per sola intossicazione da THC. LD50 teorica enorme e di fatto irraggiungibile."},"takeaway":"Sul rischio di morte acuta diretta l'alcol è incomparabilmente più pericoloso."},
       {"key":"morti","label":"Morti annuali attribuibili","icon":"📊","alcohol":{"level":95,"text":"Circa 2,6 milioni di morti l'anno nel mondo (4,7% di tutti i decessi, dati OMS 2019). Negli USA ~178.000 morti l'anno (2020-2021)."},"cannabis":{"level":12,"text":"Nessuna stima OMS di mortalità diretta comparabile. I decessi correlati sono perlopiù indiretti (incidenti, edibili ingeriti dai bambini) e non da intossicazione."},"takeaway":"Il carico di mortalità dell'alcol è enormemente superiore, anche perché molto più diffuso e legale."},
-      {"key":"dipendenza","label":"Potenziale di dipendenza","icon":"🔗","alcohol":{"level":70,"text":"Circa il 22,7% di chi prova alcol sviluppa dipendenza nella vita (NESARC). Transizione più lenta (mediana ~13 anni)."},"cannabis":{"level":35,"text":"Circa l'8,9% di chi prova cannabis sviluppa dipendenza (~1 su 11), fino al 17% se l'uso inizia in adolescenza e 25-50% tra i consumatori quotidiani. Transizione più rapida (~5 anni)."},"takeaway":"Rischio più basso per la cannabis, ma reale e più rapido a instaurarsi in chi sviluppa il disturbo."},
-      {"key":"astinenza","label":"Pericolosità dell'astinenza","icon":"🌀","alcohol":{"level":90,"text":"Astinenza potenzialmente FATALE: il delirium tremens colpisce ~1-1,5% dei dipendenti, con mortalità fino al ~15% se non trattato; rischio di convulsioni. Spesso richiede gestione ospedaliera."},"cannabis":{"level":25,"text":"Sindrome da astinenza reale (ansia, irritabilità, insonnia), riconosciuta nel DSM-5, ma NON letale e autolimitante. Principale effetto: difficoltà a smettere."},"takeaway":"L'astinenza da alcol può uccidere; quella da cannabis no, pur essendo un disturbo reale."},
-      {"key":"cancro","label":"Cancro e danno agli organi","icon":"🫁","alcohol":{"level":85,"text":"Cancerogeno certo Gruppo 1 IARC dal 1988, causa di almeno 7 tumori; nessuna dose sicura (OMS/IARC 2023). Principale causa di cirrosi. Smentito il 'mito cardioprotettivo'."},"cannabis":{"level":40,"text":"Non classificata cancerogena dalla IARC (evidenza insufficiente). Non causa cirrosi. Rischio cardiovascolare in crescita (dati osservazionali: +25% infarto / +42% ictus nell'uso quotidiano)."},"takeaway":"Su cancro e fegato l'alcol è più pericoloso; sul cuore preoccupano entrambe."},
-      {"key":"guida","label":"Guida e incidenti","icon":"🚗","alcohol":{"level":90,"text":"Aumenta di oltre 16 volte il rischio di incidente mortale (OR 16,33). Guida disinibita, più veloce, con sovrastima delle proprie capacità."},"cannabis":{"level":35,"text":"Aumenta il rischio di ~1,5 volte (OR 1,54), un ordine di grandezza meno dell'alcol; tende a guidare più lentamente. ATTENZIONE: la combinazione alcol+cannabis è la più pericolosa (OR ~25)."},"takeaway":"Entrambe alterano la guida, ma l'alcol è il rischio dominante; combinarle è il peggio."},
-      {"key":"violenza","label":"Violenza e aggressività","icon":"👊","alcohol":{"level":85,"text":"Nesso causale e farmacologico forte con l'aggressività (disinibizione): presente nel 40-50% dei crimini violenti e in ~63% degli episodi di violenza domestica negli USA."},"cannabis":{"level":30,"text":"Nessun nesso causale paragonabile: in laboratorio tende a non aumentare (talvolta riduce) l'aggressività. Associazione epidemiologica moderata ma correlazionale."},"takeaway":"L'alcol ha un legame causale robusto con la violenza; per la cannabis le associazioni sono più deboli."},
+      {"key":"dipendenza","label":"Potenziale di dipendenza","icon":"🔗","alcohol":{"level":70,"text":"Circa il 22,7% di chi prova alcol sviluppa dipendenza nella vita (NESARC). Transizione più lenta (mediana ~13 anni)."},"cannabis":{"level":35,"text":"Circa l'8,9% di chi prova cannabis sviluppa dipendenza (~1 su 11), fino al 17% se l'uso inizia in adolescenza. Transizione più rapida (~5 anni)."},"takeaway":"Rischio più basso per la cannabis, ma reale e più rapido a instaurarsi in chi sviluppa il disturbo."},
+      {"key":"astinenza","label":"Pericolosità dell'astinenza","icon":"🌀","alcohol":{"level":90,"text":"Astinenza potenzialmente FATALE: il delirium tremens colpisce ~1-1,5% dei dipendenti, con mortalità fino al ~15% se non trattato. Spesso richiede gestione ospedaliera."},"cannabis":{"level":25,"text":"Sindrome da astinenza reale (ansia, irritabilità, insonnia), riconosciuta nel DSM-5, ma NON letale e autolimitante."},"takeaway":"L'astinenza da alcol può uccidere; quella da cannabis no, pur essendo un disturbo reale."},
+      {"key":"cancro","label":"Cancro e danno agli organi","icon":"🫁","alcohol":{"level":85,"text":"Cancerogeno certo Gruppo 1 IARC dal 1988, causa di almeno 7 tumori; nessuna dose sicura (OMS/IARC 2023). Principale causa di cirrosi."},"cannabis":{"level":40,"text":"Non classificata cancerogena dalla IARC (evidenza insufficiente). Non causa cirrosi. Rischio cardiovascolare in crescita (dati osservazionali)."},"takeaway":"Su cancro e fegato l'alcol è più pericoloso; sul cuore preoccupano entrambe."},
+      {"key":"guida","label":"Guida e incidenti","icon":"🚗","alcohol":{"level":90,"text":"Aumenta di oltre 16 volte il rischio di incidente mortale (OR 16,33). Guida disinibita, più veloce, con sovrastima delle capacità."},"cannabis":{"level":35,"text":"Aumenta il rischio di ~1,5 volte (OR 1,54), un ordine di grandezza meno dell'alcol. ATTENZIONE: la combinazione alcol+cannabis è la più pericolosa (OR ~25)."},"takeaway":"Entrambe alterano la guida, ma l'alcol è il rischio dominante; combinarle è il peggio."},
+      {"key":"violenza","label":"Violenza e aggressività","icon":"👊","alcohol":{"level":85,"text":"Nesso causale forte con l'aggressività (disinibizione): presente nel 40-50% dei crimini violenti e in ~63% degli episodi di violenza domestica negli USA."},"cannabis":{"level":30,"text":"Nessun nesso causale paragonabile: in laboratorio tende a non aumentare (talvolta riduce) l'aggressività. Associazione epidemiologica moderata ma correlazionale."},"takeaway":"L'alcol ha un legame causale robusto con la violenza; per la cannabis le associazioni sono più deboli."},
       {"key":"mente","label":"Salute mentale (psicosi)","icon":"🧠","alcohol":{"level":55,"text":"Associato a depressione, ansia, deterioramento cognitivo e demenza alcol-correlata. Non è un fattore causale primario di schizofrenia."},"cannabis":{"level":75,"text":"Associazione dose-dipendente con psicosi e schizofrenia, soprattutto in soggetti predisposti, con uso precoce (<25 anni) e alta potenza. Meta-analisi: OR ~3,9 negli utilizzatori più intensi."},"takeaway":"È la dimensione in cui la cannabis risulta più rischiosa dell'alcol, specie nei giovani."},
-      {"key":"cervello","label":"Cervello in sviluppo (under 25)","icon":"🧒","alcohol":{"level":70,"text":"Uso pesante in adolescenza associato a riduzione di materia grigia e spessore corticale, peggiore controllo degli impulsi, attenzione e memoria."},"cannabis":{"level":60,"text":"Uso regolare associato a riduzione del volume sottocorticale, peggior funzione esecutiva e memoria, calo del rendimento scolastico. Tossicità sulla materia bianca più modesta rispetto all'alcol."},"takeaway":"Entrambe danneggiano il cervello in sviluppo: nessuna è priva di effetti."},
-      {"key":"calorie","label":"Calorie e postumi","icon":"🍻","alcohol":{"level":65,"text":"Etanolo ~7 kcal/g di 'calorie vuote' (~120-150 kcal a birra/vino). Hangover marcato e documentato (cefalea, nausea), fino a ~24 ore."},"cannabis":{"level":20,"text":"Il THC fumato/vaporizzato è di fatto a zero calorie (gli edibili le prendono dal cibo). 'Hangover' meno definito e perlopiù aneddotico, probabilmente meno invalidante."},"takeaway":"Su calorie e postumi l'alcol pesa di più; combinarli peggiora comunque i postumi."}
+      {"key":"cervello","label":"Cervello in sviluppo (under 25)","icon":"🧒","alcohol":{"level":70,"text":"Uso pesante in adolescenza associato a riduzione di materia grigia e spessore corticale, peggiore controllo degli impulsi, attenzione e memoria."},"cannabis":{"level":60,"text":"Uso regolare associato a riduzione del volume sottocorticale, peggior funzione esecutiva e memoria, calo del rendimento scolastico."},"takeaway":"Entrambe danneggiano il cervello in sviluppo: nessuna è priva di effetti."},
+      {"key":"calorie","label":"Calorie e postumi","icon":"🍻","alcohol":{"level":65,"text":"Etanolo ~7 kcal/g di 'calorie vuote' (~120-150 kcal a birra/vino). Hangover marcato (cefalea, nausea), fino a ~24 ore."},"cannabis":{"level":20,"text":"Il THC fumato/vaporizzato è di fatto a zero calorie (gli edibili le prendono dal cibo). 'Hangover' meno definito e perlopiù aneddotico."},"takeaway":"Su calorie e postumi l'alcol pesa di più; combinarli peggiora comunque i postumi."}
     ],
     "stats":[
-      {"value":"~2,6 mln","label":"Morti annue nel mondo attribuibili all'alcol (4,7% dei decessi globali)","source":"OMS/WHO, Global status report on alcohol (2024, dati 2019)"},
-      {"value":"0 casi","label":"Morti documentate da sola intossicazione (overdose) da cannabis","source":"DEA Marijuana Factsheet; NIDA"},
-      {"value":"72 vs 20","label":"Danno complessivo su 100 (alcol vs cannabis): l'alcol è la sostanza più dannosa in assoluto","source":"Nutt, King & Phillips, The Lancet 2010"},
-      {"value":"16,3 vs 1,5","label":"Aumento (odds ratio) del rischio di incidente stradale mortale: alcol vs cannabis da soli","source":"Chihuri, Li & Chen, Injury Epidemiology 2017"},
-      {"value":"22,7% vs 8,9%","label":"Probabilità lifetime di dipendenza tra chi prova la sostanza (alcol vs cannabis)","source":"Lopez-Quintero et al., Drug Alcohol Depend 2011 (NESARC)"},
-      {"value":"OR ~3,9","label":"Aumento del rischio di psicosi negli utilizzatori più intensi di cannabis (alta potenza / uso precoce)","source":"Marconi, Di Forti et al., Schizophrenia Bulletin 2016"}
+      {"value":"~2,6 mln","label":"Morti annue nel mondo attribuibili all'alcol (4,7% dei decessi)","source":"OMS/WHO Global status report on alcohol (2024, dati 2019)"},
+      {"value":"0 casi","label":"Morti documentate da sola overdose di cannabis","source":"DEA Marijuana Factsheet; NIDA"},
+      {"value":"72 vs 20","label":"Danno complessivo su 100 (alcol vs cannabis): l'alcol è il più dannoso","source":"Nutt, King & Phillips, The Lancet 2010"},
+      {"value":"16,3 vs 1,5","label":"Odds ratio incidente stradale mortale: alcol vs cannabis da soli","source":"Chihuri, Li & Chen, Injury Epidemiology 2017"},
+      {"value":"22,7% vs 8,9%","label":"Probabilità lifetime di dipendenza (alcol vs cannabis)","source":"Lopez-Quintero et al., 2011 (NESARC)"},
+      {"value":"OR ~3,9","label":"Rischio di psicosi negli utilizzatori più intensi di cannabis","source":"Marconi, Di Forti et al., Schizophrenia Bulletin 2016"}
     ],
-    "balance":"Nessuna sostanza è priva di rischi e questo confronto non va letto come una \"patente di innocuità\" per la cannabis né come una banalizzazione dell'alcol. Su gran parte delle dimensioni misurabili (overdose, mortalità totale, cancro, fegato, guida, violenza, dipendenza) l'alcol risulta più dannoso, in parte perché molto più diffuso, legale e normalizzato: maggiore esposizione significa più danni totali. Inoltre l'evidenza sull'alcol è più solida perché studiata da decenni, mentre quella sulla cannabis è più recente e spesso osservazionale, riferita a prodotti meno potenti del THC attuale: \"assenza di prova\" non equivale a \"prova di assenza\". La cannabis ha rischi propri e documentati, soprattutto psicosi nei soggetti vulnerabili e nei giovani, dipendenza e compromissione cognitiva. L'obiettivo non è scegliere \"la meno dannosa\", ma capire profili di rischio diversi: ogni uso comporta responsabilità, e queste indicazioni non sostituiscono il parere medico né la conoscenza della normativa.",
+    "balance":"Nessuna sostanza è priva di rischi e questo confronto non va letto come una \"patente di innocuità\" per la cannabis né come una banalizzazione dell'alcol. Su gran parte delle dimensioni misurabili l'alcol risulta più dannoso, in parte perché molto più diffuso, legale e normalizzato: maggiore esposizione significa più danni totali. L'evidenza sull'alcol è anche più solida perché studiata da decenni, mentre quella sulla cannabis è più recente e spesso osservazionale: \"assenza di prova\" non equivale a \"prova di assenza\". La cannabis ha rischi propri e documentati, soprattutto psicosi nei soggetti vulnerabili e nei giovani, dipendenza e compromissione cognitiva. L'obiettivo non è scegliere \"la meno dannosa\", ma capire profili di rischio diversi: ogni uso comporta responsabilità, e queste indicazioni non sostituiscono il parere medico né la normativa.",
     "sources":[
-      {"label":"OMS/WHO — Global status report on alcohol and health (2024, dati 2019)","url":"https://www.who.int/news/item/25-06-2024-over-3-million-annual-deaths-due-to-alcohol-and-drug-use-majority-among-men"},
-      {"label":"CDC — Deaths from Excessive Alcohol Use, USA 2016-2021 (MMWR 2024)","url":"https://www.cdc.gov/mmwr/volumes/73/wr/mm7308a1.htm"},
-      {"label":"DEA — Marijuana / Cannabis Factsheet","url":"https://www.dea.gov/factsheets/marijuana"},
-      {"label":"NIDA — Cannabis (Marijuana) Research Report; Drugged Driving"},
-      {"label":"WHO Europe / IARC — joint statement alcol e cancro (2023)","url":"https://www.who.int/europe/news/item/06-11-2023-joint-statement-by-who-europe-and-iarc-to-the-european-parliament---raising-awareness-of-the-link-between-alcohol-and-cancer"},
-      {"label":"CDC — Cannabis and Cancer","url":"https://www.cdc.gov/cannabis/health-effects/cancer.html"},
-      {"label":"Nutt, King & Phillips — Drug harms in the UK. The Lancet 2010;376:1558-65","url":"https://pubmed.ncbi.nlm.nih.gov/21036393/"},
-      {"label":"Lopez-Quintero et al. — Drug Alcohol Depend 2011 (NESARC)","url":"https://pubmed.ncbi.nlm.nih.gov/21145178/"},
-      {"label":"Marconi, Di Forti et al. — cannabis e psicosi. Schizophrenia Bulletin 2016","url":"https://academic.oup.com/schizophreniabulletin/article/42/5/1262/2413827"},
+      {"label":"OMS/WHO — Global status report on alcohol and health (2024)","url":"https://www.who.int/news/item/25-06-2024-over-3-million-annual-deaths-due-to-alcohol-and-drug-use-majority-among-men"},
+      {"label":"CDC — Excessive Alcohol Use deaths (MMWR 2024)","url":"https://www.cdc.gov/mmwr/volumes/73/wr/mm7308a1.htm"},
+      {"label":"DEA — Cannabis Factsheet","url":"https://www.dea.gov/factsheets/marijuana"},
+      {"label":"NIDA — Cannabis Research Report"},
+      {"label":"WHO Europe / IARC — alcol e cancro (2023)","url":"https://www.who.int/europe/news/item/06-11-2023-joint-statement-by-who-europe-and-iarc-to-the-european-parliament---raising-awareness-of-the-link-between-alcohol-and-cancer"},
+      {"label":"Nutt, King & Phillips — The Lancet 2010","url":"https://pubmed.ncbi.nlm.nih.gov/21036393/"},
+      {"label":"Lopez-Quintero et al. — Drug Alcohol Depend 2011","url":"https://pubmed.ncbi.nlm.nih.gov/21145178/"},
+      {"label":"Marconi, Di Forti et al. — Schizophrenia Bulletin 2016","url":"https://academic.oup.com/schizophreniabulletin/article/42/5/1262/2413827"},
       {"label":"Chihuri, Li & Chen — Injury Epidemiology 2017","url":"https://pmc.ncbi.nlm.nih.gov/articles/PMC5357617/"},
-      {"label":"NHTSA — Drug and Alcohol Crash Risk (DOT HS 812 117, 2015)","url":"https://www.nhtsa.gov/behavioral-research/drug-and-alcohol-crash-risk-study"},
-      {"label":"Asbridge, Hayden & Cartwright — BMJ 2012;344:e536","url":"https://pubmed.ncbi.nlm.nih.gov/22323502/"}
+      {"label":"NHTSA — Drug and Alcohol Crash Risk (2015)","url":"https://www.nhtsa.gov/behavioral-research/drug-and-alcohol-crash-risk-study"}
     ]
   }
 };
-
-var REDUCED = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-var FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+var REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+var FINE=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 function hexA(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
-
-/* ===================== LEAF ===================== */
-function leafSVG(c1,c2,id){var bl=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><g transform="translate(100,108)">';bl.forEach(function(b){s+='<g transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/></g>';});return s+'<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';}
-document.getElementById('brandLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lb');
 
 /* ===================== PLANT ===================== */
 function buildPlant(){
   var svg=document.getElementById('plantSvg');
-  var s='<defs><linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc07a"/><stop offset="1" stop-color="#2c7d44"/></linearGradient><radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#7fe39a"/><stop offset="1" stop-color="#2f9d57"/></radialGradient><radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#8be0a0"/><stop offset="1" stop-color="#3a8f57"/></radialGradient></defs>';
-  s+='<g data-part="radici" class="glow-part">';for(var i=-3;i<=3;i++){s+='<path d="M200,560 q '+(i*16)+',22 '+(i*30)+',44" stroke="#c79a6a" stroke-width="'+(3-Math.abs(i)*0.3)+'" fill="none" opacity=".85"/>';}s+='</g>';
-  s+='<g data-part="gambo" class="glow-part"><rect x="195" y="250" width="10" height="312" rx="5" fill="url(#stemG)"/></g>';
-  function fanLeaf(cx,cy,rot,scale){var g='<g transform="translate('+cx+','+cy+') rotate('+rot+') scale('+scale+')">';var bl=[{a:0,len:70},{a:26,len:54},{a:-26,len:54},{a:50,len:36},{a:-50,len:36}];bl.forEach(function(b){g+='<g transform="rotate('+b.a+')"><path d="M0,0 C12,-'+(b.len*0.35)+' 6,-'+(b.len*0.8)+' 0,-'+b.len+' C-6,-'+(b.len*0.8)+' -12,-'+(b.len*0.35)+' 0,0 Z" fill="url(#colaG)" stroke="#2c7d44" stroke-width="1"/></g>';});return g+'</g>';}
-  s+='<g data-part="nodi" class="glow-part"><circle cx="200" cy="420" r="7" fill="#3a8f57"/><circle cx="200" cy="350" r="7" fill="#3a8f57"/></g>';
+  var s='<defs><linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7bbf55"/><stop offset="1" stop-color="#3a7d2c"/></linearGradient><radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#9fd66a"/><stop offset="1" stop-color="#5a9c3a"/></radialGradient><radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#a8e10c"/><stop offset="1" stop-color="#6fae22"/></radialGradient></defs>';
+  s+='<g data-part="radici" class="glow-part">';for(var i=-3;i<=3;i++){s+='<path d="M200,560 q '+(i*16)+',22 '+(i*30)+',44" stroke="#b07a3a" stroke-width="'+(3-Math.abs(i)*0.3)+'" fill="none"/>';}s+='</g>';
+  s+='<g data-part="gambo" class="glow-part"><rect x="194" y="250" width="12" height="312" rx="3" fill="url(#stemG)" stroke="#141008" stroke-width="2"/></g>';
+  function fanLeaf(cx,cy,rot,scale){var g='<g transform="translate('+cx+','+cy+') rotate('+rot+') scale('+scale+')">';var bl=[{a:0,len:70},{a:26,len:54},{a:-26,len:54},{a:50,len:36},{a:-50,len:36}];bl.forEach(function(b){g+='<g transform="rotate('+b.a+')"><path d="M0,0 C12,-'+(b.len*0.35)+' 6,-'+(b.len*0.8)+' 0,-'+b.len+' C-6,-'+(b.len*0.8)+' -12,-'+(b.len*0.35)+' 0,0 Z" fill="url(#colaG)" stroke="#141008" stroke-width="1.5"/></g>';});return g+'</g>';}
+  s+='<g data-part="nodi" class="glow-part"><circle cx="200" cy="420" r="7" fill="#5a9c3a" stroke="#141008" stroke-width="2"/><circle cx="200" cy="350" r="7" fill="#5a9c3a" stroke="#141008" stroke-width="2"/></g>';
   s+='<g data-part="foglieventaglio" class="glow-part">'+fanLeaf(196,420,-118,0.9)+fanLeaf(204,420,118,0.9)+fanLeaf(196,350,-125,0.7)+fanLeaf(204,350,125,0.7)+'</g>';
   s+='<g data-part="cola" class="glow-part">';
   var buds=[[200,120,30],[178,150,24],[222,150,24],[200,165,26],[165,185,20],[235,185,20],[190,195,22],[210,195,22],[200,225,24],[178,215,18],[222,215,18]];
-  s+='<g data-part="fogliezucchero" class="glow-part" opacity=".95">';[[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>';});s+='</g>';
-  s+='<g data-part="calice" class="glow-part">';buds.forEach(function(b){s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>';});s+='</g></g>';
-  s+='<g data-part="pistilli" class="glow-part">';[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p){s+='<path class="pistil" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>';});s+='</g>';
-  s+='<g data-part="tricomi" class="glow-part">';for(var t=0;t<70;t++){var ang=(t*53)%360,rad=(t*7)%70+8,cx=200+Math.cos(ang)*rad*0.7,cy=170+Math.sin(ang)*rad-(t%3)*4;if(cy>110&&cy<245&&cx>150&&cx<250){s+='<circle class="tricho" style="animation-delay:'+((t%7)*0.25)+'s" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(1+(t%3)*0.6).toFixed(1)+'" fill="#eafff0"/>';}}s+='</g>';
+  s+='<g data-part="fogliezucchero" class="glow-part">';[[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#7bbf55" stroke="#141008" stroke-width="1.5"/></g>';});s+='</g>';
+  s+='<g data-part="calice" class="glow-part">';buds.forEach(function(b){s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#141008" stroke-width="1.5"/>';});s+='</g></g>';
+  s+='<g data-part="pistilli" class="glow-part">';[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p){s+='<path d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#E9692C" stroke-width="2.6" fill="none" stroke-linecap="round"/>';});s+='</g>';
+  s+='<g data-part="tricomi" class="glow-part">';for(var t=0;t<60;t++){var ang=(t*53)%360,rad=(t*7)%70+8,cx=200+Math.cos(ang)*rad*0.7,cy=170+Math.sin(ang)*rad-(t%3)*4;if(cy>110&&cy<245&&cx>150&&cx<250){s+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="2.2" fill="#fff" stroke="#141008" stroke-width="0.8"/>';}}s+='</g>';
   [{id:"cola",x:200,y:100,n:1},{id:"calice",x:235,y:170,n:2},{id:"pistilli",x:165,y:135,n:3},{id:"tricomi",x:200,y:200,n:4},{id:"foglieventaglio",x:140,y:415,n:5},{id:"fogliezucchero",x:150,y:205,n:6},{id:"nodi",x:200,y:355,n:7},{id:"gambo",x:205,y:500,n:8},{id:"radici",x:200,y:590,n:9}].forEach(function(sp){s+='<g class="hotspot" data-spot="'+sp.id+'"><circle class="hit" cx="'+sp.x+'" cy="'+sp.y+'" r="20"/><circle class="ring" cx="'+sp.x+'" cy="'+sp.y+'" r="13"/><circle class="dot" cx="'+sp.x+'" cy="'+sp.y+'" r="10"/><text class="num" x="'+sp.x+'" y="'+sp.y+'">'+sp.n+'</text></g>';});
   svg.innerHTML=s;
   var groups={};DATA.anatomy.forEach(function(p){groups[p.id]=svg.querySelector('[data-part="'+p.id+'"]');});
@@ -569,37 +511,35 @@ function buildPlant(){
   document.querySelector('.plant-stage').addEventListener('mouseleave',clearFocus);
   window._focusPart=focusPart;
 }
-function renderAnatomy(id){var i=DATA.anatomy.findIndex(function(p){return p.id===id;});var p=DATA.anatomy[i];document.getElementById('anatomyCard').innerHTML='<span class="tagnum">'+(i+1)+'</span><h3>'+p.nome+'</h3><div class="role">'+p.funzione+'</div><div class="desc">'+p.dettaglio+'</div><div class="fun"><div class="fun-box"><b>Lo sapevi?</b> '+p.curiosita+'</div></div>';}
+function renderAnatomy(id){var i=DATA.anatomy.findIndex(function(p){return p.id===id;});var p=DATA.anatomy[i];document.getElementById('anatomyCard').innerHTML='<span class="tagnum">'+(i+1)+'</span><h3>'+p.nome+'</h3><div class="role">'+p.funzione+'</div><div class="desc">'+p.dettaglio+'</div><div class="fun"><div class="fun-box"><b>LO SAPEVI?</b> '+p.curiosita+'</div></div>';}
 function buildAnatomyKey(){var k=document.getElementById('anatomyKey');k.innerHTML=DATA.anatomy.map(function(p,i){return '<button data-k="'+p.id+'">'+(i+1)+'. '+p.nome.split(' (')[0]+'</button>';}).join('');k.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){window._focusPart(b.dataset.k);});});}
 
 /* ===================== RADAR / TERNARY ===================== */
 var AXES=[["relax","Relax"],["energia","Energia"],["focus","Focus"],["corpo","Corpo"],["creativita","Creatività"],["sonno","Sonno"],["appetito","Appetito"]];
 var RC=180,RR=120,radarCurrent=AXES.map(function(){return 0;}),radarAnim=null;
 function radarPoint(idx,val){var a=(Math.PI*2*idx/AXES.length)-Math.PI/2,r=RR*val/100;return [RC+Math.cos(a)*r,RC+Math.sin(a)*r];}
-function buildRadarFrame(){var s='';[25,50,75,100].forEach(function(p){s+='<polygon points="'+AXES.map(function(_,i){return radarPoint(i,p).join(',');}).join(' ')+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';});AXES.forEach(function(ax,i){var pt=radarPoint(i,100);s+='<line x1="'+RC+'" y1="'+RC+'" x2="'+pt[0]+'" y2="'+pt[1]+'" stroke="rgba(255,255,255,.08)"/>';var lp=radarPoint(i,124);s+='<text x="'+lp[0]+'" y="'+lp[1]+'" fill="#90a89a" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">'+ax[1]+'</text>';});s+='<polygon id="radarPoly" points="" fill="rgba(95,224,137,.22)" stroke="#5fe089" stroke-width="2.5" stroke-linejoin="round"/><g id="radarDots"></g>';document.getElementById('radar').innerHTML=s;}
-function drawRadarShape(vals,col){var rp=document.getElementById('radarPoly');if(!rp)return;rp.setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>';}).join('');}
-function mixColors(w){var C={Indica:[181,139,255],Sativa:[198,255,122],Hybrid:[255,207,107]};var r=C.Indica[0]*w.Indica+C.Sativa[0]*w.Sativa+C.Hybrid[0]*w.Hybrid;var g=C.Indica[1]*w.Indica+C.Sativa[1]*w.Sativa+C.Hybrid[1]*w.Hybrid;var b=C.Indica[2]*w.Indica+C.Sativa[2]*w.Sativa+C.Hybrid[2]*w.Hybrid;return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';}
+function buildRadarFrame(){var s='';[25,50,75,100].forEach(function(p){s+='<polygon points="'+AXES.map(function(_,i){return radarPoint(i,p).join(',');}).join(' ')+'" fill="none" stroke="rgba(20,16,8,.18)" stroke-width="1.5"/>';});AXES.forEach(function(ax,i){var pt=radarPoint(i,100);s+='<line x1="'+RC+'" y1="'+RC+'" x2="'+pt[0]+'" y2="'+pt[1]+'" stroke="rgba(20,16,8,.18)" stroke-width="1.5"/>';var lp=radarPoint(i,126);s+='<text x="'+lp[0]+'" y="'+lp[1]+'" fill="#141008" font-family="Space Mono,monospace" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="central">'+ax[1].toUpperCase()+'</text>';});s+='<polygon id="radarPoly" points="" fill="rgba(168,225,12,.45)" stroke="#141008" stroke-width="2.5" stroke-linejoin="round"/><g id="radarDots"></g>';document.getElementById('radar').innerHTML=s;}
+function drawRadarShape(vals,col){var rp=document.getElementById('radarPoly');if(!rp)return;rp.setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));rp.setAttribute('fill',hexA(col,.45));document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="'+col+'" stroke="#141008" stroke-width="1.5"/>';}).join('');}
+function mixColors(w){var C={Indica:[255,79,216],Sativa:[168,225,12],Hybrid:[233,105,44]};var r=C.Indica[0]*w.Indica+C.Sativa[0]*w.Sativa+C.Hybrid[0]*w.Hybrid;var g=C.Indica[1]*w.Indica+C.Sativa[1]*w.Sativa+C.Hybrid[1]*w.Hybrid;var b=C.Indica[2]*w.Indica+C.Sativa[2]*w.Sativa+C.Hybrid[2]*w.Hybrid;return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';}
 function applyBlend(w){
   var P={};DATA.profiles.forEach(function(p){P[p.tipo]=p;});
   var target=AXES.map(function(ax){return P.Indica.assi[ax[0]]*w.Indica+P.Sativa.assi[ax[0]]*w.Sativa+P.Hybrid.assi[ax[0]]*w.Hybrid;});
-  var col=mixColors(w);var rp=document.getElementById('radarPoly');
-  if(rp){rp.setAttribute('fill',col.replace('rgb','rgba').replace(')',',0.22)'));rp.setAttribute('stroke',col);}
-  var start=radarCurrent.slice();drawRadarShape(target,col);
-  if(!REDUCED){var t0=performance.now(),dur=450;if(radarAnim)cancelAnimationFrame(radarAnim);(function step(now){var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});drawRadarShape(radarCurrent,col);if(k<1)radarAnim=requestAnimationFrame(step);})(performance.now());}
+  var col=mixColors(w);var start=radarCurrent.slice();drawRadarShape(target,col);
+  if(!REDUCED){var t0=performance.now(),dur=420;if(radarAnim)cancelAnimationFrame(radarAnim);(function step(now){var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});drawRadarShape(radarCurrent,col);if(k<1)radarAnim=requestAnimationFrame(step);})(performance.now());}
   radarCurrent=target.slice();
   var pi=Math.round(w.Indica*100),ps=Math.round(w.Sativa*100),ph=100-pi-ps;
-  document.getElementById('ternRead').innerHTML='<div style="color:#b58bff"><b>'+pi+'%</b>Indica</div><div style="color:#c6ff7a"><b>'+ps+'%</b>Sativa</div><div style="color:#ffcf6b"><b>'+ph+'%</b>Hybrid</div>';
+  document.getElementById('ternRead').innerHTML='<div style="color:#c640a8"><b>'+pi+'%</b>Indica</div><div style="color:#6fae22"><b>'+ps+'%</b>Sativa</div><div style="color:#E9692C"><b>'+ph+'%</b>Hybrid</div>';
   var dom=w.Indica>=w.Sativa&&w.Indica>=w.Hybrid?'Indica':(w.Sativa>=w.Hybrid?'Sativa':'Hybrid');var dp=P[dom];
-  document.getElementById('typeDesc').innerHTML='<h3 style="color:'+col+'">Miscela a dominanza '+dom+'</h3><p>'+dp.descrizione+'</p><div class="shape"><b style="color:'+col+'">Aspetto tipico ('+dom+'):</b> '+dp.forma+'</div>';
+  document.getElementById('typeDesc').innerHTML='<h3>Dominanza '+dom+'</h3><p>'+dp.descrizione+'</p><div class="shape">'+dp.forma+'</div>';
   positionTernHandle(w);
 }
 var TA={x:150,y:34},TB={x:36,y:262},TC={x:264,y:262},ternHandle;
 function baryFromPoint(px,py){var det=(TB.y-TC.y)*(TA.x-TC.x)+(TC.x-TB.x)*(TA.y-TC.y);var a=((TB.y-TC.y)*(px-TC.x)+(TC.x-TB.x)*(py-TC.y))/det;var b=((TC.y-TA.y)*(px-TC.x)+(TA.x-TC.x)*(py-TC.y))/det;var c=1-a-b;a=Math.max(0,a);b=Math.max(0,b);c=Math.max(0,c);var sum=a+b+c||1;return {Sativa:a/sum,Indica:b/sum,Hybrid:c/sum};}
 function pointFromBary(w){return {x:TA.x*w.Sativa+TB.x*w.Indica+TC.x*w.Hybrid,y:TA.y*w.Sativa+TB.y*w.Indica+TC.y*w.Hybrid};}
-function positionTernHandle(w){if(!ternHandle)return;var p=pointFromBary(w);ternHandle.setAttribute('cx',p.x);ternHandle.setAttribute('cy',p.y);var g=document.getElementById('ternHandleGlow');if(g){g.setAttribute('cx',p.x);g.setAttribute('cy',p.y);}}
+function positionTernHandle(w){if(!ternHandle)return;var p=pointFromBary(w);ternHandle.setAttribute('cx',p.x);ternHandle.setAttribute('cy',p.y);}
 function buildTernary(){
   var svg=document.getElementById('tern');
-  svg.innerHTML='<defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6ff7a" stop-opacity=".25"/><stop offset=".5" stop-color="#b58bff" stop-opacity=".18"/><stop offset="1" stop-color="#ffcf6b" stop-opacity=".25"/></linearGradient></defs><polygon points="'+TA.x+','+TA.y+' '+TB.x+','+TB.y+' '+TC.x+','+TC.y+'" fill="url(#tg)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/><text x="'+TA.x+'" y="'+(TA.y-10)+'" fill="#c6ff7a" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Sativa</text><text x="'+(TB.x-4)+'" y="'+(TB.y+22)+'" fill="#b58bff" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Indica</text><text x="'+(TC.x+4)+'" y="'+(TC.y+22)+'" fill="#ffcf6b" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Hybrid</text><circle id="ternHandleGlow" cx="150" cy="183" r="20" fill="rgba(255,255,255,.06)" pointer-events="none"/><circle id="ternHandle" class="tern-handle" cx="150" cy="183" r="13" fill="#0b1610" stroke="#fff" stroke-width="2.5"/>';
+  svg.innerHTML='<polygon points="'+TA.x+','+TA.y+' '+TB.x+','+TB.y+' '+TC.x+','+TC.y+'" fill="rgba(168,225,12,.12)" stroke="#141008" stroke-width="2.5"/><text x="'+TA.x+'" y="'+(TA.y-9)+'" fill="#6fae22" font-family="Hanken Grotesk,sans-serif" font-size="15" font-weight="900" text-anchor="middle">SATIVA</text><text x="'+(TB.x-2)+'" y="'+(TB.y+22)+'" fill="#c640a8" font-family="Hanken Grotesk,sans-serif" font-size="15" font-weight="900" text-anchor="middle">INDICA</text><text x="'+(TC.x+2)+'" y="'+(TC.y+22)+'" fill="#E9692C" font-family="Hanken Grotesk,sans-serif" font-size="15" font-weight="900" text-anchor="middle">HYBRID</text><circle id="ternHandle" class="tern-handle" cx="150" cy="183" r="13" fill="#fff" stroke="#141008" stroke-width="3"/>';
   ternHandle=svg.querySelector('#ternHandle');
   var dragging=false;
   function pt(e){var r=svg.getBoundingClientRect();return {x:((e.clientX-r.left)/r.width)*300,y:((e.clientY-r.top)/r.height)*300};}
@@ -618,10 +558,9 @@ function buildGalaxy(filter){
   var maxT=30,minT=14;
   DATA.strains.forEach(function(s,idx){
     var x=strainAxisX(s),tm=thcMid(s.thc),y=Math.max(0.08,Math.min(0.92,1-((tm-minT)/(maxT-minT))));
-    var size=22+(tm-minT)/(maxT-minT)*26;var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
+    var size=24+(tm-minT)/(maxT-minT)*26;var col=s.tipo==='Indica'?'#FF4FD8':s.tipo==='Sativa'?'#A8E10C':'#E9692C';
     var o=document.createElement('div');o.className='strain-orb';o.dataset.idx=idx;
-    o.style.left=(8+x*84)+'%';o.style.top=(10+y*80)+'%';o.style.width=size+'px';o.style.height=size+'px';
-    o.style.background='radial-gradient(circle at 35% 30%,#ffffff,'+col+' 55%,'+hexA(col,.2)+')';o.style.boxShadow='0 0 '+(size*0.7)+'px '+hexA(col,.7);
+    o.style.left=(8+x*84)+'%';o.style.top=(10+y*80)+'%';o.style.width=size+'px';o.style.height=size+'px';o.style.background=col;
     if(filter!=='Tutti'&&s.tipo!==filter)o.classList.add('faded');
     o.innerHTML='<span class="lab">'+s.nome+'</span>';
     o.addEventListener('mouseenter',function(){showStrain(idx);});
@@ -629,169 +568,189 @@ function buildGalaxy(filter){
     g.appendChild(o);
   });
 }
-function showStrain(idx){var s=DATA.strains[idx];var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));document.getElementById('strainDetail').innerHTML='<h3>'+s.nome+' <span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></h3><div class="thcbig">THC tipico: <b>'+s.thc+'</b></div><div class="thc-bar"><span style="width:0" data-w="'+pct+'"></span></div><div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div>';setTimeout(function(){var b=document.querySelector('#strainDetail .thc-bar span');if(b)b.style.width=b.dataset.w+'%';},40);}
+function showStrain(idx){var s=DATA.strains[idx];var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));document.getElementById('strainDetail').innerHTML='<h3>'+s.nome+' <span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></h3><div class="thcbig">THC tipico · <b>'+s.thc+'</b></div><div class="thc-bar"><span style="width:0" data-w="'+pct+'"></span></div><div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div>';setTimeout(function(){var b=document.querySelector('#strainDetail .thc-bar span');if(b)b.style.width=b.dataset.w+'%';},40);}
 function buildStrainFilters(){var f=document.getElementById('strainFilters');f.innerHTML=["Tutti","Indica","Sativa","Hybrid"].map(function(o,i){return '<button data-f="'+o+'" class="'+(i===0?'on':'')+'">'+o+'</button>';}).join('');f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){f.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');buildGalaxy(b.dataset.f);});});}
 
 /* ===================== TERPENES ===================== */
-function buildTerpenes(){var wheel=document.getElementById('terpWheel'),T=DATA.terpenes,R=42;T.forEach(function(t,i){var a=(Math.PI*2*i/T.length)-Math.PI/2,x=50+Math.cos(a)*R,y=50+Math.sin(a)*R;var node=document.createElement('div');node.className='terp-node';node.style.left=x+'%';node.style.top=y+'%';node.style.setProperty('--tc',t.colore);node.style.borderColor=hexA(t.colore,.6);node.innerHTML=t.nome.split(' (')[0];node.dataset.i=i;node.addEventListener('click',function(){selectTerp(i);});wheel.appendChild(node);});selectTerp(0);}
-function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';});var inStrains=DATA.strains.filter(function(s){return s.terpeniDominanti.toLowerCase().indexOf(t.nome.split(' (')[0].toLowerCase())>=0;}).map(function(s){return s.nome;});document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ '+t.bollePunto+'</span>'+(inStrains.length?'<span>🌿 in '+inStrains.length+' strain</span>':'')+'</div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>'+(inStrains.length?'<div class="block"><b>Strain dominanti</b><p>'+inStrains.join(', ')+'</p></div>':'');}
+function buildTerpenes(){var wheel=document.getElementById('terpWheel'),T=DATA.terpenes,R=42;T.forEach(function(t,i){var a=(Math.PI*2*i/T.length)-Math.PI/2,x=50+Math.cos(a)*R,y=50+Math.sin(a)*R;var node=document.createElement('div');node.className='terp-node';node.style.left=x+'%';node.style.top=y+'%';node.innerHTML=t.nome.split(' (')[0];node.dataset.i=i;node.addEventListener('click',function(){selectTerp(i);});wheel.appendChild(node);});selectTerp(0);}
+function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.background=on?t.colore:'var(--paper)';});var inStrains=DATA.strains.filter(function(s){return s.terpeniDominanti.toLowerCase().indexOf(t.nome.split(' (')[0].toLowerCase())>=0;}).map(function(s){return s.nome;});document.getElementById('terpCenter').innerHTML='<div><div style="font-size:24px">🍃</div><b>'+t.nome.split(' (')[0].toUpperCase()+'</b></div>';document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ '+t.bollePunto+'</span>'+(inStrains.length?'<span>🌿 IN '+inStrains.length+' STRAIN</span>':'')+'</div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>'+(inStrains.length?'<div class="block"><b>Strain dominanti</b><p>'+inStrains.join(', ')+'</p></div>':'');}
 
 /* ===================== CANNABINOIDS ===================== */
-function molGlyph(seed,col){var cx=65,cy=65;var s='<svg viewBox="0 0 130 130">';function ring(ox,oy,r){var pts=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+seed;pts.push([ox+Math.cos(a)*r,oy+Math.sin(a)*r]);}var d='';for(var j=0;j<6;j++){d+=(j?'L':'M')+pts[j][0].toFixed(1)+','+pts[j][1].toFixed(1)+' ';}return {d:d+'Z',pts:pts};}var r1=ring(cx-14,cy,22),r2=ring(cx+18,cy+6,18);s+='<path d="'+r1.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".9"/><path d="'+r2.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".7"/><path d="M'+(cx+34)+','+(cy+2)+' l 14,8 l 12,-7 l 13,7" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".6" stroke-linecap="round" stroke-linejoin="round"/>';r1.pts.forEach(function(p,i){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i%3===0?4.2:3)+'" fill="'+(i===1?'#ff8a4a':col)+'"/>';});r2.pts.forEach(function(p){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="'+col+'"/>';});return s+'</svg>';}
-function buildCannabinoids(){document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";var col=c.psicoattivo==="Si"?'#ff9b54':c.psicoattivo==="No"?'#5fe089':'#ffcf6b';var seed=(c.sigla.charCodeAt(0))%6*0.4;return '<div class="flip stagger"><div class="flip-in"><div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="glyph">'+molGlyph(seed,col)+'</div><div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:linear-gradient(90deg,#5fe089,#c6ff7a)"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:linear-gradient(90deg,#b58bff,#7c4ddb)"></span></div>'+c.cb2+'</div></div><div class="flip-hint">↻ clicca per gli effetti</div></div><div class="flip-face flip-back"><h4 style="color:'+col+'">'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div><div class="flip-hint">↻ clicca per tornare</div></div></div></div>';}).join('');document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});}
+function molGlyph(seed,col){var cx=60,cy=60;var s='<svg viewBox="0 0 120 120">';function ring(ox,oy,r){var pts=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+seed;pts.push([ox+Math.cos(a)*r,oy+Math.sin(a)*r]);}var d='';for(var j=0;j<6;j++){d+=(j?'L':'M')+pts[j][0].toFixed(1)+','+pts[j][1].toFixed(1)+' ';}return {d:d+'Z',pts:pts};}var r1=ring(cx-13,cy,20),r2=ring(cx+16,cy+5,16);s+='<path d="'+r1.d+'" fill="none" stroke="#141008" stroke-width="2.5"/><path d="'+r2.d+'" fill="none" stroke="#141008" stroke-width="2.5"/><path d="M'+(cx+31)+','+(cy+1)+' l 13,7 l 11,-6 l 12,6" fill="none" stroke="#141008" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';r1.pts.forEach(function(p,i){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i%3===0?5:4)+'" fill="'+(i===1?'#E9692C':col)+'" stroke="#141008" stroke-width="2"/>';});r2.pts.forEach(function(p){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.5" fill="'+col+'" stroke="#141008" stroke-width="2"/>';});return s+'</svg>';}
+function buildCannabinoids(){document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";var col=c.psicoattivo==="Si"?'#E9692C':c.psicoattivo==="No"?'#A8E10C':'#5BE8FF';var seed=(c.sigla.charCodeAt(0))%6*0.4;return '<div class="flip stagger"><div class="flip-in"><div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="glyph">'+molGlyph(seed,col)+'</div><div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:#A8E10C"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:#FF4FD8"></span></div>'+c.cb2+'</div></div><div class="flip-hint">↻ clicca per gli effetti</div></div><div class="flip-face flip-back"><h4>'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>NOTA:</b> '+c.nota+'</div><div class="flip-hint">↻ torna</div></div></div></div>';}).join('');document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});}
 function animateAffinity(){document.querySelectorAll('.aff-bar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
 
-/* ===================== WEED vs ALCOL ===================== */
-function buildVsAlcohol(){
-  var d=DATA.vsAlcohol;if(!d)return;
-  var iel=document.getElementById('vsIntro');if(iel)iel.textContent=d.intro||'';
-  document.getElementById('vsRows').innerHTML=(d.rows||[]).map(function(r){
-    return '<div class="vs-row stagger card"><span class="vs-title">'+(r.icon||'')+' '+r.label+'</span>'+
-      '<div class="vs-line"><span class="vs-tag al">🍺 Alcol</span><div class="vbar"><span class="va" data-w="'+r.alcohol.level+'"></span></div><span class="vs-num">'+r.alcohol.level+'</span></div><div class="vs-sub">'+r.alcohol.text+'</div>'+
-      '<div class="vs-line"><span class="vs-tag ca">🌿 Cannabis</span><div class="vbar"><span class="vc" data-w="'+r.cannabis.level+'"></span></div><span class="vs-num">'+r.cannabis.level+'</span></div><div class="vs-sub">'+r.cannabis.text+'</div>'+
-      '<div class="vs-take">'+r.takeaway+'</div></div>';
-  }).join('');
-  document.getElementById('vsStats').innerHTML=(d.stats||[]).map(function(s){return '<div class="vs-stat stagger"><div class="vs-statnum">'+s.value+'</div><div class="vs-statlbl">'+s.label+'</div><div class="vs-statsrc">'+s.source+'</div></div>';}).join('');
-  var bal=document.getElementById('vsBalance');if(bal)bal.innerHTML='<b>⚖️ In equilibrio.</b> '+(d.balance||'');
-  document.getElementById('vsSources').innerHTML='<h4>Fonti</h4>'+(d.sources||[]).map(function(s){return s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">'+s.label+'</a>':'<span>'+s.label+'</span>';}).join('');
-}
+/* ===================== VS / FACTS ===================== */
+function buildVsAlcohol(){var d=DATA.vsAlcohol;if(!d)return;var iel=document.getElementById('vsIntro');if(iel)iel.textContent=d.intro||'';document.getElementById('vsRows').innerHTML=(d.rows||[]).map(function(r){return '<div class="vs-row stagger card"><span class="vs-title">'+(r.icon||'')+' '+r.label+'</span><div class="vs-line"><span class="vs-tag" style="color:#E9692C">🍺 Alcol</span><div class="vbar"><span class="va" data-w="'+r.alcohol.level+'"></span></div><span class="vs-num">'+r.alcohol.level+'</span></div><div class="vs-sub">'+r.alcohol.text+'</div><div class="vs-line"><span class="vs-tag" style="color:#6fae22">🌿 Cannabis</span><div class="vbar"><span class="vc" data-w="'+r.cannabis.level+'"></span></div><span class="vs-num">'+r.cannabis.level+'</span></div><div class="vs-sub">'+r.cannabis.text+'</div><div class="vs-take">→ '+r.takeaway+'</div></div>';}).join('');document.getElementById('vsStats').innerHTML=(d.stats||[]).map(function(s){return '<div class="vs-stat stagger"><div class="vs-statnum">'+s.value+'</div><div class="vs-statlbl">'+s.label+'</div><div class="vs-statsrc">'+s.source+'</div></div>';}).join('');var bal=document.getElementById('vsBalance');if(bal)bal.innerHTML='<b>⚖️ IN EQUILIBRIO. </b>'+(d.balance||'');document.getElementById('vsSources').innerHTML='<h4>Fonti</h4>'+(d.sources||[]).map(function(s){return s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">'+s.label+'</a>':'<span>'+s.label+'</span>';}).join('');}
 function animateVs(){document.querySelectorAll('#vsRows .vbar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
-
-/* ===================== FACTS ===================== */
 function buildFacts(){document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){return '<div class="fact stagger"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';}).join('');}
 
-/* ===================== COUNTERS / CURSOR / SHARE ===================== */
-function animateCount(el){var target=+el.dataset.target,suf=el.dataset.suffix||'';if(REDUCED){el.textContent=target+suf;return;}var t0=null,dur=1400;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
-function initCursor(){if(!FINE||REDUCED)return;var dot=document.createElement('div');dot.className='cursor-dot';var ring=document.createElement('div');ring.className='cursor-ring';document.body.appendChild(dot);document.body.appendChild(ring);document.body.classList.add('cursor-on');var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});document.addEventListener('mouseover',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.add('big');});document.addEventListener('mouseout',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.remove('big');});(function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();}
-function initShare(){var b=document.getElementById('shareBtn');if(!b)return;b.addEventListener('click',function(){var url=location.href.split('#')[0];function ok(){var o=b.textContent;b.textContent='✓ Link copiato!';setTimeout(function(){b.textContent=o;},1800);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,ok);}else{try{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){ok();}}});}
-
-/* ===================== SCROLL ===================== */
-var SECS=[["top","Molecole"],["strain","Strain"],["terpeni","Terpeni"],["cannabinoidi","Cannabinoidi"],["tipi","Indica/Sativa"],["anatomia","Anatomia"],["vsalcol","Vs Alcol"],["facts","Fun Facts"]];
-function buildDotNav(){document.getElementById('dotnav').innerHTML=SECS.map(function(s){return '<a href="#'+s[0]+'" data-sec="'+s[0]+'"><span>'+s[1]+'</span></a>';}).join('');}
+/* ===================== UTIL ===================== */
+function animateCount(el){var target=+el.dataset.target,suf=el.dataset.suffix||'';if(REDUCED){el.textContent=target+suf;return;}var t0=null,dur=1300;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+function initCursor(){if(!FINE)return;var c=document.createElement('div');c.className='cursor';c.textContent='✋';document.body.appendChild(c);document.body.classList.add('cursor-on');window.addEventListener('mousemove',function(e){c.style.left=e.clientX+'px';c.style.top=e.clientY+'px';});window._cursorEl=c;}
+function initShare(){var b=document.getElementById('shareBtn');if(!b)return;b.addEventListener('click',function(){var url=location.href.split('#')[0];function ok(){var o=b.textContent;b.textContent='✓ COPIATO!';setTimeout(function(){b.textContent=o;},1700);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,ok);}else{ok();}});}
 function initScroll(){
   var hasIO=('IntersectionObserver' in window);
-  if(hasIO && !REDUCED){
+  if(hasIO&&!REDUCED){
     document.documentElement.classList.add('anim');
     var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.04,rootMargin:'0px 0px -6% 0px'});
     document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
     setTimeout(function(){document.querySelectorAll('.reveal:not(.in)').forEach(function(el){el.classList.add('in');});},1500);
-    function once(sel,fn){var t=document.querySelector(sel);if(!t)return;var done=false;var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!done){done=true;fn();o.disconnect();}});},{threshold:.3});o.observe(t);}
-    once('#stats .stats',function(){document.querySelectorAll('.stat-num').forEach(animateCount);});
-    once('#cannGrid',animateAffinity);
-    once('#vsRows',animateVs);
-  } else { animateAffinity();animateVs();document.querySelectorAll('.stat-num').forEach(animateCount); }
+    function once(sel,fn){var t=document.querySelector(sel);if(!t)return;var o=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){fn();o.disconnect();}});},{threshold:.3});o.observe(t);}
+    once('#stats',function(){document.querySelectorAll('.stat-num').forEach(animateCount);});
+    once('#cannGrid',animateAffinity);once('#vsRows',animateVs);
+  }else{document.querySelectorAll('.stat-num').forEach(animateCount);animateAffinity();animateVs();}
   var navLinks=Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
-  var dotLinks=Array.prototype.slice.call(document.querySelectorAll('#dotnav a'));
-  var navEl=document.getElementById('nav');
-  var secEls=SECS.map(function(s){return document.getElementById(s[0]);});
-  var ticking=false;
-  function onScroll(){
-    var h=document.documentElement;var max=h.scrollHeight-h.clientHeight;
-    document.getElementById('progress').style.width=(max>0?h.scrollTop/max*100:0)+'%';
-    navEl.classList.toggle('solid',h.scrollTop>60);
-    var idx=0;secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<200)idx=i;});
-    navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});
-    dotLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});
-    ticking=false;
-  }
+  var SECS=['top','strain','terpeni','cannabinoidi','tipi','anatomia','vsalcol','facts'];
+  var secEls=SECS.map(function(id){return document.getElementById(id);});
+  var navEl=document.getElementById('nav');var ticking=false;
+  function onScroll(){var h=document.documentElement;var max=h.scrollHeight-h.clientHeight;document.getElementById('progress').style.width=(max>0?h.scrollTop/max*100:0)+'%';navEl.classList.toggle('solid',h.scrollTop>60);var idx=0;secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<200)idx=i;});navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});ticking=false;}
   window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(onScroll);ticking=true;}});
   document.querySelector('.brand').addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
   onScroll();
 }
 
-/* ===================== MOLECULE 3D (hero, contenuta) ===================== */
-function buildMoleculeData(type){
-  var atoms=[],bonds=[];
-  function hex(cx,cy,cz,r,tilt){var a=[];for(var k=0;k<6;k++){var ang=k/6*Math.PI*2;a.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r*Math.cos(tilt),cz+Math.sin(ang)*r*Math.sin(tilt)]);}return a;}
-  function addRing(ring,el){var base=atoms.length;ring.forEach(function(p){atoms.push({p:p,el:el||'C'});});for(var k=0;k<6;k++){bonds.push([base+k,base+(k+1)%6]);}return base;}
-  function chain(fromIdx,len,dir){var prev=fromIdx;for(var t=0;t<len;t++){var bp=atoms[prev].p;var np=[bp[0]+dir[0],bp[1]+dir[1]+((t%2)?0.35:-0.35),bp[2]+dir[2]*((t%2)?1:-1)];atoms.push({p:np,el:'C'});bonds.push([prev,atoms.length-1]);prev=atoms.length-1;}return prev;}
-  function oxy(nearIdx,off){var bp=atoms[nearIdx].p;atoms.push({p:[bp[0]+off[0],bp[1]+off[1],bp[2]+off[2]],el:'O'});bonds.push([nearIdx,atoms.length-1]);}
-  if(type==='THC'){var a=addRing(hex(-2.6,0,0,1.5,0.12),'C');var b=addRing(hex(0.1,0.2,0.5,1.5,0.5),'C');var c=addRing(hex(2.6,-0.2,0.2,1.5,0.85),'C');bonds.push([a+0,b+3]);bonds.push([b+0,c+3]);oxy(b+4,[0.2,1.2,0.4]);oxy(a+2,[-1.0,-0.9,0.1]);chain(a+4,5,[-1.0,-0.5,0.3]);oxy(c+1,[0.8,0.9,0.2]);}
-  else if(type==='CBD'){var a2=addRing(hex(-2.2,0,0,1.5,0.12),'C');var b2=addRing(hex(2.2,0.4,0.6,1.5,0.5),'C');bonds.push([a2+0,b2+3]);oxy(a2+1,[-0.6,1.1,0.1]);oxy(a2+3,[-0.6,-1.1,0.1]);chain(a2+4,5,[-1.0,-0.5,0.3]);chain(b2+1,2,[1.0,0.6,0.4]);}
-  else {var a3=addRing(hex(-3.0,0,0,1.5,0.12),'C');oxy(a3+1,[-0.6,1.1,0.1]);oxy(a3+3,[-0.6,-1.1,0.1]);chain(a3+4,5,[-1.0,-0.5,0.3]);chain(a3+0,8,[1.15,0.0,0.25]);}
-  var cx=0,cy=0,cz=0;atoms.forEach(function(at){cx+=at.p[0];cy+=at.p[1];cz+=at.p[2];});cx/=atoms.length;cy/=atoms.length;cz/=atoms.length;
-  atoms.forEach(function(at){at.p[0]-=cx;at.p[1]-=cy;at.p[2]-=cz;});
-  return {atoms:atoms,bonds:bonds};
-}
-function updateMolInfo(type){var m=DATA.molecules[type];var el=document.getElementById('molInfo');if(el&&m)el.innerHTML='Stai vedendo <b style="color:var(--lime)">'+type+'</b> · '+m.formula+(type==='CBD'?' (stessa formula del THC: sono isomeri!)':'');document.querySelectorAll('#molSwitch button').forEach(function(b){b.classList.toggle('on',b.dataset.m===type);});}
-var glReady=false,glStartFn=null,glStopFn=null,glBuildFn=null;
-function ensureGL(){if(glReady)return;try{initGL();glReady=true;}catch(e){glReady=false;}}
-function glStart(){if(glReady&&glStartFn)glStartFn();}
-function glStop(){if(glStopFn)glStopFn();}
-function initGL(){
-  if(typeof THREE==='undefined')throw new Error('no THREE');
-  var canvas=document.getElementById('gl');var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+/* ===================== AUDIO ===================== */
+var AC=null;
+function audio(){if(AC)return AC;try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AC=null;}return AC;}
+function clink(){var c=audio();if(!c)return;for(var i=0;i<3;i++){(function(d){var o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=900+Math.random()*1400;o.connect(g);g.connect(c.destination);var t=c.currentTime+d;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.12,t+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t+0.25);o.start(t);o.stop(t+0.26);})(i*0.02);}}
+var lastSpro=0;
+function sproing(){var c=audio();if(!c)return;var now=performance.now();if(now-lastSpro<90)return;lastSpro=now;var o=c.createOscillator(),g=c.createGain();o.type='sine';var t=c.currentTime;o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(380,t+0.12);o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.07,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);o.start(t);o.stop(t+0.19);}
+
+/* ===================== 3D GLASSHOUSE (Three + cannon) ===================== */
+function initGlasshouse(){
+  if(typeof THREE==='undefined'||typeof CANNON==='undefined')throw new Error('libs');
+  var canvas=document.getElementById('gl');
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-  var scene=new THREE.Scene();var camera=new THREE.PerspectiveCamera(58,1,0.1,140);camera.position.set(0,0,16);
+  renderer.setClearColor(0xF4EFE6,1);
+  if('outputEncoding' in renderer)renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(45,1,0.1,100);camera.position.set(0,3.4,9.2);camera.lookAt(0,1.1,0);
   var curW=0,curH=0;
   function sizeGL(){var w=canvas.clientWidth,h=canvas.clientHeight;if(w<=0||h<=0)return;if(w===curW&&h===curH)return;curW=w;curH=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-  function dotTex(){var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d');var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.85)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(32,32,32,0,7);g.fill();return new THREE.CanvasTexture(c);}
-  var tex=dotTex();
-  var N=1900,posA=new Float32Array(N*3),colA=new Float32Array(N*3),pal=[[0.37,0.88,0.54],[0.78,1.0,0.48],[0.71,0.55,1.0]];
-  for(var i=0;i<N;i++){var r=8+Math.pow(Math.random(),0.6)*26;var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);posA[i*3]=r*Math.sin(ph)*Math.cos(th);posA[i*3+1]=r*Math.sin(ph)*Math.sin(th)*0.8;posA[i*3+2]=r*Math.cos(ph);var cc=pal[(Math.random()*pal.length)|0];colA[i*3]=cc[0];colA[i*3+1]=cc[1];colA[i*3+2]=cc[2];}
-  var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(posA,3));pg.setAttribute('color',new THREE.BufferAttribute(colA,3));
-  var points=new THREE.Points(pg,new THREE.PointsMaterial({size:0.22,map:tex,vertexColors:true,transparent:true,opacity:.88,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));scene.add(points);
-  scene.add(new THREE.AmbientLight(0x335544,0.95));
-  var l1=new THREE.PointLight(0x5fe089,1.5,90);l1.position.set(9,7,13);scene.add(l1);
-  var l2=new THREE.PointLight(0xb58bff,1.3,90);l2.position.set(-11,-5,9);scene.add(l2);
-  var orbits=new THREE.Group();var oCols=[0x5fe089,0xb58bff,0xc6ff7a];for(var oi=0;oi<3;oi++){var tg=new THREE.Mesh(new THREE.TorusGeometry(6.2+oi*0.5,0.045,8,80),new THREE.MeshBasicMaterial({color:oCols[oi],transparent:true,opacity:0.45,blending:THREE.AdditiveBlending,depthWrite:false}));tg.rotation.x=Math.PI*0.5*oi+0.4;tg.rotation.y=oi*0.7;orbits.add(tg);}scene.add(orbits);
-  var mol=new THREE.Group();scene.add(mol);
-  var atomMeshes=[],spriteMats=[],cGeo=new THREE.SphereGeometry(0.4,20,20),oGeo=new THREE.SphereGeometry(0.36,20,20),switchT=1;
-  function clearMol(){while(mol.children.length){var ch=mol.children.pop();if(ch.geometry&&ch.geometry.dispose&&ch.geometry!==cGeo&&ch.geometry!==oGeo)ch.geometry.dispose();}atomMeshes=[];spriteMats=[];}
-  function buildMol(type){clearMol();var data=buildMoleculeData(type);var cMat=new THREE.MeshStandardMaterial({color:0x0e1a12,emissive:0x4fd07a,emissiveIntensity:0.85,roughness:0.35,metalness:0.25});var oMat=new THREE.MeshStandardMaterial({color:0x2a120a,emissive:0xff7a3c,emissiveIntensity:1.0,roughness:0.35,metalness:0.25});var bMat=new THREE.MeshStandardMaterial({color:0x10241a,emissive:0x2f9d57,emissiveIntensity:0.5,roughness:0.5});data.atoms.forEach(function(a){var m=new THREE.Mesh(a.el==='O'?oGeo:cGeo,a.el==='O'?oMat:cMat);m.position.set(a.p[0],a.p[1],a.p[2]);m.userData.base=new THREE.Vector3(a.p[0],a.p[1],a.p[2]);mol.add(m);atomMeshes.push(m);var sm=new THREE.SpriteMaterial({map:tex,color:a.el==='O'?0xff8a4a:0x6fe39a,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false});var sp=new THREE.Sprite(sm);sp.scale.set(1.8,1.8,1.8);sp.position.copy(m.position);mol.add(sp);spriteMats.push({sp:sp,atom:m});});data.bonds.forEach(function(b){var a=data.atoms[b[0]].p,c=data.atoms[b[1]].p;var va=new THREE.Vector3(a[0],a[1],a[2]),vc=new THREE.Vector3(c[0],c[1],c[2]);var len=va.distanceTo(vc);if(len<0.001)return;var geo=new THREE.CylinderGeometry(0.085,0.085,len,9);var m=new THREE.Mesh(geo,bMat);m.position.copy(va.clone().add(vc).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vc.clone().sub(va).normalize());mol.add(m);});switchT=0;updateMolInfo(type);}
-  buildMol('THC');glBuildFn=buildMol;
-  var mxN=0,myN=0,sxN=0,syN=0,dragX=0,dragY=0,dragging=false,lastPX=0,lastPY=0,autoRot=0,explode=0,moved=0;
-  canvas.addEventListener('mousemove',function(e){var r=canvas.getBoundingClientRect();mxN=((e.clientX-r.left)/r.width)*2-1;myN=((e.clientY-r.top)/r.height)*2-1;});
-  canvas.addEventListener('pointerdown',function(e){dragging=true;moved=0;lastPX=e.clientX;lastPY=e.clientY;canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener('pointerup',function(e){if(dragging&&moved<6)explode=1;dragging=false;});
-  canvas.addEventListener('pointermove',function(e){if(dragging){var dx=e.clientX-lastPX,dy=e.clientY-lastPY;moved+=Math.abs(dx)+Math.abs(dy);dragY+=dx*0.007;dragX+=dy*0.007;lastPX=e.clientX;lastPY=e.clientY;}});
+  // chrome-iridescent envMap (6 gradient faces)
+  function face(ca,cb){var cv=document.createElement('canvas');cv.width=cv.height=128;var g=cv.getContext('2d');var gr=g.createLinearGradient(0,0,128,128);gr.addColorStop(0,ca);gr.addColorStop(1,cb);g.fillStyle=gr;g.fillRect(0,0,128,128);return cv;}
+  var cube=new THREE.CubeTexture([face('#5BE8FF','#FF4FD8'),face('#FF4FD8','#A8E10C'),face('#ffffff','#5BE8FF'),face('#A8E10C','#5BE8FF'),face('#FF4FD8','#ffffff'),face('#5BE8FF','#A8E10C')]);
+  cube.needsUpdate=true;if('encoding' in cube)cube.encoding=THREE.sRGBEncoding;
+  function chromeMat(){return new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.08,envMap:cube,envMapIntensity:1.3});}
+  // lights
+  scene.add(new THREE.HemisphereLight(0xffffff,0xe7dfce,0.95));
+  var key=new THREE.DirectionalLight(0xffffff,0.95);key.position.set(5,9,6);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-8;key.shadow.camera.right=8;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;scene.add(key);
+  scene.add(new THREE.DirectionalLight(0xfff0e0,0.3).translateZ(0));
+  // floor visual
+  var floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.ShadowMaterial({opacity:0.16}));
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+  var floorTint=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0xF4EFE6,roughness:1}));
+  floorTint.rotation.x=-Math.PI/2;floorTint.position.y=-0.01;scene.add(floorTint);
+  // physics world
+  var world=new CANNON.World();world.gravity.set(0,-22,0);world.broadphase=new CANNON.NaiveBroadphase();world.solver.iterations=12;
+  var pmat=new CANNON.Material('p');world.addContactMaterial(new CANNON.ContactMaterial(pmat,pmat,{friction:0.25,restitution:0.45}));
+  function staticPlane(nx,ny,nz,px,py,pz){var b=new CANNON.Body({mass:0,material:pmat});b.addShape(new CANNON.Plane());var q=new CANNON.Vec3(nx,ny,nz);b.quaternion.setFromVectors(new CANNON.Vec3(0,0,1),q);b.position.set(px,py,pz);world.add(b);return b;}
+  staticPlane(0,1,0,0,0,0); // floor
+  staticPlane(1,0,0,-6,0,0);staticPlane(-1,0,0,6,0,0); // L/R walls
+  staticPlane(0,0,1,0,0,-4);staticPlane(0,0,-1,0,0,4.2); // back/front walls
+  // jar group + body
+  var GY=1.05; // jar center height
+  var jarGroup=new THREE.Group();scene.add(jarGroup);
+  var jarMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.92,0.92,2.0,40,1,false),chromeMat());jarMesh.castShadow=true;jarGroup.add(jarMesh);
+  var lid=new THREE.Mesh(new THREE.CylinderGeometry(0.98,0.98,0.18,40),chromeMat());lid.position.y=1.0;lid.castShadow=true;jarGroup.add(lid);
+  var gummyGeo=new THREE.IcosahedronGeometry(0.17,0);var gummyMat=new THREE.MeshStandardMaterial({color:0xA8E10C,roughness:0.35,metalness:0,envMap:cube,envMapIntensity:0.3});
+  var innerGummies=[];for(var gi=0;gi<14;gi++){var gm=new THREE.Mesh(gummyGeo,gummyMat);gm.position.set((Math.random()-0.5)*1.0,(Math.random()-0.5)*1.4,(Math.random()-0.5)*1.0);gm.castShadow=true;jarGroup.add(gm);innerGummies.push(gm);}
+  var trichome=new THREE.Mesh(new THREE.IcosahedronGeometry(0.34,0),chromeMat());trichome.position.set(0,0.1,0);jarGroup.add(trichome);
+  var jarBody;
+  function makeJarBody(pos){var b=new CANNON.Body({mass:5,material:pmat});b.addShape(new CANNON.Cylinder(0.92,0.92,2.0,12));b.position.copy(pos||new CANNON.Vec3(0,GY,0));b.linearDamping=0.15;b.angularDamping=0.2;b.addEventListener('collide',onJarCollide);world.add(b);return b;}
+  // shards + dynamic gummies pool
+  var shardMeshes=[],shardBodies=[],dynGummies=[],intact=true,trichomeFloat=null;
+  function clearDebris(){shardMeshes.forEach(function(m){scene.remove(m);});shardBodies.forEach(function(b){world.remove(b);});dynGummies.forEach(function(o){scene.remove(o.mesh);world.remove(o.body);});shardMeshes=[];shardBodies=[];dynGummies=[];}
+  function onJarCollide(e){if(!intact)return;var v=0;try{v=Math.abs(e.contact.getImpactVelocityAlongNormal());}catch(err){v=0;}if(v>7){shatterAt(jarBody.position.clone());}}
+  function shatterAt(pos){
+    if(!intact)return;intact=false;clink();
+    var p=pos||jarBody.position;
+    // hide intact jar, remove body
+    jarGroup.visible=false;world.remove(jarBody);
+    // spawn shards
+    var SH=11;for(var i=0;i<SH;i++){
+      var ang=i/SH*Math.PI*2;var lr=0.55+Math.random()*0.3;
+      var geo=new THREE.TetrahedronGeometry(0.34+Math.random()*0.18,0);
+      var m=new THREE.Mesh(geo,chromeMat());m.castShadow=true;scene.add(m);shardMeshes.push(m);
+      var b=new CANNON.Body({mass:1,material:pmat});b.addShape(new CANNON.Box(new CANNON.Vec3(0.2,0.2,0.2)));
+      b.position.set(p.x+Math.cos(ang)*lr,p.y+(Math.random()-0.3)*0.8,p.z+Math.sin(ang)*lr*0.6);
+      var sp=5+Math.random()*5;b.velocity.set(Math.cos(ang)*sp,2+Math.random()*5,Math.sin(ang)*sp*0.6);
+      b.angularVelocity.set((Math.random()-0.5)*10,(Math.random()-0.5)*10,(Math.random()-0.5)*10);
+      world.add(b);shardBodies.push(b);
+    }
+    // spawn gummies
+    for(var gj=0;gj<14;gj++){
+      var gmm=new THREE.Mesh(gummyGeo,gummyMat);gmm.castShadow=true;scene.add(gmm);
+      var gb=new CANNON.Body({mass:0.3,material:pmat});gb.addShape(new CANNON.Sphere(0.17));
+      gb.position.set(p.x+(Math.random()-0.5)*0.8,p.y+(Math.random()-0.2)*0.8,p.z+(Math.random()-0.5)*0.8);
+      gb.velocity.set((Math.random()-0.5)*9,3+Math.random()*7,(Math.random()-0.5)*9);
+      var cm=new CANNON.Material('p');world.add(gb);dynGummies.push({mesh:gmm,body:gb});
+    }
+    // trichome floats out + data
+    trichome.visible=false;
+    trichomeFloat={t:0,from:{x:p.x,y:p.y,z:p.z},mesh:trichomeBig};trichomeBig.visible=true;trichomeBig.position.set(p.x,p.y,p.z);
+    showData();
+    // bullet-time
+    slowmo=1;
+  }
+  var trichomeBig=new THREE.Mesh(new THREE.IcosahedronGeometry(0.45,0),chromeMat());trichomeBig.visible=false;scene.add(trichomeBig);
+  function showData(){var s=DATA.strains[(Math.random()*DATA.strains.length)|0];var terp=s.terpeniDominanti.split(',')[0];var pop=document.getElementById('dataPop');pop.innerHTML='<div class="k">campione · rotto</div><h4>'+s.nome+'</h4><p>TIPO: '+s.tipo+'<br>THC: '+s.thc.split(' ')[0]+'<br>TERPENE: '+terp+'<br>ID#'+(0x1000+((Math.random()*0xefff)|0)).toString(16).toUpperCase()+'</p>';pop.classList.add('show');clearTimeout(showData._t);showData._t=setTimeout(function(){pop.classList.remove('show');},6000);}
+  function rebuild(){clearDebris();trichomeBig.visible=false;trichome.visible=true;jarGroup.visible=true;intact=true;jarBody=makeJarBody(new CANNON.Vec3(0,GY+0.4,0));document.getElementById('dataPop').classList.remove('show');}
+  jarBody=makeJarBody();
+  // scenery: terracotta pots
+  var potMat=new THREE.MeshStandardMaterial({color:0xE9692C,roughness:0.7,metalness:0});
+  [[-4,-2.5],[4,-2.8]].forEach(function(pp){var pot=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.5,0.9,24),potMat);pot.position.set(pp[0],0.45,pp[1]);pot.castShadow=true;pot.receiveShadow=true;scene.add(pot);var pb=new CANNON.Body({mass:0,material:pmat});pb.addShape(new CANNON.Cylinder(0.7,0.5,0.9,12));pb.position.set(pp[0],0.45,pp[1]);world.add(pb);});
+  // interaction: grab / throw
+  var ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+  var jointBody=new CANNON.Body({mass:0});jointBody.addShape(new CANNON.Sphere(0.1));jointBody.collisionFilterGroup=0;jointBody.collisionFilterMask=0;jointBody.type=CANNON.Body.KINEMATIC;world.add(jointBody);
+  var constraint=null,dragging=false,grabPlaneZ=0,lastPos=new THREE.Vector3(),vel=new THREE.Vector3();
+  function ndc(e){var r=canvas.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;}
+  function planePoint(){ray.setFromCamera(mouse,camera);var plane=new THREE.Plane(new THREE.Vector3(0,0,1),-grabPlaneZ);var pt=new THREE.Vector3();ray.ray.intersectPlane(plane,pt);return pt;}
+  canvas.addEventListener('pointerdown',function(e){audio();ndc(e);ray.setFromCamera(mouse,camera);if(!intact)return;var hit=ray.intersectObject(jarMesh,true);if(hit.length){dragging=true;grabPlaneZ=jarBody.position.z;if(window._cursorEl)window._cursorEl.textContent='✊';jointBody.position.copy(jarBody.position);constraint=new CANNON.PointToPointConstraint(jarBody,new CANNON.Vec3(0,0,0),jointBody,new CANNON.Vec3(0,0,0));world.addConstraint(constraint);lastPos.set(jarBody.position.x,jarBody.position.y,jarBody.position.z);}});
+  window.addEventListener('pointermove',function(e){if(!dragging)return;ndc(e);var pt=planePoint();if(pt){vel.set(pt.x-lastPos.x,pt.y-lastPos.y,0).multiplyScalar(8);lastPos.copy(pt);jointBody.position.set(pt.x,Math.max(0.4,pt.y),grabPlaneZ);}});
+  window.addEventListener('pointerup',function(){if(!dragging)return;dragging=false;if(window._cursorEl)window._cursorEl.textContent='✋';if(constraint){world.removeConstraint(constraint);constraint=null;}if(intact&&jarBody){jarBody.velocity.set(vel.x*2.2,vel.y*2.2+1,(Math.random()-0.5)*3);jarBody.angularVelocity.set((Math.random()-0.5)*8,(Math.random()-0.5)*8,(Math.random()-0.5)*8);}});
+  document.getElementById('smashBtn').addEventListener('click',function(){audio();if(intact&&jarBody){jarBody.velocity.set((Math.random()-0.5)*4,14,2);jarBody.angularVelocity.set(8,8,8);setTimeout(function(){if(intact)shatterAt(jarBody.position.clone());},120);}});
+  document.getElementById('rebuildBtn').addEventListener('click',rebuild);
   window.addEventListener('resize',sizeGL);
-  document.querySelectorAll('#molSwitch button').forEach(function(btn){btn.addEventListener('click',function(){buildMol(btn.dataset.m);});});
-  var running=false,raf=null,t0=performance.now();
+  // loop
+  var running=false,raf=null,last=performance.now(),slowmo=0,gummyTouch={};
+  function syncBody(mesh,body){mesh.position.set(body.position.x,body.position.y,body.position.z);mesh.quaternion.set(body.quaternion.x,body.quaternion.y,body.quaternion.z,body.quaternion.w);}
   function frame(now){
     if(!running)return;
     sizeGL();
-    var t=(now-t0)/1000;
-    sxN+=(mxN-sxN)*0.06;syN+=(myN-syN)*0.06;
-    camera.position.x+=(sxN*2.2-camera.position.x)*0.07;camera.position.y+=(-syN*1.5-camera.position.y)*0.07;camera.lookAt(0,0,0);
-    points.rotation.y=t*0.025;points.rotation.x=t*0.01;
-    orbits.rotation.y+=0.004;orbits.rotation.x+=0.0016;orbits.children.forEach(function(o,k){o.rotation.z+=0.003*(k+1);});
-    autoRot+=0.0034;switchT=Math.min(1,switchT+0.05);var grow=1-Math.pow(1-switchT,3);explode*=0.93;if(explode<0.001)explode=0;
-    mol.scale.setScalar(grow*1.55);mol.rotation.y=autoRot+dragY;mol.rotation.x=0.22+dragX;
-    var pushf=1+explode*1.7;
-    for(var ai=0;ai<atomMeshes.length;ai++){atomMeshes[ai].position.copy(atomMeshes[ai].userData.base).multiplyScalar(pushf);}
-    for(var si=0;si<spriteMats.length;si++){spriteMats[si].sp.position.copy(spriteMats[si].atom.position);}
+    var dt=Math.min(0.05,(now-last)/1000);last=now;
+    var scale=1;if(slowmo>0){scale=0.35;slowmo-=dt;if(slowmo<0)slowmo=0;}
+    world.step(1/60,dt*scale,3);
+    if(intact&&jarBody){syncBody(jarGroup,jarBody);}
+    for(var i=0;i<shardBodies.length;i++)syncBody(shardMeshes[i],shardBodies[i]);
+    for(var j=0;j<dynGummies.length;j++){var o=dynGummies[j];syncBody(o.mesh,o.body);if(o.body.position.y<0.25&&Math.abs(o.body.velocity.y)>1.4){if(!gummyTouch[j]||now-gummyTouch[j]>400){gummyTouch[j]=now;sproing();}}}
+    if(trichomeBig.visible&&trichomeFloat){trichomeFloat.t+=dt;var ty=Math.min(2.4,trichomeFloat.from.y+trichomeFloat.t*0.6);trichomeBig.position.set(trichomeFloat.from.x,ty,trichomeFloat.from.z);trichomeBig.rotation.y+=0.02;trichomeBig.rotation.x+=0.01;}
+    if(intact){jarGroup.rotation.y+=0; if(jarBody&&!dragging){/* idle slight spin via physics only */}}
+    trichome.rotation.y+=0.02;
     renderer.render(scene,camera);
     raf=requestAnimationFrame(frame);
   }
-  glStartFn=function(){sizeGL();if(running)return;if(REDUCED){sizeGL();mol.scale.setScalar(1.55);renderer.render(scene,camera);return;}running=true;t0=performance.now();raf=requestAnimationFrame(frame);};
-  glStopFn=function(){running=false;if(raf)cancelAnimationFrame(raf);};
-  window.__weedGL={renderer:renderer,scene:scene,camera:camera,build:buildMol,start:glStartFn,stop:glStopFn,size:sizeGL,atoms:function(){return atomMeshes.length;}};
-}
-function initHeroGL(){
-  ensureGL();glStart();
+  function start(){sizeGL();if(running)return;running=true;last=performance.now();raf=requestAnimationFrame(frame);}
+  function stop(){running=false;if(raf)cancelAnimationFrame(raf);}
+  window.__weed={world:world,scene:scene,renderer:renderer,camera:camera,shatter:function(){shatterAt(jarBody?jarBody.position.clone():new CANNON.Vec3(0,1,0));},rebuild:rebuild,start:start,stop:stop,size:sizeGL,intact:function(){return intact;},shards:function(){return shardBodies.length;}};
+  start();
   var hero=document.getElementById('top');
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)glStart();else glStop();});},{threshold:.05});
-    io.observe(hero);
-  }
+  if('IntersectionObserver' in window){new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)start();else stop();});},{threshold:.05}).observe(hero);}
 }
 
 /* ===================== INTRO ===================== */
-function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">esperienza interattiva</div><div class="intro-bar"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},1900);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},2900);}
+function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div class="intro-in"><div class="big">WEED<span>MAP</span></div><div class="ld">caricamento vivaio…</div><div class="intro-bar"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},1700);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},2500);}
 
 /* ===================== INIT ===================== */
-function renderAll(){
-  buildPlant();buildAnatomyKey();window._focusPart('tricomi');
-  buildRadarFrame();buildTernary();applyBlend({Indica:0.34,Sativa:0.33,Hybrid:0.33});
-  buildStrainFilters();buildGalaxy('Tutti');showStrain(0);
-  buildTerpenes();buildCannabinoids();buildVsAlcohol();buildFacts();buildDotNav();
-}
+function renderAll(){buildPlant();buildAnatomyKey();window._focusPart('tricomi');buildRadarFrame();buildTernary();applyBlend({Indica:0.34,Sativa:0.33,Hybrid:0.33});buildStrainFilters();buildGalaxy('Tutti');showStrain(0);buildTerpenes();buildCannabinoids();buildVsAlcohol();buildFacts();}
 renderAll();
 initScroll();
 initCursor();
 initShare();
-initHeroGL();
+try{initGlasshouse();}catch(e){var f=document.getElementById('glFallback');if(f)f.style.display='flex';}
 intro();
 </script>
 </body>
