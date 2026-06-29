@@ -249,6 +249,35 @@
   .mol-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle}
   .mol-note{color:var(--muted-2);font-size:11.5px;margin-top:10px}
 
+  /* WEED vs ALCOL */
+  .vs-legend{text-align:center;color:var(--muted-2);font-size:12.5px;margin:-22px auto 26px;max-width:640px;line-height:1.5}
+  .vs-legend b{color:var(--muted)}
+  .vs-rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(345px,1fr));gap:16px;margin-bottom:30px}
+  .vs-row{padding:22px}
+  .vs-title{font-family:var(--font-display);font-size:17.5px;font-weight:600;letter-spacing:-.2px}
+  .vs-line{display:flex;align-items:center;gap:10px;margin-top:12px}
+  .vs-tag{font-size:12px;width:96px;flex-shrink:0;font-weight:600;font-family:var(--font-display)}
+  .vs-tag.al{color:var(--amber)}.vs-tag.ca{color:var(--green)}
+  .vbar{flex:1;height:13px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+  .vbar span{display:block;height:100%;width:0;border-radius:999px;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+  .vbar .va{background:linear-gradient(90deg,#ff9b54,#ff5d6c)}
+  .vbar .vc{background:linear-gradient(90deg,#5fe089,#c6ff7a)}
+  .vs-num{font-family:var(--font-display);font-size:12px;color:var(--muted);width:28px;text-align:right}
+  .vs-sub{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;padding-left:106px}
+  .vs-take{margin-top:13px;font-size:12.5px;color:#d8ebdd;border-top:1px solid var(--line);padding-top:11px}
+  .vs-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:26px}
+  .vs-stat{padding:22px 16px;border-radius:16px;background:var(--glass);border:1px solid var(--line);text-align:center;backdrop-filter:blur(12px)}
+  .vs-statnum{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.05;background:linear-gradient(120deg,#ff9b54,#ffcf6b);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .vs-statlbl{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.4}
+  .vs-statsrc{font-size:10.5px;color:var(--muted-2);margin-top:7px}
+  .vs-balance{padding:22px 24px;margin-bottom:24px;line-height:1.7;font-size:14.5px;color:#d8ebdd}
+  .vs-balance b{color:var(--gold);font-family:var(--font-display)}
+  .vs-sources{font-size:12.5px;color:var(--muted)}
+  .vs-sources h4{font-family:var(--font-display);color:var(--ink);margin-bottom:10px;font-size:14px}
+  .vs-sources a,.vs-sources span{display:inline-block;margin:3px 12px 3px 0;color:var(--green);text-decoration:none;border-bottom:1px dashed rgba(95,224,137,.4)}
+  .vs-sources a:hover{border-bottom-style:solid}
+  .vs-sources span{color:var(--muted);border-bottom-color:var(--line)}
+
   /* FACTS */
   .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px}
   .fact{padding:22px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s}
@@ -313,6 +342,7 @@
       <button data-tab="molecole">Molecole 3D</button>
       <button data-tab="tipi">Indica/Sativa</button>
       <button data-tab="anatomia">Anatomia</button>
+      <button data-tab="vsalcol">Weed vs Alcol</button>
       <button data-tab="facts">Fun Facts</button>
     </div>
   </div>
@@ -404,6 +434,16 @@
     </div>
     <div class="key reveal" id="anatomyKey"></div>
     <p class="hint">💡 Clicca i numeri per evidenziare la parte sulla pianta.</p>
+  </div></section>
+
+  <!-- WEED vs ALCOL -->
+  <section class="tab" id="tab-vsalcol"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda · confronto basato su fonti</div><h2>Cannabis vs Alcol</h2><p id="vsIntro"></p></div>
+    <div class="vs-legend reveal">Le barre indicano il <b>rischio / la gravità relativi</b> su quella dimensione (più lunga = più rischio). Confronto a scopo educativo, non un invito al consumo.</div>
+    <div class="vs-rows reveal" id="vsRows"></div>
+    <div class="vs-stats reveal" id="vsStats"></div>
+    <div class="vs-balance card reveal" id="vsBalance"></div>
+    <div class="vs-sources reveal" id="vsSources"></div>
   </div></section>
 
   <!-- FACTS -->
@@ -499,7 +539,45 @@ const DATA = {
     {emoji:"🏃",titolo:"Anche correre attiva il sistema",testo:"Il 'runner's high' è legato anche agli endocannabinoidi come l'anandamide, non solo alle endorfine."},
     {emoji:"🌍",titolo:"La canapa che pulisce il suolo",testo:"La canapa è studiata per il fitorisanamento: può assorbire metalli e contaminanti dal terreno mentre cresce."},
     {emoji:"🗣️",titolo:"'Marijuana' vs 'cannabis'",testo:"'Cannabis' è il nome botanico; il termine 'marijuana' si diffuse negli USA nel primo Novecento ed entrò nel linguaggio comune."}
-  ]
+  ],
+  vsAlcohol:{
+    "intro":"Alcol e cannabis sono due sostanze psicoattive con profili di rischio molto diversi: non esiste una sostanza \"sicura\", ma le dimensioni del danno cambiano molto a seconda di cosa si misura. I dati mostrano che l'alcol provoca un carico di mortalità, dipendenza e danno sociale nettamente superiore, mentre la cannabis presenta rischi specifici e tutt'altro che trascurabili, soprattutto sulla salute mentale. Confronto descrittivo, non un incoraggiamento al consumo né un parere medico.",
+    "rows":[
+      {"key":"overdose","label":"Overdose letale acuta","icon":"💀","alcohol":{"level":85,"text":"Avvelenamento acuto da alcol ben documentato e letale (depressione respiratoria, arresto cardiaco). Margine ristretto tra ebbrezza e morte: BAC ~0,40-0,50% spesso fatale."},"cannabis":{"level":5,"text":"Overdose tossica letale da sola cannabis praticamente assente: DEA e NIDA non riportano casi di morte per sola intossicazione da THC. LD50 teorica enorme e di fatto irraggiungibile."},"takeaway":"Sul rischio di morte acuta diretta l'alcol è incomparabilmente più pericoloso."},
+      {"key":"morti","label":"Morti annuali attribuibili","icon":"📊","alcohol":{"level":95,"text":"Circa 2,6 milioni di morti l'anno nel mondo (4,7% di tutti i decessi, dati OMS 2019). Negli USA ~178.000 morti l'anno (2020-2021)."},"cannabis":{"level":12,"text":"Nessuna stima OMS di mortalità diretta comparabile. I decessi correlati sono perlopiù indiretti (incidenti, edibili ingeriti dai bambini) e non da intossicazione."},"takeaway":"Il carico di mortalità dell'alcol è enormemente superiore, anche perché molto più diffuso e legale."},
+      {"key":"dipendenza","label":"Potenziale di dipendenza","icon":"🔗","alcohol":{"level":70,"text":"Circa il 22,7% di chi prova alcol sviluppa dipendenza nella vita (NESARC). Transizione più lenta (mediana ~13 anni)."},"cannabis":{"level":35,"text":"Circa l'8,9% di chi prova cannabis sviluppa dipendenza (~1 su 11), fino al 17% se l'uso inizia in adolescenza e 25-50% tra i consumatori quotidiani. Transizione più rapida (~5 anni)."},"takeaway":"Rischio più basso per la cannabis, ma reale e più rapido a instaurarsi in chi sviluppa il disturbo."},
+      {"key":"astinenza","label":"Pericolosità dell'astinenza","icon":"🌀","alcohol":{"level":90,"text":"Astinenza potenzialmente FATALE: il delirium tremens colpisce ~1-1,5% dei dipendenti, con mortalità fino al ~15% se non trattato; rischio di convulsioni. Spesso richiede gestione ospedaliera."},"cannabis":{"level":25,"text":"Sindrome da astinenza reale (ansia, irritabilità, insonnia), riconosciuta nel DSM-5, ma NON letale e autolimitante. Principale effetto: difficoltà a smettere."},"takeaway":"L'astinenza da alcol può uccidere; quella da cannabis no, pur essendo un disturbo reale."},
+      {"key":"cancro","label":"Cancro e danno agli organi","icon":"🫁","alcohol":{"level":85,"text":"Cancerogeno certo Gruppo 1 IARC dal 1988, causa di almeno 7 tumori; nessuna dose sicura (OMS/IARC 2023). Principale causa di cirrosi. Smentito il 'mito cardioprotettivo'."},"cannabis":{"level":40,"text":"Non classificata cancerogena dalla IARC (evidenza insufficiente). Non causa cirrosi. Rischio cardiovascolare in crescita (dati osservazionali: +25% infarto / +42% ictus nell'uso quotidiano)."},"takeaway":"Su cancro e fegato l'alcol è più pericoloso; sul cuore preoccupano entrambe."},
+      {"key":"guida","label":"Guida e incidenti","icon":"🚗","alcohol":{"level":90,"text":"Aumenta di oltre 16 volte il rischio di incidente mortale (OR 16,33). Guida disinibita, più veloce, con sovrastima delle proprie capacità."},"cannabis":{"level":35,"text":"Aumenta il rischio di ~1,5 volte (OR 1,54), un ordine di grandezza meno dell'alcol; tende a guidare più lentamente. ATTENZIONE: la combinazione alcol+cannabis è la più pericolosa (OR ~25)."},"takeaway":"Entrambe alterano la guida, ma l'alcol è il rischio dominante; combinarle è il peggio."},
+      {"key":"violenza","label":"Violenza e aggressività","icon":"👊","alcohol":{"level":85,"text":"Nesso causale e farmacologico forte con l'aggressività (disinibizione): presente nel 40-50% dei crimini violenti e in ~63% degli episodi di violenza domestica negli USA."},"cannabis":{"level":30,"text":"Nessun nesso causale paragonabile: in laboratorio tende a non aumentare (talvolta riduce) l'aggressività. Associazione epidemiologica moderata ma correlazionale."},"takeaway":"L'alcol ha un legame causale robusto con la violenza; per la cannabis le associazioni sono più deboli."},
+      {"key":"mente","label":"Salute mentale (psicosi)","icon":"🧠","alcohol":{"level":55,"text":"Associato a depressione, ansia, deterioramento cognitivo e demenza alcol-correlata. Non è un fattore causale primario di schizofrenia."},"cannabis":{"level":75,"text":"Associazione dose-dipendente con psicosi e schizofrenia, soprattutto in soggetti predisposti, con uso precoce (<25 anni) e alta potenza. Meta-analisi: OR ~3,9 negli utilizzatori più intensi."},"takeaway":"È la dimensione in cui la cannabis risulta più rischiosa dell'alcol, specie nei giovani."},
+      {"key":"cervello","label":"Cervello in sviluppo (under 25)","icon":"🧒","alcohol":{"level":70,"text":"Uso pesante in adolescenza associato a riduzione di materia grigia e spessore corticale, peggiore controllo degli impulsi, attenzione e memoria."},"cannabis":{"level":60,"text":"Uso regolare associato a riduzione del volume sottocorticale, peggior funzione esecutiva e memoria, calo del rendimento scolastico. Tossicità sulla materia bianca più modesta rispetto all'alcol."},"takeaway":"Entrambe danneggiano il cervello in sviluppo: nessuna è priva di effetti."},
+      {"key":"calorie","label":"Calorie e postumi","icon":"🍻","alcohol":{"level":65,"text":"Etanolo ~7 kcal/g di 'calorie vuote' (~120-150 kcal a birra/vino). Hangover marcato e documentato (cefalea, nausea), fino a ~24 ore."},"cannabis":{"level":20,"text":"Il THC fumato/vaporizzato è di fatto a zero calorie (gli edibili le prendono dal cibo). 'Hangover' meno definito e perlopiù aneddotico, probabilmente meno invalidante."},"takeaway":"Su calorie e postumi l'alcol pesa di più; combinarli peggiora comunque i postumi."}
+    ],
+    "stats":[
+      {"value":"~2,6 mln","label":"Morti annue nel mondo attribuibili all'alcol (4,7% dei decessi globali)","source":"OMS/WHO, Global status report on alcohol (2024, dati 2019)"},
+      {"value":"0 casi","label":"Morti documentate da sola intossicazione (overdose) da cannabis","source":"DEA Marijuana Factsheet; NIDA"},
+      {"value":"72 vs 20","label":"Danno complessivo su 100 (alcol vs cannabis): l'alcol è la sostanza più dannosa in assoluto","source":"Nutt, King & Phillips, The Lancet 2010"},
+      {"value":"16,3 vs 1,5","label":"Aumento (odds ratio) del rischio di incidente stradale mortale: alcol vs cannabis da soli","source":"Chihuri, Li & Chen, Injury Epidemiology 2017"},
+      {"value":"22,7% vs 8,9%","label":"Probabilità lifetime di dipendenza tra chi prova la sostanza (alcol vs cannabis)","source":"Lopez-Quintero et al., Drug Alcohol Depend 2011 (NESARC)"},
+      {"value":"OR ~3,9","label":"Aumento del rischio di psicosi negli utilizzatori più intensi di cannabis (alta potenza / uso precoce)","source":"Marconi, Di Forti et al., Schizophrenia Bulletin 2016"}
+    ],
+    "balance":"Nessuna sostanza è priva di rischi e questo confronto non va letto come una \"patente di innocuità\" per la cannabis né come una banalizzazione dell'alcol. Su gran parte delle dimensioni misurabili (overdose, mortalità totale, cancro, fegato, guida, violenza, dipendenza) l'alcol risulta più dannoso, in parte perché molto più diffuso, legale e normalizzato: maggiore esposizione significa più danni totali. Inoltre l'evidenza sull'alcol è più solida perché studiata da decenni, mentre quella sulla cannabis è più recente e spesso osservazionale, riferita a prodotti meno potenti del THC attuale: \"assenza di prova\" non equivale a \"prova di assenza\". La cannabis ha rischi propri e documentati, soprattutto psicosi nei soggetti vulnerabili e nei giovani, dipendenza e compromissione cognitiva. L'obiettivo non è scegliere \"la meno dannosa\", ma capire profili di rischio diversi: ogni uso comporta responsabilità, e queste indicazioni non sostituiscono il parere medico né la conoscenza della normativa.",
+    "sources":[
+      {"label":"OMS/WHO — Global status report on alcohol and health (2024, dati 2019)","url":"https://www.who.int/news/item/25-06-2024-over-3-million-annual-deaths-due-to-alcohol-and-drug-use-majority-among-men"},
+      {"label":"CDC — Deaths from Excessive Alcohol Use, USA 2016-2021 (MMWR 2024)","url":"https://www.cdc.gov/mmwr/volumes/73/wr/mm7308a1.htm"},
+      {"label":"DEA — Marijuana / Cannabis Factsheet","url":"https://www.dea.gov/factsheets/marijuana"},
+      {"label":"NIDA — Cannabis (Marijuana) Research Report; Drugged Driving"},
+      {"label":"WHO Europe / IARC — joint statement alcol e cancro (2023)","url":"https://www.who.int/europe/news/item/06-11-2023-joint-statement-by-who-europe-and-iarc-to-the-european-parliament---raising-awareness-of-the-link-between-alcohol-and-cancer"},
+      {"label":"CDC — Cannabis and Cancer","url":"https://www.cdc.gov/cannabis/health-effects/cancer.html"},
+      {"label":"Nutt, King & Phillips — Drug harms in the UK. The Lancet 2010;376:1558-65","url":"https://pubmed.ncbi.nlm.nih.gov/21036393/"},
+      {"label":"Lopez-Quintero et al. — Drug Alcohol Depend 2011 (NESARC)","url":"https://pubmed.ncbi.nlm.nih.gov/21145178/"},
+      {"label":"Marconi, Di Forti et al. — cannabis e psicosi. Schizophrenia Bulletin 2016","url":"https://academic.oup.com/schizophreniabulletin/article/42/5/1262/2413827"},
+      {"label":"Chihuri, Li & Chen — marijuana e alcol e rischio incidenti. Injury Epidemiology 2017","url":"https://pmc.ncbi.nlm.nih.gov/articles/PMC5357617/"},
+      {"label":"NHTSA — Drug and Alcohol Crash Risk (DOT HS 812 117, 2015)","url":"https://www.nhtsa.gov/behavioral-research/drug-and-alcohol-crash-risk-study"},
+      {"label":"Asbridge, Hayden & Cartwright — cannabis e incidenti. BMJ 2012;344:e536","url":"https://pubmed.ncbi.nlm.nih.gov/22323502/"}
+    ]
+  }
 };
 
 var REDUCED = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -606,6 +684,22 @@ function molGlyph(seed,col){var cx=65,cy=65;var s='<svg viewBox="0 0 130 130">';
 function buildCannabinoids(){document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";var col=c.psicoattivo==="Si"?'#ff9b54':c.psicoattivo==="No"?'#5fe089':'#ffcf6b';var seed=(c.sigla.charCodeAt(0))%6*0.4;return '<div class="flip stagger"><div class="flip-in"><div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="glyph">'+molGlyph(seed,col)+'</div><div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:linear-gradient(90deg,#5fe089,#c6ff7a)"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:linear-gradient(90deg,#b58bff,#7c4ddb)"></span></div>'+c.cb2+'</div></div><div class="flip-hint">↻ clicca per gli effetti</div></div><div class="flip-face flip-back"><h4 style="color:'+col+'">'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div><div class="flip-hint">↻ clicca per tornare</div></div></div></div>';}).join('');document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});}
 function animateAffinity(){document.querySelectorAll('.aff-bar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
 
+/* ===================== WEED vs ALCOL ===================== */
+function buildVsAlcohol(){
+  var d=DATA.vsAlcohol;if(!d)return;
+  var iel=document.getElementById('vsIntro');if(iel)iel.textContent=d.intro||'';
+  document.getElementById('vsRows').innerHTML=(d.rows||[]).map(function(r){
+    return '<div class="vs-row stagger card"><span class="vs-title">'+(r.icon||'')+' '+r.label+'</span>'+
+      '<div class="vs-line"><span class="vs-tag al">🍺 Alcol</span><div class="vbar"><span class="va" data-w="'+r.alcohol.level+'"></span></div><span class="vs-num">'+r.alcohol.level+'</span></div><div class="vs-sub">'+r.alcohol.text+'</div>'+
+      '<div class="vs-line"><span class="vs-tag ca">🌿 Cannabis</span><div class="vbar"><span class="vc" data-w="'+r.cannabis.level+'"></span></div><span class="vs-num">'+r.cannabis.level+'</span></div><div class="vs-sub">'+r.cannabis.text+'</div>'+
+      '<div class="vs-take">'+r.takeaway+'</div></div>';
+  }).join('');
+  document.getElementById('vsStats').innerHTML=(d.stats||[]).map(function(s){return '<div class="vs-stat stagger"><div class="vs-statnum">'+s.value+'</div><div class="vs-statlbl">'+s.label+'</div><div class="vs-statsrc">'+s.source+'</div></div>';}).join('');
+  var bal=document.getElementById('vsBalance');if(bal)bal.innerHTML='<b>⚖️ In equilibrio.</b> '+(d.balance||'');
+  document.getElementById('vsSources').innerHTML='<h4>Fonti</h4>'+(d.sources||[]).map(function(s){return s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">'+s.label+'</a>':'<span>'+s.label+'</span>';}).join('');
+}
+function animateVs(){document.querySelectorAll('#vsRows .vbar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
+
 /* ===================== FACTS ===================== */
 function buildFacts(){document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){return '<div class="fact stagger"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';}).join('');}
 
@@ -618,14 +712,15 @@ function buildHome(){
     {t:'molecole',ico:'🧬',h:'Molecole 3D',p:'Esplora THC, CBD e CBG in 3D: ruota e fai esplodere.',ac:'rgba(181,139,255,.3)'},
     {t:'tipi',ico:'⚖️',h:'Indica / Sativa',p:'Miscela i tre tipi col triangolo interattivo.',ac:'rgba(181,139,255,.3)'},
     {t:'anatomia',ico:'🌱',h:'Anatomia',p:'La pianta pezzo per pezzo, sui punti luminosi.',ac:'rgba(95,224,137,.3)'},
+    {t:'vsalcol',ico:'⚖️',h:'Weed vs Alcol',p:'Confronto basato su fonti: salute, dipendenza, guida, mortalità.',ac:'rgba(255,155,84,.3)'},
     {t:'facts',ico:'🤓',h:'Fun Facts',p:'22 curiosità vere dalla botanica alla cultura.',ac:'rgba(255,155,84,.3)'}
   ];
   document.getElementById('homeGrid').innerHTML=cards.map(function(c){return '<div class="home-card stagger" data-tab="'+c.t+'" style="--ac:'+c.ac+'"><div class="ico">'+c.ico+'</div><h3>'+c.h+'</h3><p>'+c.p+'</p><div class="go">Apri →</div></div>';}).join('');
 }
 
 /* ===================== TABS ===================== */
-var TABNAMES=['home','strain','terpeni','cannabinoidi','molecole','tipi','anatomia','facts'];
-var countersDone=false,affDone=false;
+var TABNAMES=['home','strain','terpeni','cannabinoidi','molecole','tipi','anatomia','vsalcol','facts'];
+var countersDone=false,affDone=false,vsDone=false;
 function switchTab(name){
   if(TABNAMES.indexOf(name)<0)name='home';
   document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.id==='tab-'+name);});
@@ -636,6 +731,7 @@ function switchTab(name){
   requestAnimationFrame(function(){requestAnimationFrame(function(){panel.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});});});
   if(name==='home'&&!countersDone){countersDone=true;setTimeout(function(){document.querySelectorAll('.stat-num').forEach(animateCount);},250);}
   if(name==='cannabinoidi'&&!affDone){affDone=true;setTimeout(animateAffinity,300);}
+  if(name==='vsalcol'&&!vsDone){vsDone=true;setTimeout(animateVs,300);}
   if(name==='molecole'){ensureGL();glStart();}else{glStop();}
   if(('#'+name)!==location.hash)history.replaceState(null,'','#'+name);
 }
@@ -736,7 +832,7 @@ function renderAll(){
   buildPlant();buildAnatomyKey();window._focusPart('tricomi');
   buildRadarFrame();buildTernary();applyBlend({Indica:0.34,Sativa:0.33,Hybrid:0.33});
   buildStrainFilters();buildGalaxy('Tutti');showStrain(0);
-  buildTerpenes();buildCannabinoids();buildFacts();buildHome();
+  buildTerpenes();buildCannabinoids();buildVsAlcohol();buildFacts();buildHome();
 }
 renderAll();
 initCursor();initShare();initProgress();
