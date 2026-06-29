@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WeedMap — Esperienza Interattiva sulla Cannabis</title>
-<meta name="description" content="Un viaggio 3D interattivo nella cannabis: molecole, anatomia, Indica/Sativa/Hybrid, strain, terpeni, cannabinoidi.">
-<meta property="og:title" content="WeedMap 🌿 — Esperienza 3D sulla Cannabis">
-<meta property="og:description" content="Molecole 3D interattive, galassia di strain, terpeni e anatomia in un'esperienza immersiva.">
+<meta name="description" content="Un'app interattiva sulla cannabis: strain, terpeni, cannabinoidi, molecole 3D, tipi e anatomia.">
+<meta property="og:title" content="WeedMap 🌿 — Esperienza Interattiva sulla Cannabis">
+<meta property="og:description" content="Strain, terpeni, cannabinoidi, molecole 3D e tanto altro, in tab interattive.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,9 +16,9 @@
   :root{
     --ink:#eaf7ef;--muted:#90a89a;--muted-2:#67806f;
     --green:#5fe089;--green-deep:#1f9d57;--lime:#c6ff7a;
-    --violet:#b58bff;--violet-2:#7c4ddb;--gold:#ffcf6b;--amber:#ff9b54;--pink:#ff6fae;--cyan:#5fe9e0;
+    --violet:#b58bff;--violet-2:#7c4ddb;--gold:#ffcf6b;--amber:#ff9b54;
     --glass:rgba(9,16,12,.5);--glass-2:rgba(14,22,17,.72);
-    --line:rgba(150,220,170,.14);--line-2:rgba(255,255,255,.09);
+    --line:rgba(150,220,170,.14);
     --shadow:0 40px 90px -30px rgba(0,0,0,.8);
     --radius:24px;
     --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
@@ -30,86 +30,82 @@
   body{font-family:var(--font-body);background:#04070a;color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.1px}
 
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-  #bg .blob{position:absolute;border-radius:50%;filter:blur(110px);opacity:.4;mix-blend-mode:screen}
-  #bg .b1{width:60vw;height:60vw;left:-12vw;top:-16vw;background:radial-gradient(circle,#1f9d57,transparent 65%);animation:drift1 28s ease-in-out infinite}
-  #bg .b2{width:55vw;height:55vw;right:-14vw;top:8vw;background:radial-gradient(circle,#7c4ddb,transparent 65%);animation:drift2 34s ease-in-out infinite}
-  #bg .b3{width:48vw;height:48vw;left:25vw;bottom:-22vw;background:radial-gradient(circle,#2fb56a,transparent 65%);animation:drift3 31s ease-in-out infinite}
-  #gl{position:fixed;inset:0;z-index:1;display:block;width:100%;height:100%}
-  #grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  #scrim{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 50% 50%,transparent 52%,rgba(2,5,4,.65))}
+  #bg .blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.32;mix-blend-mode:screen}
+  #bg .b1{width:60vw;height:60vw;left:-12vw;top:-16vw;background:radial-gradient(circle,#1f9d57,transparent 65%);animation:drift1 30s ease-in-out infinite}
+  #bg .b2{width:55vw;height:55vw;right:-14vw;top:10vw;background:radial-gradient(circle,#7c4ddb,transparent 65%);animation:drift2 36s ease-in-out infinite}
+  #bg .b3{width:48vw;height:48vw;left:25vw;bottom:-22vw;background:radial-gradient(circle,#2fb56a,transparent 65%);animation:drift3 33s ease-in-out infinite}
+  #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
   .cursor-dot{position:fixed;top:0;left:0;width:7px;height:7px;border-radius:50%;background:var(--lime);z-index:400;pointer-events:none;transform:translate(-50%,-50%);mix-blend-mode:screen}
   .cursor-ring{position:fixed;top:0;left:0;width:36px;height:36px;border:1.5px solid rgba(198,255,122,.55);border-radius:50%;z-index:400;pointer-events:none;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s,background .25s,opacity .3s}
-  .cursor-ring.big{width:66px;height:66px;border-color:var(--green);background:rgba(95,224,137,.07)}
+  .cursor-ring.big{width:64px;height:64px;border-color:var(--green);background:rgba(95,224,137,.07)}
   body.cursor-on{cursor:none}
-  body.cursor-on a,body.cursor-on button,body.cursor-on .strain-orb,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .key button,body.cursor-on .flip,body.cursor-on .tern-handle{cursor:none}
+  body.cursor-on a,body.cursor-on button,body.cursor-on .strain-orb,body.cursor-on .terp-node,body.cursor-on .hotspot,body.cursor-on .key button,body.cursor-on .flip,body.cursor-on .home-card,body.cursor-on #gl{cursor:none}
 
   .wrap{position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 22px}
-
   #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:linear-gradient(90deg,var(--lime),var(--green),var(--violet));box-shadow:0 0 16px var(--green)}
-  #dotnav{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:55;display:flex;flex-direction:column;gap:15px}
-  #dotnav a{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--muted-2);position:relative;transition:.3s}
-  #dotnav a:hover{border-color:var(--green);transform:scale(1.25)}
-  #dotnav a.active{background:var(--green);border-color:var(--green);box-shadow:0 0 14px var(--green)}
-  #dotnav a span{position:absolute;right:24px;top:50%;transform:translateY(-50%) translateX(6px);white-space:nowrap;font-size:11px;font-weight:600;color:var(--ink);background:var(--glass-2);border:1px solid var(--line);padding:4px 10px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;letter-spacing:.4px;backdrop-filter:blur(8px)}
-  #dotnav a:hover span{opacity:1;transform:translateY(-50%) translateX(0)}
 
-  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(150%);background:linear-gradient(180deg,rgba(4,8,6,.78),rgba(4,8,6,.22));border-bottom:1px solid var(--line)}
-  .nav-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:14px 22px}
-  .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:700;font-size:19px}
-  .brand .leaf-mini{width:28px;height:28px;animation:spin 16s linear infinite}
-  .nav-links{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
-  .nav-links a{color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;padding:8px 13px;border-radius:999px;transition:.25s;white-space:nowrap}
-  .nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.05)}
-  .nav-links a.active{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));font-weight:600}
+  /* TAB BAR */
+  .tabbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(150%);background:linear-gradient(180deg,rgba(4,8,6,.88),rgba(4,8,6,.45));border-bottom:1px solid var(--line)}
+  .tabbar-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:18px;cursor:pointer;flex-shrink:0}
+  .brand .leaf-mini{width:26px;height:26px;animation:spin 16s linear infinite}
+  .tabs{margin-left:auto;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{font-family:var(--font-body);cursor:pointer;white-space:nowrap;color:var(--muted);background:transparent;border:1px solid transparent;font-size:13.5px;font-weight:550;padding:8px 14px;border-radius:999px;transition:.25s}
+  .tabs button:hover{color:var(--ink);background:rgba(255,255,255,.05)}
+  .tabs button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));font-weight:600}
 
-  header.hero{position:relative;z-index:5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 22px 60px}
-  .hero .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border:1px solid var(--line);border-radius:999px;color:var(--lime);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;background:rgba(95,224,137,.05);backdrop-filter:blur(8px)}
-  .hero .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink 1.8s infinite}
-  .hero h1{font-family:var(--font-display);font-size:clamp(64px,17vw,210px);font-weight:700;line-height:.86;letter-spacing:-5px;margin:22px 0 4px;position:relative;overflow:hidden;display:inline-block}
-  .hero h1 .ttl{display:inline-block;background:linear-gradient(115deg,#f3fff7 6%,var(--lime) 36%,var(--green) 56%,var(--violet) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 50px rgba(95,224,137,.3))}
-  html.anim .hero h1 .ttl{animation:rise 1.1s .2s cubic-bezier(.16,1,.3,1) both}
-  .hero h1 .shine{position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.9) 50%,transparent 62%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:shine 6s ease-in-out infinite;pointer-events:none}
-  .hero .tagline{font-family:var(--font-serif);font-style:italic;font-weight:500;font-size:clamp(20px,3.6vw,32px);color:#e1f4e6;margin-top:6px}
-  .hero p.sub{margin:20px auto 0;max-width:600px;color:var(--muted);font-size:clamp(15px,2.1vw,18px);line-height:1.7}
-  .mol-switch{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-  .mol-switch button{font-family:var(--font-display);cursor:pointer;padding:11px 22px;border-radius:999px;font-weight:600;font-size:14.5px;border:1px solid var(--line);color:var(--muted);background:var(--glass);backdrop-filter:blur(8px);transition:.3s}
-  .mol-switch button.on{color:#06140c;background:linear-gradient(120deg,var(--lime),var(--green));border-color:transparent;box-shadow:0 12px 30px -10px var(--green);transform:translateY(-2px)}
-  .hero-hint{margin-top:18px;font-size:12px;color:var(--muted-2);letter-spacing:.4px}
-  .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted-2);font-size:11px;letter-spacing:3px}
-  .scroll-cue .mouse{width:24px;height:38px;border:2px solid var(--muted-2);border-radius:14px;position:relative}
-  .scroll-cue .mouse::after{content:"";position:absolute;left:50%;top:7px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--green);animation:wheel 1.6s infinite}
+  .tab{display:none}
+  .tab.active{display:block}
+  section.panel{padding:64px 0 90px;position:relative;z-index:5;min-height:60vh}
 
-  #stats-band{padding:0 0 30px;z-index:5;position:relative}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-  .stat{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:26px 18px;text-align:center;backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
-  .stat:hover{border-color:var(--green)}
-  .stat-num{font-family:var(--font-display);font-size:clamp(32px,5vw,50px);font-weight:700;line-height:1;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .stat-lbl{margin-top:8px;color:var(--muted);font-size:13px;font-weight:500;letter-spacing:.3px}
-
-  section{padding:80px 0;position:relative;z-index:5}
-  .sec-head{text-align:center;max-width:760px;margin:0 auto 48px;position:relative}
-  .sec-head .ghost{position:absolute;top:-66px;left:50%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;font-size:clamp(120px,22vw,240px);letter-spacing:-8px;color:transparent;-webkit-text-stroke:1px rgba(150,220,170,.08);z-index:-1;pointer-events:none;line-height:1}
+  .sec-head{text-align:center;max-width:780px;margin:0 auto 44px;position:relative}
   .sec-head .kicker{display:inline-flex;align-items:center;gap:10px;color:var(--green);font-weight:600;letter-spacing:3px;font-size:12px;text-transform:uppercase}
   .sec-head .kicker::before,.sec-head .kicker::after{content:"";width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--green))}
   .sec-head .kicker::after{background:linear-gradient(90deg,var(--green),transparent)}
-  .sec-head h2{font-family:var(--font-display);font-size:clamp(34px,5.4vw,58px);font-weight:700;margin:14px 0 14px;letter-spacing:-1.4px;line-height:1.02}
-  .sec-head p{color:var(--muted);font-size:16.5px;line-height:1.7}
+  .sec-head h2{font-family:var(--font-display);font-size:clamp(32px,5vw,54px);font-weight:700;margin:14px 0 12px;letter-spacing:-1.2px;line-height:1.04}
+  .sec-head p{color:var(--muted);font-size:16px;line-height:1.7}
 
-  .reveal{transition:transform .9s cubic-bezier(.16,1,.3,1)}
-  html.anim .reveal{transform:translateY(46px)}
-  html.anim .reveal.in{transform:none}
-  html.anim .stagger{transform:translateY(28px)}
-  html.anim .reveal.in .stagger{transform:none;transition:transform .75s cubic-bezier(.16,1,.3,1)}
-  html.anim .reveal.in .stagger:nth-child(1){transition-delay:.04s}
-  html.anim .reveal.in .stagger:nth-child(2){transition-delay:.10s}
-  html.anim .reveal.in .stagger:nth-child(3){transition-delay:.16s}
-  html.anim .reveal.in .stagger:nth-child(4){transition-delay:.22s}
-  html.anim .reveal.in .stagger:nth-child(5){transition-delay:.28s}
-  html.anim .reveal.in .stagger:nth-child(6){transition-delay:.34s}
-  html.anim .reveal.in .stagger:nth-child(n+7){transition-delay:.40s}
+  .reveal{transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .6s}
+  .tab.active .reveal{transform:translateY(40px)}
+  .tab.active .reveal.in{transform:none}
+  .tab.active .reveal.in .stagger{transform:none;transition:transform .7s cubic-bezier(.16,1,.3,1)}
+  .tab.active .reveal .stagger{transform:translateY(24px)}
+  .tab.active .reveal.in .stagger:nth-child(1){transition-delay:.03s}
+  .tab.active .reveal.in .stagger:nth-child(2){transition-delay:.08s}
+  .tab.active .reveal.in .stagger:nth-child(3){transition-delay:.13s}
+  .tab.active .reveal.in .stagger:nth-child(4){transition-delay:.18s}
+  .tab.active .reveal.in .stagger:nth-child(5){transition-delay:.23s}
+  .tab.active .reveal.in .stagger:nth-child(6){transition-delay:.28s}
+  .tab.active .reveal.in .stagger:nth-child(n+7){transition-delay:.33s}
 
   .card{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+
+  /* HOME */
+  .home-hero{text-align:center;padding:70px 0 30px}
+  .home-hero .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border:1px solid var(--line);border-radius:999px;color:var(--lime);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;background:rgba(95,224,137,.05)}
+  .home-hero .eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink 1.8s infinite}
+  .home-hero h1{font-family:var(--font-display);font-size:clamp(58px,15vw,170px);font-weight:700;line-height:.86;letter-spacing:-4px;margin:22px 0 4px;position:relative;display:inline-block;overflow:hidden}
+  .home-hero h1 .ttl{display:inline-block;background:linear-gradient(115deg,#f3fff7 6%,var(--lime) 36%,var(--green) 56%,var(--violet) 92%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 50px rgba(95,224,137,.3))}
+  .tab.active .home-hero h1 .ttl{animation:rise 1.1s .15s cubic-bezier(.16,1,.3,1) both}
+  .home-hero h1 .shine{position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.9) 50%,transparent 62%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:shine 6s ease-in-out infinite;pointer-events:none}
+  .home-hero .tagline{font-family:var(--font-serif);font-style:italic;font-weight:500;font-size:clamp(19px,3.4vw,30px);color:#e1f4e6;margin-top:6px}
+  .home-hero p.sub{margin:20px auto 0;max-width:600px;color:var(--muted);font-size:clamp(15px,2.1vw,18px);line-height:1.7}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:36px 0 10px}
+  .stat{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:22px 14px;text-align:center;backdrop-filter:blur(14px);transition:transform .35s,border-color .3s}
+  .stat:hover{border-color:var(--green);transform:translateY(-4px)}
+  .stat-num{font-family:var(--font-display);font-size:clamp(28px,4.6vw,44px);font-weight:700;line-height:1;background:linear-gradient(120deg,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat-lbl{margin-top:6px;color:var(--muted);font-size:12.5px}
+  .home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:34px}
+  .home-card{cursor:pointer;text-align:left;padding:24px;border-radius:20px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;position:relative;overflow:hidden}
+  .home-card::before{content:"";position:absolute;inset:0;opacity:0;transition:.4s;background:radial-gradient(240px 130px at 80% -10%,var(--ac,rgba(95,224,137,.3)),transparent 70%)}
+  .home-card:hover{transform:translateY(-6px);border-color:var(--green)}
+  .home-card:hover::before{opacity:1}
+  .home-card .ico{font-size:30px}
+  .home-card h3{font-family:var(--font-display);font-size:19px;margin:12px 0 6px;letter-spacing:-.3px;position:relative}
+  .home-card p{color:var(--muted);font-size:13.5px;line-height:1.55;position:relative}
+  .home-card .go{margin-top:12px;color:var(--green);font-size:13px;font-weight:600;position:relative}
 
   /* ANATOMY */
   .anatomy-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.05fr;gap:28px;align-items:stretch}
@@ -144,38 +140,36 @@
   .tern-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:26px;align-items:center}
   .tern-box{padding:24px;text-align:center}
   .tern-box svg{width:100%;max-width:380px;height:auto;touch-action:none}
-  .tern-handle{cursor:grab}
-  .tern-handle:active{cursor:grabbing}
+  .tern-handle{cursor:grab}.tern-handle:active{cursor:grabbing}
   .tern-read{margin-top:14px;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-family:var(--font-display);font-size:13px}
   .tern-read b{font-size:20px;display:block}
   .tern-presets{margin-top:16px;display:flex;gap:8px;justify-content:center}
   .tern-presets button{font-family:var(--font-body);cursor:pointer;font-size:12.5px;color:var(--muted);padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--glass);transition:.25s}
   .tern-presets button:hover{color:var(--ink);border-color:var(--green)}
-  .radar-box{padding:24px}
-  .radar-box svg{width:100%;height:auto}
-  .type-desc{padding:30px;margin-top:0}
-  .type-desc h3{font-family:var(--font-display);font-size:30px;margin-bottom:10px;letter-spacing:-.5px}
+  .radar-box{padding:24px}.radar-box svg{width:100%;height:auto}
+  .type-desc{padding:28px;margin-top:18px}
+  .type-desc h3{font-family:var(--font-display);font-size:28px;margin-bottom:10px;letter-spacing:-.5px}
   .type-desc p{color:#d8ebdd;line-height:1.7;font-size:15px;margin-bottom:12px}
   .type-desc .shape{color:var(--muted);font-size:14px;line-height:1.6;border-left:3px solid var(--green);padding-left:14px}
 
-  /* GALAXY (strains) */
+  /* GALAXY */
   .filters{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
-  .filters button{font-family:var(--font-body);cursor:pointer;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;border:1px solid var(--line);color:var(--muted);transition:.25s;background:var(--glass);backdrop-filter:blur(8px)}
+  .filters button{font-family:var(--font-body);cursor:pointer;padding:10px 20px;border-radius:999px;font-weight:600;font-size:13.5px;border:1px solid var(--line);color:var(--muted);transition:.25s;background:var(--glass)}
   .filters button:hover{color:var(--ink);border-color:var(--green)}
   .filters button.on{color:#06140c;background:linear-gradient(90deg,var(--lime),var(--green));border-color:transparent}
   .galaxy-wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:stretch}
-  .galaxy{position:relative;border-radius:var(--radius);border:1px solid var(--line);background:radial-gradient(ellipse 80% 80% at 50% 40%,rgba(124,77,219,.10),rgba(6,12,9,.4));overflow:hidden;min-height:440px;backdrop-filter:blur(8px)}
+  .galaxy{position:relative;border-radius:var(--radius);border:1px solid var(--line);background:radial-gradient(ellipse 80% 80% at 50% 40%,rgba(124,77,219,.10),rgba(6,12,9,.45));overflow:hidden;min-height:460px;backdrop-filter:blur(8px)}
   .galaxy .axis{position:absolute;color:var(--muted-2);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;pointer-events:none}
   .galaxy .ax-l{left:10px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left}
   .galaxy .ax-x1{left:14px;bottom:10px}.galaxy .ax-x2{right:14px;bottom:10px}.galaxy .ax-top{left:50%;top:8px;transform:translateX(-50%)}
-  .strain-orb{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);transition:box-shadow .3s,opacity .3s,filter .3s;display:flex;align-items:center;justify-content:center}
+  .strain-orb{position:absolute;border-radius:50%;cursor:pointer;transform:translate(-50%,-50%);transition:box-shadow .3s,opacity .3s,filter .3s}
   .strain-orb::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid transparent;transition:.3s}
   .strain-orb:hover,.strain-orb.sel{z-index:3}
   .strain-orb:hover::after,.strain-orb.sel::after{border-color:#fff}
   .strain-orb.faded{opacity:.12;filter:grayscale(.6)}
   .strain-orb .lab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-size:10px;white-space:nowrap;color:var(--muted);opacity:0;transition:.25s;font-weight:600}
   .strain-orb:hover .lab,.strain-orb.sel .lab{opacity:1}
-  .strain-detail{padding:28px;display:flex;flex-direction:column;min-height:440px}
+  .strain-detail{padding:28px;display:flex;flex-direction:column;min-height:460px}
   .strain-detail h3{font-family:var(--font-display);font-size:25px;letter-spacing:-.4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .type-chip{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
   .chip-Indica{background:rgba(181,139,255,.18);color:#d4bcff;border:1px solid rgba(181,139,255,.4)}
@@ -207,7 +201,7 @@
   .terp-detail .block b{color:var(--green);font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:.7px;display:block;margin-bottom:4px}
   .terp-detail .block p{color:#d8ebdd;line-height:1.65;font-size:15px}
 
-  /* CANNABINOIDS - flip */
+  /* CANNABINOIDS flip */
   .cann-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
   .flip{perspective:1400px;height:300px;cursor:pointer}
   .flip-in{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
@@ -233,38 +227,57 @@
   .flip-back .note b{color:var(--violet);font-family:var(--font-display)}
   .flip-back h4{font-family:var(--font-display);font-size:18px}
 
+  /* MOLECULE TAB */
+  .mol-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:stretch}
+  .mol-stage{position:relative;width:100%;height:min(66vh,580px);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:radial-gradient(ellipse at 50% 40%,rgba(124,77,219,.14),rgba(6,12,9,.55))}
+  #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  .mol-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:14px;padding:30px}
+  .mol-side{padding:28px;display:flex;flex-direction:column}
+  .mol-side h3{font-family:var(--font-display);font-size:30px;letter-spacing:-.5px}
+  .mol-formula{font-family:var(--font-display);color:var(--lime);font-size:15px;margin:4px 0 14px;letter-spacing:.5px}
+  .mol-formula sub{font-size:.7em}
+  .mol-side .mdesc{color:#d8ebdd;line-height:1.7;font-size:15px;margin-bottom:14px}
+  .mol-iso{background:linear-gradient(120deg,rgba(124,77,219,.16),rgba(124,77,219,.05));border:1px solid rgba(181,139,255,.3);border-radius:14px;padding:13px 15px;color:#eddfff;font-size:13px;line-height:1.55;margin-bottom:16px}
+  .mol-iso b{color:var(--violet)}
+  .mol-controls{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+  .mol-controls button{font-family:var(--font-display);cursor:pointer;padding:11px 20px;border-radius:999px;font-weight:600;font-size:14.5px;border:1px solid var(--line);color:var(--muted);background:var(--glass);transition:.3s}
+  .mol-controls button.on{color:#06140c;background:linear-gradient(120deg,var(--lime),var(--green));border-color:transparent;box-shadow:0 12px 30px -12px var(--green)}
+  .mol-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+  .mol-actions button{font-family:var(--font-body);cursor:pointer;font-size:13px;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line);padding:9px 16px;border-radius:999px;transition:.25s}
+  .mol-actions button:hover{border-color:var(--green);background:rgba(95,224,137,.08)}
+  .mol-legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:auto}
+  .mol-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .mol-note{color:var(--muted-2);font-size:11.5px;margin-top:10px}
+
   /* FACTS */
-  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:17px}
-  .fact{padding:24px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s;will-change:transform}
-  .fact:hover{border-color:var(--violet)}
-  .fact .emoji{font-size:34px;display:block;margin-bottom:12px}
-  .fact h4{font-family:var(--font-display);font-size:17px;margin-bottom:8px;letter-spacing:-.2px}
-  .fact p{color:var(--muted);font-size:14px;line-height:1.65}
+  .facts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px}
+  .fact{padding:22px;border-radius:18px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(14px);transition:transform .35s cubic-bezier(.16,1,.3,1),border-color .3s}
+  .fact:hover{border-color:var(--violet);transform:translateY(-5px)}
+  .fact .emoji{font-size:32px;display:block;margin-bottom:10px}
+  .fact h4{font-family:var(--font-display);font-size:16.5px;margin-bottom:7px;letter-spacing:-.2px}
+  .fact p{color:var(--muted);font-size:13.5px;line-height:1.6}
 
   .share{max-width:760px;margin:34px auto 0;text-align:center}
-  footer{padding:64px 22px 90px;text-align:center;border-top:1px solid var(--line);margin-top:60px;position:relative;z-index:5}
-  footer .foot-leaf{width:46px;height:46px;margin:0 auto 18px;animation:sway 6s ease-in-out infinite}
-  footer .disclaimer{max-width:700px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.75;background:linear-gradient(120deg,rgba(255,155,84,.07),rgba(255,155,84,.02));border:1px solid rgba(255,155,84,.22);border-radius:16px;padding:20px 24px}
-  footer .made{margin-top:22px;color:var(--muted-2);font-size:13px;font-family:var(--font-display)}
-  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:14px 26px;border-radius:999px;transition:transform .3s,box-shadow .3s;display:inline-flex;align-items:center;gap:9px;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line);backdrop-filter:blur(8px)}
+  .btn{font-family:var(--font-body);cursor:pointer;border:none;font-size:15px;font-weight:600;padding:14px 26px;border-radius:999px;transition:transform .3s,box-shadow .3s;display:inline-flex;align-items:center;gap:9px;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line)}
   .btn:hover{transform:translateY(-3px);border-color:var(--green);background:rgba(95,224,137,.08)}
+  footer{padding:30px 22px 60px;text-align:center;border-top:1px solid var(--line);margin-top:40px;position:relative;z-index:5}
+  footer .disclaimer{max-width:700px;margin:0 auto;color:var(--muted);font-size:12.5px;line-height:1.7;background:linear-gradient(120deg,rgba(255,155,84,.07),rgba(255,155,84,.02));border:1px solid rgba(255,155,84,.22);border-radius:16px;padding:18px 22px}
+  footer .made{margin-top:18px;color:var(--muted-2);font-size:13px;font-family:var(--font-display)}
 
   .intro{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%,#0b1610,#040706);transition:opacity 1s ease,visibility 1s}
   .intro.hide{opacity:0;visibility:hidden;pointer-events:none}
   .intro-in{text-align:center}
-  .intro-in svg{width:130px;height:130px;filter:drop-shadow(0 0 36px rgba(95,224,137,.55));animation:introLeaf 1.7s cubic-bezier(.16,1,.3,1) both}
-  .intro-title{font-family:var(--font-display);font-weight:700;font-size:48px;letter-spacing:-1.5px;margin-top:16px;background:linear-gradient(115deg,#f3fff7,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent;animation:introUp 1s .5s cubic-bezier(.16,1,.3,1) both}
-  .intro-sub{color:var(--muted);font-size:12px;letter-spacing:4px;text-transform:uppercase;margin-top:10px;animation:introUp 1s .7s cubic-bezier(.16,1,.3,1) both}
-  .intro-bar{width:160px;height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin:22px auto 0;overflow:hidden}
-  .intro-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lime),var(--green));animation:introBar 1.9s ease forwards}
+  .intro-in svg{width:120px;height:120px;filter:drop-shadow(0 0 36px rgba(95,224,137,.55));animation:introLeaf 1.6s cubic-bezier(.16,1,.3,1) both}
+  .intro-title{font-family:var(--font-display);font-weight:700;font-size:46px;letter-spacing:-1.5px;margin-top:14px;background:linear-gradient(115deg,#f3fff7,var(--lime),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent;animation:introUp 1s .4s cubic-bezier(.16,1,.3,1) both}
+  .intro-sub{color:var(--muted);font-size:12px;letter-spacing:4px;text-transform:uppercase;margin-top:9px;animation:introUp 1s .6s cubic-bezier(.16,1,.3,1) both}
+  .intro-bar{width:160px;height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin:20px auto 0;overflow:hidden}
+  .intro-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lime),var(--green));animation:introBar 1.8s ease forwards}
 
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
   @keyframes pulse-ring{0%{transform:scale(.85);opacity:.9}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
   @keyframes shimmer{0%,100%{opacity:.45}50%{opacity:1}}
   @keyframes shine{0%{background-position:140% 0}60%,100%{background-position:-40% 0}}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-  @keyframes wheel{0%{transform:translateY(0);opacity:1}70%{opacity:1}100%{transform:translateY(12px);opacity:0}}
   @keyframes rise{0%{transform:translateY(115%) rotate(6deg)}100%{transform:translateY(0) rotate(0)}}
   @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,6vh) scale(1.15)}}
   @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-7vw,5vh) scale(1.1)}}
@@ -273,124 +286,137 @@
   @keyframes introUp{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
   @keyframes introBar{0%{width:0}100%{width:100%}}
   .tricho{animation:shimmer 2.8s ease-in-out infinite}
-  .pistil{transform-box:fill-box;transform-origin:bottom center;animation:sway 5s ease-in-out infinite}
+  .pistil{transform-box:fill-box;transform-origin:bottom center}
 
   @media (max-width:880px){
-    .anatomy-grid,.tern-grid,.terp-wrap,.galaxy-wrap{grid-template-columns:1fr}
-    .nav-links,#dotnav{display:none}
+    .anatomy-grid,.tern-grid,.terp-wrap,.galaxy-wrap,.mol-grid{grid-template-columns:1fr}
     .stats{grid-template-columns:repeat(2,1fr)}
     .cursor-dot,.cursor-ring{display:none}
+    .brand span{display:none}
   }
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none!important;scroll-behavior:auto!important;transition:none!important}
-    .reveal,.stagger{transform:none!important}
-  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}.reveal,.stagger{transform:none!important}}
 </style>
 </head>
 <body>
 <div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
-<canvas id="gl"></canvas>
 <div id="grain"></div>
-<div id="scrim"></div>
 <div id="progress"></div>
-<div id="dotnav"></div>
 
-<nav>
-  <div class="nav-in">
-    <div class="brand"><svg class="leaf-mini" viewBox="0 0 200 200" id="brandLeaf"></svg><span>Weed<span style="color:var(--lime)">Map</span></span></div>
-    <div class="nav-links">
-      <a href="#anatomia">Anatomia</a><a href="#tipi">Indica/Sativa</a><a href="#strain">Strain</a>
-      <a href="#terpeni">Terpeni</a><a href="#cannabinoidi">Cannabinoidi</a><a href="#facts">Fun Facts</a>
+<div class="tabbar">
+  <div class="tabbar-in">
+    <div class="brand" data-tab="home"><svg class="leaf-mini" viewBox="0 0 200 200" id="brandLeaf"></svg><span>Weed<span style="color:var(--lime)">Map</span></span></div>
+    <div class="tabs" id="tabs">
+      <button data-tab="home" class="on">Home</button>
+      <button data-tab="strain">Strain</button>
+      <button data-tab="terpeni">Terpeni</button>
+      <button data-tab="cannabinoidi">Cannabinoidi</button>
+      <button data-tab="molecole">Molecole 3D</button>
+      <button data-tab="tipi">Indica/Sativa</button>
+      <button data-tab="anatomia">Anatomia</button>
+      <button data-tab="facts">Fun Facts</button>
     </div>
   </div>
-</nav>
-
-<header class="hero" id="top">
-  <div class="wrap">
-    <span class="eyebrow"><span class="pulse"></span>Esperienza 3D · Interattiva</span>
-    <h1><span class="ttl">WeedMap</span><span class="shine">WeedMap</span></h1>
-    <div class="tagline">la cannabis come non l'hai mai vista</div>
-    <p class="sub">Ruota la molecola, falla esplodere, cambiala. Poi esplora la <b>galassia degli strain</b>, miscela <b>Indica/Sativa/Hybrid</b> con le tue mani e scopri terpeni e cannabinoidi.</p>
-    <div class="mol-switch" id="molSwitch">
-      <button data-m="THC" class="on">THC</button><button data-m="CBD">CBD</button><button data-m="CBG">CBG</button>
-    </div>
-    <div class="hero-hint">✦ clicca la molecola per farla esplodere · trascina per ruotarla · muovi il mouse</div>
-  </div>
-  <div class="scroll-cue"><span class="mouse"></span>SCORRI</div>
-</header>
+</div>
 
 <main class="wrap">
-  <section id="stats-band" class="reveal">
-    <div class="stats">
+
+  <!-- HOME -->
+  <section class="tab active" id="tab-home"><div class="panel" style="padding-top:20px">
+    <div class="home-hero reveal">
+      <span class="eyebrow"><span class="pulse"></span>Esperienza Interattiva · Educativa</span>
+      <h1><span class="ttl">WeedMap</span><span class="shine">WeedMap</span></h1>
+      <div class="tagline">la cannabis come non l'hai mai vista</div>
+      <p class="sub">Esplora la cannabis a schede: strain, terpeni, cannabinoidi, molecole 3D, tipi e anatomia. Scegli una scheda qui sotto per iniziare.</p>
+    </div>
+    <div class="stats reveal">
       <div class="stat stagger"><div class="stat-num" data-target="100" data-suffix="+">100+</div><div class="stat-lbl">Cannabinoidi</div></div>
-      <div class="stat stagger"><div class="stat-num" data-target="500" data-suffix="+">500+</div><div class="stat-lbl">Composti chimici</div></div>
-      <div class="stat stagger"><div class="stat-num" data-target="8" data-suffix="">8</div><div class="stat-lbl">Terpeni chiave</div></div>
-      <div class="stat stagger"><div class="stat-num" data-target="12" data-suffix="">12</div><div class="stat-lbl">Strain iconici</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="500" data-suffix="+">500+</div><div class="stat-lbl">Composti</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="8" data-suffix="">8</div><div class="stat-lbl">Terpeni</div></div>
+      <div class="stat stagger"><div class="stat-num" data-target="12" data-suffix="">12</div><div class="stat-lbl">Strain</div></div>
     </div>
-  </section>
+    <div class="home-grid reveal" id="homeGrid"></div>
+  </div></section>
 
-  <section id="anatomia">
-    <div class="sec-head reveal"><div class="ghost">01</div><div class="kicker">Parte 01</div><h2>Anatomia della pianta</h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi per scoprire cosa fa ciascuna.</p></div>
-    <div class="anatomy-grid reveal">
-      <div class="plant-stage card"><svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis interattiva"></svg></div>
-      <div class="info-card card" id="anatomyCard"></div>
+  <!-- STRAIN -->
+  <section class="tab" id="tab-strain"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda · interattivo</div><h2>La galassia degli Strain</h2><p>Ogni sfera è uno strain: posizione = energia ↔ relax, altezza = potenza THC, dimensione = THC. Passa sopra o clicca per i dettagli.</p></div>
+    <div class="filters reveal" id="strainFilters"></div>
+    <div class="galaxy-wrap reveal">
+      <div class="galaxy" id="galaxy"><div class="axis ax-top">▲ più THC</div><div class="axis ax-l">potenza</div><div class="axis ax-x1">energizzante ◀</div><div class="axis ax-x2">▶ rilassante</div></div>
+      <div class="strain-detail card" id="strainDetail"></div>
     </div>
-    <div class="key reveal" id="anatomyKey"></div>
-    <p class="hint">💡 Clicca i numeri per evidenziare la parte sulla pianta.</p>
-  </section>
+  </div></section>
 
-  <section id="tipi">
-    <div class="sec-head reveal"><div class="ghost">02</div><div class="kicker">Parte 02 · interattivo</div><h2>Miscela il tuo profilo</h2><p>Trascina il punto nel triangolo per fondere Indica, Sativa e Hybrid: il radar e il profilo si ricalcolano in tempo reale.</p></div>
+  <!-- TERPENI -->
+  <section class="tab" id="tab-terpeni"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda</div><h2>La ruota dei Terpeni</h2><p>I terpeni danno aroma ed effetto. Clicca un terpene per profilo, effetti e dove altro si trova.</p></div>
+    <div class="terp-wrap reveal">
+      <div class="wheel" id="terpWheel"><div class="ring-deco"></div><div class="ring-deco r2"></div><div class="ring-deco r3"></div><div class="terp-center" id="terpCenter">Seleziona un terpene →</div></div>
+      <div class="terp-detail card" id="terpDetail"></div>
+    </div>
+  </div></section>
+
+  <!-- CANNABINOIDI -->
+  <section class="tab" id="tab-cannabinoidi"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda · interattivo</div><h2>I Cannabinoidi</h2><p>Clicca una card per girarla. Davanti: molecola stilizzata e affinità relativa CB1/CB2. Dietro: effetti e note.</p></div>
+    <div class="cann-grid reveal" id="cannGrid"></div>
+    <p class="hint">Le affinità CB1/CB2 sono illustrative e semplificate a scopo didattico.</p>
+  </div></section>
+
+  <!-- MOLECOLE 3D -->
+  <section class="tab" id="tab-molecole"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda · 3D</div><h2>Esplora le Molecole</h2><p>Ruota (trascina), fai esplodere (clic o pulsante) e cambia molecola. Tutto contenuto qui, in 3D reale.</p></div>
+    <div class="mol-grid reveal">
+      <div class="mol-stage"><canvas id="gl"></canvas><div class="mol-fallback" id="molFallback">Caricamento scena 3D…</div></div>
+      <div class="mol-side card">
+        <h3 id="molName">THC</h3>
+        <div class="mol-formula" id="molFormula"></div>
+        <div class="mdesc" id="molDesc"></div>
+        <div class="mol-iso" id="molIso"></div>
+        <div class="mol-controls" id="molSwitch"><button data-m="THC" class="on">THC</button><button data-m="CBD">CBD</button><button data-m="CBG">CBG</button></div>
+        <div class="mol-actions"><button id="explodeBtn">💥 Esplodi</button><button id="resetRotBtn">↺ Reset rotazione</button></div>
+        <div class="mol-legend"><span><i style="background:#6fe39a"></i>Carbonio (C)</span><span><i style="background:#ff8a4a"></i>Ossigeno (O)</span></div>
+        <div class="mol-note">Modello stilizzato a scopo didattico (idrogeni omessi). Trascina per ruotare · clic per esplodere.</div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- TIPI -->
+  <section class="tab" id="tab-tipi"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda · interattivo</div><h2>Miscela il tuo profilo</h2><p>Trascina il punto nel triangolo per fondere Indica, Sativa e Hybrid: il radar e il profilo si ricalcolano in tempo reale.</p></div>
     <div class="tern-grid reveal">
       <div class="tern-box card">
         <svg id="tern" viewBox="0 0 300 300"></svg>
         <div class="tern-read" id="ternRead"></div>
         <div class="tern-presets"><button data-p="Indica">100% Indica</button><button data-p="Sativa">100% Sativa</button><button data-p="Hybrid">100% Hybrid</button></div>
       </div>
-      <div>
-        <div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div>
-        <div class="type-desc card" id="typeDesc" style="margin-top:18px"></div>
-      </div>
+      <div><div class="radar-box card"><svg id="radar" viewBox="0 0 360 360"></svg></div><div class="type-desc card" id="typeDesc"></div></div>
     </div>
     <p class="hint">⚠️ La divisione Indica/Sativa è una semplificazione: terpeni e cannabinoidi contano più della tassonomia.</p>
-  </section>
+  </div></section>
 
-  <section id="strain">
-    <div class="sec-head reveal"><div class="ghost">03</div><div class="kicker">Parte 03 · interattivo</div><h2>La galassia degli Strain</h2><p>Ogni sfera è uno strain: posizione = energia ↔ relax, altezza = potenza THC, dimensione = THC. Passa sopra o clicca per i dettagli.</p></div>
-    <div class="filters reveal" id="strainFilters"></div>
-    <div class="galaxy-wrap reveal">
-      <div class="galaxy" id="galaxy">
-        <div class="axis ax-top">▲ più THC</div><div class="axis ax-l">potenza</div>
-        <div class="axis ax-x1">energizzante ◀</div><div class="axis ax-x2">▶ rilassante</div>
-      </div>
-      <div class="strain-detail card" id="strainDetail"></div>
+  <!-- ANATOMIA -->
+  <section class="tab" id="tab-anatomia"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda</div><h2>Anatomia della pianta</h2><p>Ogni parte ha un ruolo preciso. Passa il mouse o clicca sui punti luminosi per scoprire cosa fa ciascuna.</p></div>
+    <div class="anatomy-grid reveal">
+      <div class="plant-stage card"><svg id="plantSvg" viewBox="0 0 400 600" aria-label="Pianta di cannabis interattiva"></svg></div>
+      <div class="info-card card" id="anatomyCard"></div>
     </div>
-  </section>
+    <div class="key reveal" id="anatomyKey"></div>
+    <p class="hint">💡 Clicca i numeri per evidenziare la parte sulla pianta.</p>
+  </div></section>
 
-  <section id="terpeni">
-    <div class="sec-head reveal"><div class="ghost">04</div><div class="kicker">Parte 04</div><h2>La ruota dei Terpeni</h2><p>I terpeni danno aroma ed effetto. Clicca un terpene per profilo, effetti e dove altro si trova.</p></div>
-    <div class="terp-wrap reveal">
-      <div class="wheel" id="terpWheel"><div class="ring-deco"></div><div class="ring-deco r2"></div><div class="ring-deco r3"></div><div class="terp-center" id="terpCenter">Seleziona un terpene →</div></div>
-      <div class="terp-detail card" id="terpDetail"></div>
-    </div>
-  </section>
-
-  <section id="cannabinoidi">
-    <div class="sec-head reveal"><div class="ghost">05</div><div class="kicker">Parte 05 · interattivo</div><h2>I Cannabinoidi</h2><p>Clicca una card per girarla. Davanti: molecola stilizzata e affinità relativa per i recettori CB1/CB2. Dietro: effetti e note.</p></div>
-    <div class="cann-grid reveal" id="cannGrid"></div>
-    <p class="hint">Le affinità CB1/CB2 sono illustrative e semplificate a scopo didattico.</p>
-  </section>
-
-  <section id="facts">
-    <div class="sec-head reveal"><div class="ghost">06</div><div class="kicker">Parte 06</div><h2>Fun Facts</h2><p>Curiosità vere e interessanti sulla cannabis, dalla botanica alla cultura.</p></div>
+  <!-- FACTS -->
+  <section class="tab" id="tab-facts"><div class="panel">
+    <div class="sec-head reveal"><div class="kicker">Scheda</div><h2>Fun Facts</h2><p>Curiosità vere e interessanti sulla cannabis, dalla botanica alla storia alla chimica.</p></div>
     <div class="facts-grid reveal" id="factsGrid"></div>
     <div class="share reveal"><button class="btn" id="shareBtn">🔗 Copia il link da condividere</button></div>
-  </section>
+  </div></section>
+
 </main>
 
 <footer>
-  <svg class="foot-leaf" viewBox="0 0 200 200" id="footLeaf"></svg>
-  <div class="disclaimer"><b>⚠️ Contenuto educativo.</b> Questa mappa ha scopo puramente informativo e divulgativo per un pubblico adulto. Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispetta sempre le normative locali. Percentuali, affinità ed effetti sono indicativi; molti derivano da studi preclinici non ancora confermati nell'uomo.</div>
+  <div class="disclaimer"><b>⚠️ Contenuto educativo.</b> Scopo puramente informativo per un pubblico adulto. Non costituisce consiglio medico né incoraggiamento al consumo. Le leggi sulla cannabis variano da paese a paese: informati e rispetta le normative locali. Percentuali, affinità ed effetti sono indicativi; molti derivano da studi preclinici non ancora confermati nell'uomo.</div>
   <div class="made">🌿 WeedMap — un'esperienza interattiva · 2026</div>
 </footer>
 
@@ -445,6 +471,11 @@ const DATA = {
     {sigla:"THCV",nome:"Tetraidrocannabivarina",psicoattivo:"Lievemente",cb1:48,cb2:40,effetto:"Effetto dose-dipendente: a basse dosi smorza alcuni effetti del THC, ad alte dosi diventa lievemente psicoattivo.",nota:"In alcuni studi riduce l'appetito (la 'diet weed'). Sperimentale."},
     {sigla:"CBC",nome:"Cannabicromene",psicoattivo:"No",cb1:10,cb2:58,effetto:"Non inebriante; studiato per proprietà antinfiammatorie e per l'effetto entourage; agisce anche sui canali TRPA1.",nota:"Deriva dal CBGA. Agirebbe in sinergia con altri cannabinoidi."}
   ],
+  molecules:{
+    THC:{formula:["C",21,"H",30,"O",2],desc:"Δ9-THC, il principale composto psicoattivo. Struttura triciclica: un anello aromatico, un anello pirano e uno cicloesenico, più una catena pentilica.",iso:"Curiosità: THC e CBD hanno la <b>stessa formula</b> (C₂₁H₃₀O₂) ma struttura diversa — sono <b>isomeri</b>!"},
+    CBD:{formula:["C",21,"H",30,"O",2],desc:"Cannabidiolo, non inebriante. A differenza del THC l'anello non è 'chiuso' nel pirano: ha due anelli collegati e due gruppi ossidrili.",iso:"Curiosità: stessa formula del THC (C₂₁H₃₀O₂); è la disposizione degli atomi a cambiare tutto."},
+    CBG:{formula:["C",21,"H",32,"O",2],desc:"Cannabigerolo, la 'molecola madre'. Un solo anello aromatico con una lunga catena geranilica lineare: da qui derivano gli altri cannabinoidi.",iso:"Curiosità: dal suo precursore acido (CBGA) la pianta sintetizza THC, CBD e CBC."}
+  },
   facts:[
     {emoji:"♀️",titolo:"Una pianta dioica",testo:"Esistono piante maschili e femminili separate. Sono le femmine non fecondate (sinsemilla) a produrre le infiorescenze più ricche di resina."},
     {emoji:"🌿",titolo:"Canapa e marijuana, stessa specie",testo:"Appartengono entrambe a Cannabis sativa: la distinzione legale si basa sul contenuto di THC, non sulla botanica."},
@@ -457,7 +488,17 @@ const DATA = {
     {emoji:"📜",titolo:"Una storia antichissima",testo:"Coltivata da migliaia di anni: tracce d'uso risalgono ad almeno 2.500 anni fa in Asia centrale."},
     {emoji:"📄",titolo:"La fibra che ha fatto la storia",testo:"La canapa è una delle fibre tessili più antiche al mondo, usata per corde, vele e carta."},
     {emoji:"🔬",titolo:"I tricomi, fabbriche di resina",testo:"La resina ricca di cannabinoidi è prodotta da minuscole ghiandole, i tricomi, visibili come cristalli scintillanti."},
-    {emoji:"🪴",titolo:"Il nome lo diede Linneo",testo:"Il nome Cannabis sativa fu assegnato da Carl Linneo nel 1753; 'sativa' in latino significa 'coltivata'."}
+    {emoji:"🪴",titolo:"Il nome lo diede Linneo",testo:"Il nome Cannabis sativa fu assegnato da Carl Linneo nel 1753; 'sativa' in latino significa 'coltivata'."},
+    {emoji:"🔥",titolo:"Serve il calore (decarbossilazione)",testo:"La cannabis cruda contiene THCA, non psicoattivo: solo il calore lo converte in THC attivo. Per questo gli edibili vanno 'attivati'."},
+    {emoji:"🧫",titolo:"Il primo cannabinoide isolato",testo:"Il CBN fu identificato tra fine '800 e inizio '900, molto prima di CBD (anni '40) e THC (1964)."},
+    {emoji:"🍫",titolo:"Perché vengono i 'munchies'",testo:"Il THC attiva recettori che regolano fame e percezione del gusto, aumentando l'appetito e il piacere del cibo."},
+    {emoji:"💜",titolo:"Le varietà viola",testo:"Alcuni strain diventano viola per gli antociani, pigmenti che emergono col freddo a fine fioritura — non c'entra la potenza."},
+    {emoji:"💨",titolo:"Vaporizzare ≠ bruciare",testo:"La vaporizzazione rilascia cannabinoidi e terpeni a temperature inferiori alla combustione, producendo meno sottoprodotti irritanti."},
+    {emoji:"🧬",titolo:"Un'impronta aromatica unica",testo:"Ogni varietà ha un proprio profilo di terpeni e cannabinoidi: una sorta di 'impronta digitale' chimica."},
+    {emoji:"🏛️",titolo:"Un brevetto… del governo USA",testo:"Il brevetto US 6.630.507 rivendica l'uso di alcuni cannabinoidi come antiossidanti e neuroprotettori: è detenuto dal governo statunitense."},
+    {emoji:"🏃",titolo:"Anche correre attiva il sistema",testo:"Il 'runner's high' è legato anche agli endocannabinoidi come l'anandamide, non solo alle endorfine."},
+    {emoji:"🌍",titolo:"La canapa che pulisce il suolo",testo:"La canapa è studiata per il fitorisanamento: può assorbire metalli e contaminanti dal terreno mentre cresce."},
+    {emoji:"🗣️",titolo:"'Marijuana' vs 'cannabis'",testo:"'Cannabis' è il nome botanico; il termine 'marijuana' si diffuse negli USA nel primo Novecento ed entrò nel linguaggio comune."}
   ]
 };
 
@@ -466,11 +507,10 @@ var FINE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 function hexA(hex,a){var h=hex.replace('#','');return 'rgba('+parseInt(h.substr(0,2),16)+','+parseInt(h.substr(2,2),16)+','+parseInt(h.substr(4,2),16)+','+a+')';}
 
 /* ===================== LEAF ===================== */
-function leafSVG(c1,c2,id){var bl=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><g transform="translate(100,108)">';bl.forEach(function(b){s+='<g class="leaflet" transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/></g>';});return s+'<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';}
+function leafSVG(c1,c2,id){var bl=[{a:0,len:78,w:13},{a:32,len:62,w:11},{a:-32,len:62,w:11},{a:60,len:44,w:9},{a:-60,len:44,w:9},{a:86,len:26,w:7},{a:-86,len:26,w:7}];var s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient></defs><g transform="translate(100,108)">';bl.forEach(function(b){s+='<g transform="rotate('+b.a+')"><path d="M0,0 C '+b.w+',-'+(b.len*0.35)+' '+(b.w*0.5)+',-'+(b.len*0.8)+' 0,-'+b.len+' C -'+(b.w*0.5)+',-'+(b.len*0.8)+' -'+b.w+',-'+(b.len*0.35)+' 0,0 Z" fill="url(#'+id+')" stroke="'+c2+'" stroke-width="1"/></g>';});return s+'<line x1="0" y1="0" x2="0" y2="34" stroke="'+c2+'" stroke-width="3"/></g>';}
 document.getElementById('brandLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lb');
-document.getElementById('footLeaf').innerHTML=leafSVG('#c6ff7a','#1f9d57','lf');
 
-/* ===================== PLANT ANATOMY ===================== */
+/* ===================== PLANT ===================== */
 function buildPlant(){
   var svg=document.getElementById('plantSvg');
   var s='<defs><linearGradient id="stemG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc07a"/><stop offset="1" stop-color="#2c7d44"/></linearGradient><radialGradient id="colaG" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#7fe39a"/><stop offset="1" stop-color="#2f9d57"/></radialGradient><radialGradient id="budG" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#8be0a0"/><stop offset="1" stop-color="#3a8f57"/></radialGradient></defs>';
@@ -483,7 +523,7 @@ function buildPlant(){
   var buds=[[200,120,30],[178,150,24],[222,150,24],[200,165,26],[165,185,20],[235,185,20],[190,195,22],[210,195,22],[200,225,24],[178,215,18],[222,215,18]];
   s+='<g data-part="fogliezucchero" class="glow-part" opacity=".95">';[[160,150,-50,0.5],[240,150,50,0.5],[150,200,-60,0.45],[250,200,60,0.45],[200,250,180,0.5]].forEach(function(p){s+='<g transform="translate('+p[0]+','+p[1]+') rotate('+p[2]+') scale('+p[3]+')"><path d="M0,0 C14,-26 8,-58 0,-70 C-8,-58 -14,-26 0,0 Z" fill="#5bbf78" stroke="#2c7d44" stroke-width="1"/></g>';});s+='</g>';
   s+='<g data-part="calice" class="glow-part">';buds.forEach(function(b){s+='<ellipse cx="'+b[0]+'" cy="'+b[1]+'" rx="'+(b[2]*0.7)+'" ry="'+b[2]+'" fill="url(#budG)" stroke="#2c7d44" stroke-width="1"/>';});s+='</g></g>';
-  s+='<g data-part="pistilli" class="glow-part">';[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p,i){s+='<path class="pistil" style="animation-delay:'+((i%5)*0.3)+'s" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>';});s+='</g>';
+  s+='<g data-part="pistilli" class="glow-part">';[[185,118],[215,118],[170,150],[230,150],[200,140],[160,185],[240,185],[200,205],[185,225],[215,225]].forEach(function(p){s+='<path class="pistil" d="M'+p[0]+','+p[1]+' q -6,-12 2,-22 q 6,-8 0,-16" stroke="#ff8b4a" stroke-width="2.4" fill="none" stroke-linecap="round"/>';});s+='</g>';
   s+='<g data-part="tricomi" class="glow-part">';for(var t=0;t<70;t++){var ang=(t*53)%360,rad=(t*7)%70+8,cx=200+Math.cos(ang)*rad*0.7,cy=170+Math.sin(ang)*rad-(t%3)*4;if(cy>110&&cy<245&&cx>150&&cx<250){s+='<circle class="tricho" style="animation-delay:'+((t%7)*0.25)+'s" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+(1+(t%3)*0.6).toFixed(1)+'" fill="#eafff0"/>';}}s+='</g>';
   [{id:"cola",x:200,y:100,n:1},{id:"calice",x:235,y:170,n:2},{id:"pistilli",x:165,y:135,n:3},{id:"tricomi",x:200,y:200,n:4},{id:"foglieventaglio",x:140,y:415,n:5},{id:"fogliezucchero",x:150,y:205,n:6},{id:"nodi",x:200,y:355,n:7},{id:"gambo",x:205,y:500,n:8},{id:"radici",x:200,y:590,n:9}].forEach(function(sp){s+='<g class="hotspot" data-spot="'+sp.id+'"><circle class="hit" cx="'+sp.x+'" cy="'+sp.y+'" r="20"/><circle class="ring" cx="'+sp.x+'" cy="'+sp.y+'" r="13"/><circle class="dot" cx="'+sp.x+'" cy="'+sp.y+'" r="10"/><text class="num" x="'+sp.x+'" y="'+sp.y+'">'+sp.n+'</text></g>';});
   svg.innerHTML=s;
@@ -497,97 +537,56 @@ function buildPlant(){
 function renderAnatomy(id){var i=DATA.anatomy.findIndex(function(p){return p.id===id;});var p=DATA.anatomy[i];document.getElementById('anatomyCard').innerHTML='<span class="tagnum">'+(i+1)+'</span><h3>'+p.nome+'</h3><div class="role">'+p.funzione+'</div><div class="desc">'+p.dettaglio+'</div><div class="fun"><div class="fun-box"><b>Lo sapevi?</b> '+p.curiosita+'</div></div>';}
 function buildAnatomyKey(){var k=document.getElementById('anatomyKey');k.innerHTML=DATA.anatomy.map(function(p,i){return '<button data-k="'+p.id+'">'+(i+1)+'. '+p.nome.split(' (')[0]+'</button>';}).join('');k.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){window._focusPart(b.dataset.k);});});}
 
-/* ===================== RADAR (blendabile) ===================== */
+/* ===================== RADAR / TERNARY ===================== */
 var AXES=[["relax","Relax"],["energia","Energia"],["focus","Focus"],["corpo","Corpo"],["creativita","Creatività"],["sonno","Sonno"],["appetito","Appetito"]];
 var RC=180,RR=120,radarCurrent=AXES.map(function(){return 0;}),radarAnim=null;
 function radarPoint(idx,val){var a=(Math.PI*2*idx/AXES.length)-Math.PI/2,r=RR*val/100;return [RC+Math.cos(a)*r,RC+Math.sin(a)*r];}
 function buildRadarFrame(){var s='';[25,50,75,100].forEach(function(p){s+='<polygon points="'+AXES.map(function(_,i){return radarPoint(i,p).join(',');}).join(' ')+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';});AXES.forEach(function(ax,i){var pt=radarPoint(i,100);s+='<line x1="'+RC+'" y1="'+RC+'" x2="'+pt[0]+'" y2="'+pt[1]+'" stroke="rgba(255,255,255,.08)"/>';var lp=radarPoint(i,124);s+='<text x="'+lp[0]+'" y="'+lp[1]+'" fill="#90a89a" font-family="Space Grotesk,sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">'+ax[1]+'</text>';});s+='<polygon id="radarPoly" points="" fill="rgba(95,224,137,.22)" stroke="#5fe089" stroke-width="2.5" stroke-linejoin="round"/><g id="radarDots"></g>';document.getElementById('radar').innerHTML=s;}
-function drawRadarShape(vals,col){document.getElementById('radarPoly').setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>';}).join('');}
-function mixColors(w){ // w={Indica,Sativa,Hybrid}
-  var C={Indica:[181,139,255],Sativa:[198,255,122],Hybrid:[255,207,107]};
-  var r=C.Indica[0]*w.Indica+C.Sativa[0]*w.Sativa+C.Hybrid[0]*w.Hybrid;
-  var g=C.Indica[1]*w.Indica+C.Sativa[1]*w.Sativa+C.Hybrid[1]*w.Hybrid;
-  var b=C.Indica[2]*w.Indica+C.Sativa[2]*w.Sativa+C.Hybrid[2]*w.Hybrid;
-  return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';
-}
+function drawRadarShape(vals,col){var rp=document.getElementById('radarPoly');if(!rp)return;rp.setAttribute('points',vals.map(function(v,i){return radarPoint(i,v).join(',');}).join(' '));document.getElementById('radarDots').innerHTML=vals.map(function(v,i){var p=radarPoint(i,v);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.5" fill="'+col+'"/>';}).join('');}
+function mixColors(w){var C={Indica:[181,139,255],Sativa:[198,255,122],Hybrid:[255,207,107]};var r=C.Indica[0]*w.Indica+C.Sativa[0]*w.Sativa+C.Hybrid[0]*w.Hybrid;var g=C.Indica[1]*w.Indica+C.Sativa[1]*w.Sativa+C.Hybrid[1]*w.Hybrid;var b=C.Indica[2]*w.Indica+C.Sativa[2]*w.Sativa+C.Hybrid[2]*w.Hybrid;return 'rgb('+Math.round(r)+','+Math.round(g)+','+Math.round(b)+')';}
 function applyBlend(w){
   var P={};DATA.profiles.forEach(function(p){P[p.tipo]=p;});
   var target=AXES.map(function(ax){return P.Indica.assi[ax[0]]*w.Indica+P.Sativa.assi[ax[0]]*w.Sativa+P.Hybrid.assi[ax[0]]*w.Hybrid;});
-  var col=mixColors(w);
-  document.getElementById('radarPoly').setAttribute('fill',col.replace('rgb','rgba').replace(')',',0.22)'));
-  document.getElementById('radarPoly').setAttribute('stroke',col);
+  var col=mixColors(w);var rp=document.getElementById('radarPoly');
+  if(rp){rp.setAttribute('fill',col.replace('rgb','rgba').replace(')',',0.22)'));rp.setAttribute('stroke',col);}
   var start=radarCurrent.slice();drawRadarShape(target,col);
   if(!REDUCED){var t0=performance.now(),dur=450;if(radarAnim)cancelAnimationFrame(radarAnim);(function step(now){var k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);radarCurrent=target.map(function(v,i){return start[i]+(v-start[i])*e;});drawRadarShape(radarCurrent,col);if(k<1)radarAnim=requestAnimationFrame(step);})(performance.now());}
   radarCurrent=target.slice();
-  // readout
   var pi=Math.round(w.Indica*100),ps=Math.round(w.Sativa*100),ph=100-pi-ps;
   document.getElementById('ternRead').innerHTML='<div style="color:#b58bff"><b>'+pi+'%</b>Indica</div><div style="color:#c6ff7a"><b>'+ps+'%</b>Sativa</div><div style="color:#ffcf6b"><b>'+ph+'%</b>Hybrid</div>';
-  // description: dominant
-  var dom=w.Indica>=w.Sativa&&w.Indica>=w.Hybrid?'Indica':(w.Sativa>=w.Hybrid?'Sativa':'Hybrid');
-  var dp=P[dom];
+  var dom=w.Indica>=w.Sativa&&w.Indica>=w.Hybrid?'Indica':(w.Sativa>=w.Hybrid?'Sativa':'Hybrid');var dp=P[dom];
   document.getElementById('typeDesc').innerHTML='<h3 style="color:'+col+'">Miscela a dominanza '+dom+'</h3><p>'+dp.descrizione+'</p><div class="shape"><b style="color:'+col+'">Aspetto tipico ('+dom+'):</b> '+dp.forma+'</div>';
-  // update tern handle position
   positionTernHandle(w);
 }
-
-/* ===================== TERNARY ===================== */
-var TA={x:150,y:34},TB={x:36,y:262},TC={x:264,y:262}; // Sativa top, Indica bl, Hybrid br
-var ternHandle,ternWeights={Indica:0.34,Sativa:0.33,Hybrid:0.33};
-function baryFromPoint(px,py){
-  var det=(TB.y-TC.y)*(TA.x-TC.x)+(TC.x-TB.x)*(TA.y-TC.y);
-  var a=((TB.y-TC.y)*(px-TC.x)+(TC.x-TB.x)*(py-TC.y))/det;
-  var b=((TC.y-TA.y)*(px-TC.x)+(TA.x-TC.x)*(py-TC.y))/det;
-  var c=1-a-b;
-  a=Math.max(0,a);b=Math.max(0,b);c=Math.max(0,c);var sum=a+b+c||1;
-  return {Sativa:a/sum,Indica:b/sum,Hybrid:c/sum};
-}
+var TA={x:150,y:34},TB={x:36,y:262},TC={x:264,y:262},ternHandle;
+function baryFromPoint(px,py){var det=(TB.y-TC.y)*(TA.x-TC.x)+(TC.x-TB.x)*(TA.y-TC.y);var a=((TB.y-TC.y)*(px-TC.x)+(TC.x-TB.x)*(py-TC.y))/det;var b=((TC.y-TA.y)*(px-TC.x)+(TA.x-TC.x)*(py-TC.y))/det;var c=1-a-b;a=Math.max(0,a);b=Math.max(0,b);c=Math.max(0,c);var sum=a+b+c||1;return {Sativa:a/sum,Indica:b/sum,Hybrid:c/sum};}
 function pointFromBary(w){return {x:TA.x*w.Sativa+TB.x*w.Indica+TC.x*w.Hybrid,y:TA.y*w.Sativa+TB.y*w.Indica+TC.y*w.Hybrid};}
-function positionTernHandle(w){if(!ternHandle)return;var p=pointFromBary(w);ternHandle.setAttribute('cx',p.x);ternHandle.setAttribute('cy',p.y);}
+function positionTernHandle(w){if(!ternHandle)return;var p=pointFromBary(w);ternHandle.setAttribute('cx',p.x);ternHandle.setAttribute('cy',p.y);var g=document.getElementById('ternHandleGlow');if(g){g.setAttribute('cx',p.x);g.setAttribute('cy',p.y);}}
 function buildTernary(){
   var svg=document.getElementById('tern');
-  svg.innerHTML='<defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6ff7a" stop-opacity=".25"/><stop offset=".5" stop-color="#b58bff" stop-opacity=".18"/><stop offset="1" stop-color="#ffcf6b" stop-opacity=".25"/></linearGradient></defs>'+
-    '<polygon points="'+TA.x+','+TA.y+' '+TB.x+','+TB.y+' '+TC.x+','+TC.y+'" fill="url(#tg)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>'+
-    '<text x="'+TA.x+'" y="'+(TA.y-10)+'" fill="#c6ff7a" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Sativa</text>'+
-    '<text x="'+(TB.x-4)+'" y="'+(TB.y+22)+'" fill="#b58bff" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Indica</text>'+
-    '<text x="'+(TC.x+4)+'" y="'+(TC.y+22)+'" fill="#ffcf6b" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Hybrid</text>'+
-    '<circle id="ternHandle" class="tern-handle" cx="150" cy="183" r="13" fill="#0b1610" stroke="#fff" stroke-width="2.5"/>'+
-    '<circle id="ternHandleGlow" cx="150" cy="183" r="20" fill="rgba(255,255,255,.06)" pointer-events="none"/>';
-  ternHandle=document.getElementById('tern').querySelector('#ternHandle');
+  svg.innerHTML='<defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6ff7a" stop-opacity=".25"/><stop offset=".5" stop-color="#b58bff" stop-opacity=".18"/><stop offset="1" stop-color="#ffcf6b" stop-opacity=".25"/></linearGradient></defs><polygon points="'+TA.x+','+TA.y+' '+TB.x+','+TB.y+' '+TC.x+','+TC.y+'" fill="url(#tg)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/><text x="'+TA.x+'" y="'+(TA.y-10)+'" fill="#c6ff7a" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Sativa</text><text x="'+(TB.x-4)+'" y="'+(TB.y+22)+'" fill="#b58bff" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Indica</text><text x="'+(TC.x+4)+'" y="'+(TC.y+22)+'" fill="#ffcf6b" font-family="Space Grotesk,sans-serif" font-size="14" font-weight="700" text-anchor="middle">Hybrid</text><circle id="ternHandleGlow" cx="150" cy="183" r="20" fill="rgba(255,255,255,.06)" pointer-events="none"/><circle id="ternHandle" class="tern-handle" cx="150" cy="183" r="13" fill="#0b1610" stroke="#fff" stroke-width="2.5"/>';
+  ternHandle=svg.querySelector('#ternHandle');
   var dragging=false;
-  function pt(e){var r=svg.getBoundingClientRect();var x=( (e.clientX-r.left)/r.width)*300;var y=((e.clientY-r.top)/r.height)*300;return {x:x,y:y};}
-  function setFrom(e){var p=pt(e);var w=baryFromPoint(p.x,p.y);ternWeights=w;applyBlend(w);var g=document.getElementById('ternHandleGlow');var hp=pointFromBary(w);g.setAttribute('cx',hp.x);g.setAttribute('cy',hp.y);}
-  ternHandle.addEventListener('pointerdown',function(e){dragging=true;ternHandle.setPointerCapture&&ternHandle.setPointerCapture(e.pointerId);e.preventDefault();});
-  svg.addEventListener('pointerdown',function(e){dragging=true;setFrom(e);});
+  function pt(e){var r=svg.getBoundingClientRect();return {x:((e.clientX-r.left)/r.width)*300,y:((e.clientY-r.top)/r.height)*300};}
+  function setFrom(e){var p=pt(e);applyBlend(baryFromPoint(p.x,p.y));}
+  svg.addEventListener('pointerdown',function(e){dragging=true;setFrom(e);e.preventDefault();});
   window.addEventListener('pointermove',function(e){if(dragging)setFrom(e);});
   window.addEventListener('pointerup',function(){dragging=false;});
-  document.querySelectorAll('.tern-presets button').forEach(function(b){b.addEventListener('click',function(){var t=b.dataset.p;var w={Indica:0,Sativa:0,Hybrid:0};w[t]=1;ternWeights=w;applyBlend(w);var g=document.getElementById('ternHandleGlow');var hp=pointFromBary(w);g.setAttribute('cx',hp.x);g.setAttribute('cy',hp.y);});});
+  document.querySelectorAll('.tern-presets button').forEach(function(b){b.addEventListener('click',function(){var w={Indica:0,Sativa:0,Hybrid:0};w[b.dataset.p]=1;applyBlend(w);});});
 }
 
-/* ===================== STRAIN GALAXY ===================== */
+/* ===================== GALAXY ===================== */
 function thcMid(s){var m=s.match(/(\d+)\D+(\d+)/);if(m)return (+m[1]+ +m[2])/2;var m2=s.match(/(\d+)/);return m2?+m2[1]:20;}
-function strainAxisX(s){ // 0 (energizzante) .. 1 (rilassante)
-  var base=s.tipo==='Sativa'?0.18:s.tipo==='Indica'?0.82:0.5;
-  var jitter=((s.nome.charCodeAt(0)+s.nome.charCodeAt(s.nome.length-1))%10-5)/45;
-  return Math.max(0.06,Math.min(0.94,base+jitter));
-}
+function strainAxisX(s){var base=s.tipo==='Sativa'?0.18:s.tipo==='Indica'?0.82:0.5;var jitter=((s.nome.charCodeAt(0)+s.nome.charCodeAt(s.nome.length-1))%10-5)/45;return Math.max(0.06,Math.min(0.94,base+jitter));}
 function buildGalaxy(filter){
-  filter=filter||'Tutti';
-  var g=document.getElementById('galaxy');
-  g.querySelectorAll('.strain-orb').forEach(function(n){n.remove();});
+  filter=filter||'Tutti';var g=document.getElementById('galaxy');g.querySelectorAll('.strain-orb').forEach(function(n){n.remove();});
   var maxT=30,minT=14;
   DATA.strains.forEach(function(s,idx){
-    var x=strainAxisX(s);
-    var tm=thcMid(s.thc);
-    var y=1-((tm-minT)/(maxT-minT)); // top = more thc
-    y=Math.max(0.08,Math.min(0.92,y));
-    var size=22+ (tm-minT)/(maxT-minT)*26;
-    var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
-    var o=document.createElement('div');
-    o.className='strain-orb';o.dataset.idx=idx;o.dataset.tipo=s.tipo;
-    o.style.left=(8+x*84)+'%';o.style.top=(10+y*80)+'%';
-    o.style.width=size+'px';o.style.height=size+'px';
-    o.style.background='radial-gradient(circle at 35% 30%,#ffffff,'+col+' 55%,'+hexA(col,.2)+')';
-    o.style.boxShadow='0 0 '+(size*0.7)+'px '+hexA(col,.7);
+    var x=strainAxisX(s),tm=thcMid(s.thc),y=Math.max(0.08,Math.min(0.92,1-((tm-minT)/(maxT-minT))));
+    var size=22+(tm-minT)/(maxT-minT)*26;var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
+    var o=document.createElement('div');o.className='strain-orb';o.dataset.idx=idx;
+    o.style.left=(8+x*84)+'%';o.style.top=(10+y*80)+'%';o.style.width=size+'px';o.style.height=size+'px';
+    o.style.background='radial-gradient(circle at 35% 30%,#ffffff,'+col+' 55%,'+hexA(col,.2)+')';o.style.boxShadow='0 0 '+(size*0.7)+'px '+hexA(col,.7);
     if(filter!=='Tutti'&&s.tipo!==filter)o.classList.add('faded');
     o.innerHTML='<span class="lab">'+s.nome+'</span>';
     o.addEventListener('mouseenter',function(){showStrain(idx);});
@@ -595,226 +594,153 @@ function buildGalaxy(filter){
     g.appendChild(o);
   });
 }
-function showStrain(idx){
-  var s=DATA.strains[idx];var col=s.tipo==='Indica'?'#b58bff':s.tipo==='Sativa'?'#c6ff7a':'#ffcf6b';
-  var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));
-  document.getElementById('strainDetail').innerHTML='<h3>'+s.nome+' <span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></h3>'+
-    '<div class="thcbig">THC tipico: <b>'+s.thc+'</b></div><div class="thc-bar"><span style="width:0" data-w="'+pct+'"></span></div>'+
-    '<div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div>';
-  setTimeout(function(){var b=document.querySelector('#strainDetail .thc-bar span');if(b)b.style.width=b.dataset.w+'%';},40);
-}
+function showStrain(idx){var s=DATA.strains[idx];var pct=Math.min(100,Math.round(thcMid(s.thc)/30*100));document.getElementById('strainDetail').innerHTML='<h3>'+s.nome+' <span class="type-chip chip-'+s.tipo+'">'+s.tipo+'</span></h3><div class="thcbig">THC tipico: <b>'+s.thc+'</b></div><div class="thc-bar"><span style="width:0" data-w="'+pct+'"></span></div><div class="row"><b>Genetica</b>'+s.genetica+'</div><div class="row"><b>Terpeni dominanti</b>'+s.terpeniDominanti+'</div><div class="row"><b>Effetti</b>'+s.effetti+'</div><div class="row"><b>Aromi</b>'+s.aromi+'</div><div class="row"><b>Ideale per</b>'+s.adattaA+'</div>';setTimeout(function(){var b=document.querySelector('#strainDetail .thc-bar span');if(b)b.style.width=b.dataset.w+'%';},40);}
 function buildStrainFilters(){var f=document.getElementById('strainFilters');f.innerHTML=["Tutti","Indica","Sativa","Hybrid"].map(function(o,i){return '<button data-f="'+o+'" class="'+(i===0?'on':'')+'">'+o+'</button>';}).join('');f.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){f.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');buildGalaxy(b.dataset.f);});});}
 
-/* ===================== TERPENE WHEEL ===================== */
+/* ===================== TERPENES ===================== */
 function buildTerpenes(){var wheel=document.getElementById('terpWheel'),T=DATA.terpenes,R=42;T.forEach(function(t,i){var a=(Math.PI*2*i/T.length)-Math.PI/2,x=50+Math.cos(a)*R,y=50+Math.sin(a)*R;var node=document.createElement('div');node.className='terp-node';node.style.left=x+'%';node.style.top=y+'%';node.style.setProperty('--tc',t.colore);node.style.borderColor=hexA(t.colore,.6);node.innerHTML=t.nome.split(' (')[0];node.dataset.i=i;node.addEventListener('click',function(){selectTerp(i);});wheel.appendChild(node);});selectTerp(0);}
-function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';});
-  var inStrains=DATA.strains.filter(function(s){return s.terpeniDominanti.toLowerCase().indexOf(t.nome.split(' (')[0].toLowerCase())>=0;}).map(function(s){return s.nome;});
-  document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';
-  document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ '+t.bollePunto+'</span>'+(inStrains.length?'<span>🌿 in '+inStrains.length+' strain</span>':'')+'</div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>'+(inStrains.length?'<div class="block"><b>Strain dominanti</b><p>'+inStrains.join(', ')+'</p></div>':'');}
+function selectTerp(i){var t=DATA.terpenes[i];document.querySelectorAll('.terp-node').forEach(function(n){var on=+n.dataset.i===i;n.classList.toggle('on',on);n.style.boxShadow=on?'0 0 0 4px rgba(255,255,255,.08),0 0 32px '+t.colore:'none';});var inStrains=DATA.strains.filter(function(s){return s.terpeniDominanti.toLowerCase().indexOf(t.nome.split(' (')[0].toLowerCase())>=0;}).map(function(s){return s.nome;});document.getElementById('terpCenter').innerHTML='<div><div style="font-size:28px">🍃</div><b style="color:'+t.colore+';font-size:14px;font-family:var(--font-display)">'+t.nome.split(' (')[0]+'</b></div>';document.getElementById('terpDetail').innerHTML='<div class="swatch" style="background:'+t.colore+'"></div><h3>'+t.nome+'</h3><div class="meta"><span>🌡️ '+t.bollePunto+'</span>'+(inStrains.length?'<span>🌿 in '+inStrains.length+' strain</span>':'')+'</div><div class="block"><b>Aroma</b><p>'+t.aroma+'</p></div><div class="block"><b>Effetti riportati</b><p>'+t.effetti+'</p></div><div class="block"><b>Si trova anche in</b><p>'+t.ancheIn+'</p></div>'+(inStrains.length?'<div class="block"><b>Strain dominanti</b><p>'+inStrains.join(', ')+'</p></div>':'');}
 
-/* ===================== CANNABINOIDS (flip + glyph) ===================== */
-function molGlyph(seed,col){ // stylized hexagon-ring molecule glyph
-  var cx=65,cy=65;var s='<svg viewBox="0 0 130 130">';
-  function ring(ox,oy,r){var pts=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+seed;pts.push([ox+Math.cos(a)*r,oy+Math.sin(a)*r]);}var d='';for(var j=0;j<6;j++){d+=(j?'L':'M')+pts[j][0].toFixed(1)+','+pts[j][1].toFixed(1)+' ';}d+='Z';return {d:d,pts:pts};}
-  var r1=ring(cx-14,cy,22);var r2=ring(cx+18,cy+6,18);
-  s+='<path d="'+r1.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".9"/>';
-  s+='<path d="'+r2.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".7"/>';
-  // tail
-  s+='<path d="M'+(cx+34)+','+(cy+2)+' l 14,8 l 12,-7 l 13,7" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".6" stroke-linecap="round" stroke-linejoin="round"/>';
-  // atoms
-  r1.pts.forEach(function(p,i){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i%3===0?4.2:3)+'" fill="'+(i===1?'#ff8a4a':col)+'"/>';});
-  r2.pts.forEach(function(p){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="'+col+'"/>';});
-  s+='<circle cx="'+(cx-14)+'" cy="'+cy+'" r="3" fill="#fff" opacity=".5"/>';
-  return s+'</svg>';
-}
-function buildCannabinoids(){
-  document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){
-    var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";
-    var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";
-    var col=c.psicoattivo==="Si"?'#ff9b54':c.psicoattivo==="No"?'#5fe089':'#ffcf6b';
-    var seed=(c.sigla.charCodeAt(0))%6*0.4;
-    return '<div class="flip stagger"><div class="flip-in">'+
-      '<div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div>'+
-      '<div class="glyph">'+molGlyph(seed,col)+'</div>'+
-      '<div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:linear-gradient(90deg,#5fe089,#c6ff7a)"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:linear-gradient(90deg,#b58bff,#7c4ddb)"></span></div>'+c.cb2+'</div></div>'+
-      '<div class="flip-hint">↻ clicca per gli effetti</div></div>'+
-      '<div class="flip-face flip-back"><h4 style="color:'+col+'">'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div><div class="flip-hint">↻ clicca per tornare</div></div>'+
-      '</div></div>';
-  }).join('');
-  document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});
-}
+/* ===================== CANNABINOIDS ===================== */
+function molGlyph(seed,col){var cx=65,cy=65;var s='<svg viewBox="0 0 130 130">';function ring(ox,oy,r){var pts=[];for(var k=0;k<6;k++){var a=k/6*Math.PI*2+seed;pts.push([ox+Math.cos(a)*r,oy+Math.sin(a)*r]);}var d='';for(var j=0;j<6;j++){d+=(j?'L':'M')+pts[j][0].toFixed(1)+','+pts[j][1].toFixed(1)+' ';}return {d:d+'Z',pts:pts};}var r1=ring(cx-14,cy,22),r2=ring(cx+18,cy+6,18);s+='<path d="'+r1.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".9"/><path d="'+r2.d+'" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".7"/><path d="M'+(cx+34)+','+(cy+2)+' l 14,8 l 12,-7 l 13,7" fill="none" stroke="'+col+'" stroke-width="2.2" opacity=".6" stroke-linecap="round" stroke-linejoin="round"/>';r1.pts.forEach(function(p,i){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i%3===0?4.2:3)+'" fill="'+(i===1?'#ff8a4a':col)+'"/>';});r2.pts.forEach(function(p){s+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="'+col+'"/>';});return s+'</svg>';}
+function buildCannabinoids(){document.getElementById('cannGrid').innerHTML=DATA.cannabinoids.map(function(c){var cls=c.psicoattivo==="Si"?"psy-si":c.psicoattivo==="No"?"psy-no":"psy-lieve";var label=c.psicoattivo==="Si"?"Psicoattivo":c.psicoattivo==="No"?"Non psic.":"Lieve";var col=c.psicoattivo==="Si"?'#ff9b54':c.psicoattivo==="No"?'#5fe089':'#ffcf6b';var seed=(c.sigla.charCodeAt(0))%6*0.4;return '<div class="flip stagger"><div class="flip-in"><div class="flip-face flip-front"><div class="h"><span class="sigla">'+c.sigla+'</span><span class="psy '+cls+'">'+label+'</span></div><div class="full">'+c.nome+'</div><div class="glyph">'+molGlyph(seed,col)+'</div><div class="aff"><div class="aff-row">CB1<div class="aff-bar"><span data-w="'+c.cb1+'" style="background:linear-gradient(90deg,#5fe089,#c6ff7a)"></span></div>'+c.cb1+'</div><div class="aff-row">CB2<div class="aff-bar"><span data-w="'+c.cb2+'" style="background:linear-gradient(90deg,#b58bff,#7c4ddb)"></span></div>'+c.cb2+'</div></div><div class="flip-hint">↻ clicca per gli effetti</div></div><div class="flip-face flip-back"><h4 style="color:'+col+'">'+c.sigla+'</h4><div class="eff">'+c.effetto+'</div><div class="note"><b>Nota:</b> '+c.nota+'</div><div class="flip-hint">↻ clicca per tornare</div></div></div></div>';}).join('');document.querySelectorAll('.flip').forEach(function(card){card.addEventListener('click',function(){card.classList.toggle('on');});});}
 function animateAffinity(){document.querySelectorAll('.aff-bar span').forEach(function(b){b.style.width=b.dataset.w+'%';});}
 
 /* ===================== FACTS ===================== */
 function buildFacts(){document.getElementById('factsGrid').innerHTML=DATA.facts.map(function(f){return '<div class="fact stagger"><span class="emoji">'+f.emoji+'</span><h4>'+f.titolo+'</h4><p>'+f.testo+'</p></div>';}).join('');}
 
-/* ===================== COUNTERS / CURSOR / SHARE ===================== */
-function animateCount(el){var target=+el.dataset.target,suf=el.dataset.suffix||'';if(REDUCED){el.textContent=target+suf;return;}var t0=null,dur=1500;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
-function initCursor(){if(!FINE||REDUCED)return;var dot=document.createElement('div');dot.className='cursor-dot';var ring=document.createElement('div');ring.className='cursor-ring';document.body.appendChild(dot);document.body.appendChild(ring);document.body.classList.add('cursor-on');var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});document.addEventListener('mouseover',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.add('big');});document.addEventListener('mouseout',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.tern-handle,.stat,.fact'))ring.classList.remove('big');});(function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();}
-function initShare(){var b=document.getElementById('shareBtn');if(!b)return;b.addEventListener('click',function(){var url=location.href;function ok(){var o=b.textContent;b.textContent='✓ Link copiato!';setTimeout(function(){b.textContent=o;},1800);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,ok);}else{try{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){ok();}}});}
-
-/* ===================== SCROLL ===================== */
-var scrollNorm=0;
-function buildDotNav(){var secs=[["top","Top"],["anatomia","Anatomia"],["tipi","Tipi"],["strain","Strain"],["terpeni","Terpeni"],["cannabinoidi","Cannabinoidi"],["facts","Fun Facts"]];document.getElementById('dotnav').innerHTML=secs.map(function(s){return '<a href="#'+s[0]+'" data-sec="'+s[0]+'"><span>'+s[1]+'</span></a>';}).join('');}
-function initScroll(){
-  var hasIO=('IntersectionObserver' in window);
-  if(hasIO && !REDUCED){
-    document.documentElement.classList.add('anim');
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.06,rootMargin:'0px 0px -4% 0px'});
-    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
-    setTimeout(function(){document.querySelectorAll('.reveal:not(.in)').forEach(function(el){el.classList.add('in');});},1500);
-    var sio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animateCount(e.target);sio.unobserve(e.target);}});},{threshold:.5});
-    document.querySelectorAll('.stat-num').forEach(function(el){sio.observe(el);});
-    var aio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){animateAffinity();aio.disconnect();}});},{threshold:.2});
-    var cg=document.getElementById('cannGrid');if(cg)aio.observe(cg);
-  } else { animateAffinity(); }
-  var navLinks=Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
-  var dotLinks=Array.prototype.slice.call(document.querySelectorAll('#dotnav a'));
-  var secEls=["anatomia","tipi","strain","terpeni","cannabinoidi","facts"].map(function(id){return document.getElementById(id);});
-  var ticking=false;
-  function onScroll(){var h=document.documentElement;var max=h.scrollHeight-h.clientHeight;scrollNorm=max>0?h.scrollTop/max:0;document.getElementById('progress').style.width=(scrollNorm*100)+'%';var idx=0;secEls.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<170)idx=i;});navLinks.forEach(function(l,i){l.classList.toggle('active',i===idx);});var dotIdx=h.scrollTop>120?idx+1:0;dotLinks.forEach(function(l,i){l.classList.toggle('active',i===dotIdx);});ticking=false;}
-  window.addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(onScroll);ticking=true;}});
-  onScroll();
+/* ===================== HOME ===================== */
+function buildHome(){
+  var cards=[
+    {t:'strain',ico:'🔥',h:'Strain',p:'La galassia interattiva degli strain più famosi.',ac:'rgba(255,207,107,.3)'},
+    {t:'terpeni',ico:'🍋',h:'Terpeni',p:'La ruota degli aromi e cosa fa ogni terpene.',ac:'rgba(198,255,122,.3)'},
+    {t:'cannabinoidi',ico:'🔬',h:'Cannabinoidi',p:'THC, CBD e l\'alfabeto delle molecole, con flip-card.',ac:'rgba(95,224,137,.3)'},
+    {t:'molecole',ico:'🧬',h:'Molecole 3D',p:'Esplora THC, CBD e CBG in 3D: ruota e fai esplodere.',ac:'rgba(181,139,255,.3)'},
+    {t:'tipi',ico:'⚖️',h:'Indica / Sativa',p:'Miscela i tre tipi col triangolo interattivo.',ac:'rgba(181,139,255,.3)'},
+    {t:'anatomia',ico:'🌱',h:'Anatomia',p:'La pianta pezzo per pezzo, sui punti luminosi.',ac:'rgba(95,224,137,.3)'},
+    {t:'facts',ico:'🤓',h:'Fun Facts',p:'22 curiosità vere dalla botanica alla cultura.',ac:'rgba(255,155,84,.3)'}
+  ];
+  document.getElementById('homeGrid').innerHTML=cards.map(function(c){return '<div class="home-card stagger" data-tab="'+c.t+'" style="--ac:'+c.ac+'"><div class="ico">'+c.ico+'</div><h3>'+c.h+'</h3><p>'+c.p+'</p><div class="go">Apri →</div></div>';}).join('');
 }
 
-/* ===================== 3D MOLECULE SCENE ===================== */
+/* ===================== TABS ===================== */
+var TABNAMES=['home','strain','terpeni','cannabinoidi','molecole','tipi','anatomia','facts'];
+var countersDone=false,affDone=false;
+function switchTab(name){
+  if(TABNAMES.indexOf(name)<0)name='home';
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.id==='tab-'+name);});
+  document.querySelectorAll('[data-tab]').forEach(function(b){if(b.classList.contains('tabs')||b.id==='homeGrid')return;b.classList.toggle('on',b.dataset.tab===name&&b.parentNode.id==='tabs');});
+  window.scrollTo(0,0);
+  var panel=document.getElementById('tab-'+name);
+  panel.querySelectorAll('.reveal').forEach(function(el){el.classList.remove('in');});
+  requestAnimationFrame(function(){requestAnimationFrame(function(){panel.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});});});
+  if(name==='home'&&!countersDone){countersDone=true;setTimeout(function(){document.querySelectorAll('.stat-num').forEach(animateCount);},250);}
+  if(name==='cannabinoidi'&&!affDone){affDone=true;setTimeout(animateAffinity,300);}
+  if(name==='molecole'){ensureGL();glStart();}else{glStop();}
+  if(('#'+name)!==location.hash)history.replaceState(null,'','#'+name);
+}
+function initTabs(){
+  document.querySelectorAll('[data-tab]').forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab);});});
+  var start=(location.hash||'').replace('#','');
+  switchTab(TABNAMES.indexOf(start)>=0?start:'home');
+  window.addEventListener('hashchange',function(){var n=(location.hash||'').replace('#','');if(TABNAMES.indexOf(n)>=0)switchTab(n);});
+}
+
+/* ===================== COUNTERS / CURSOR / SHARE ===================== */
+function animateCount(el){var target=+el.dataset.target,suf=el.dataset.suffix||'';if(REDUCED){el.textContent=target+suf;return;}var t0=null,dur=1400;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=Math.round(target*e)+suf;if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+function initCursor(){if(!FINE||REDUCED)return;var dot=document.createElement('div');dot.className='cursor-dot';var ring=document.createElement('div');ring.className='cursor-ring';document.body.appendChild(dot);document.body.appendChild(ring);document.body.classList.add('cursor-on');var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;window.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});document.addEventListener('mouseover',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.home-card,.tern-handle'))ring.classList.add('big');});document.addEventListener('mouseout',function(e){if(e.target.closest('a,button,.strain-orb,.terp-node,.hotspot,.key button,.flip,.home-card,.tern-handle'))ring.classList.remove('big');});(function loop(){rx+=(mx-rx)*0.18;ry+=(my-ry)*0.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();}
+function initShare(){var b=document.getElementById('shareBtn');if(!b)return;b.addEventListener('click',function(){var url=location.href.split('#')[0];function ok(){var o=b.textContent;b.textContent='✓ Link copiato!';setTimeout(function(){b.textContent=o;},1800);}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,ok);}else{try{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok();}catch(e){ok();}}});}
+function initProgress(){window.addEventListener('scroll',function(){var h=document.documentElement;var max=h.scrollHeight-h.clientHeight;document.getElementById('progress').style.width=(max>0?h.scrollTop/max*100:0)+'%';});}
+
+/* ===================== MOLECULE DATA + 3D ===================== */
 function buildMoleculeData(type){
   var atoms=[],bonds=[];
   function hex(cx,cy,cz,r,tilt){var a=[];for(var k=0;k<6;k++){var ang=k/6*Math.PI*2;a.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r*Math.cos(tilt),cz+Math.sin(ang)*r*Math.sin(tilt)]);}return a;}
   function addRing(ring,el){var base=atoms.length;ring.forEach(function(p){atoms.push({p:p,el:el||'C'});});for(var k=0;k<6;k++){bonds.push([base+k,base+(k+1)%6]);}return base;}
   function chain(fromIdx,len,dir){var prev=fromIdx;for(var t=0;t<len;t++){var bp=atoms[prev].p;var np=[bp[0]+dir[0],bp[1]+dir[1]+((t%2)?0.35:-0.35),bp[2]+dir[2]*((t%2)?1:-1)];atoms.push({p:np,el:'C'});bonds.push([prev,atoms.length-1]);prev=atoms.length-1;}return prev;}
   function oxy(nearIdx,off){var bp=atoms[nearIdx].p;atoms.push({p:[bp[0]+off[0],bp[1]+off[1],bp[2]+off[2]],el:'O'});bonds.push([nearIdx,atoms.length-1]);}
-  if(type==='THC'){
-    var a=addRing(hex(-2.6,0,0,1.5,0.12),'C');
-    var b=addRing(hex(0.1,0.2,0.5,1.5,0.5),'C');
-    var c=addRing(hex(2.6,-0.2,0.2,1.5,0.85),'C');
-    bonds.push([a+0,b+3]);bonds.push([b+0,c+3]);
-    oxy(b+4,[0.2,1.2,0.4]); // pyran-ish O
-    oxy(a+2,[-1.0,-0.9,0.1]); // OH
-    chain(a+4,5,[-1.0,-0.5,0.3]); // pentyl
-    oxy(c+1,[0.8,0.9,0.2]);
-  } else if(type==='CBD'){
-    var a2=addRing(hex(-2.2,0,0,1.5,0.12),'C');
-    var b2=addRing(hex(2.2,0.4,0.6,1.5,0.5),'C');
-    bonds.push([a2+0,b2+3]); // single link (not fused)
-    oxy(a2+1,[-0.6,1.1,0.1]);oxy(a2+3,[-0.6,-1.1,0.1]); // 2 OH
-    chain(a2+4,5,[-1.0,-0.5,0.3]); // pentyl
-    chain(b2+1,2,[1.0,0.6,0.4]); // isopropenyl-ish
-  } else { // CBG
-    var a3=addRing(hex(-3.0,0,0,1.5,0.12),'C');
-    oxy(a3+1,[-0.6,1.1,0.1]);oxy(a3+3,[-0.6,-1.1,0.1]);
-    chain(a3+4,5,[-1.0,-0.5,0.3]); // pentyl
-    chain(a3+0,8,[1.15,0.0,0.25]); // geranyl (lungo, lineare)
-  }
-  // center
+  if(type==='THC'){var a=addRing(hex(-2.6,0,0,1.5,0.12),'C');var b=addRing(hex(0.1,0.2,0.5,1.5,0.5),'C');var c=addRing(hex(2.6,-0.2,0.2,1.5,0.85),'C');bonds.push([a+0,b+3]);bonds.push([b+0,c+3]);oxy(b+4,[0.2,1.2,0.4]);oxy(a+2,[-1.0,-0.9,0.1]);chain(a+4,5,[-1.0,-0.5,0.3]);oxy(c+1,[0.8,0.9,0.2]);}
+  else if(type==='CBD'){var a2=addRing(hex(-2.2,0,0,1.5,0.12),'C');var b2=addRing(hex(2.2,0.4,0.6,1.5,0.5),'C');bonds.push([a2+0,b2+3]);oxy(a2+1,[-0.6,1.1,0.1]);oxy(a2+3,[-0.6,-1.1,0.1]);chain(a2+4,5,[-1.0,-0.5,0.3]);chain(b2+1,2,[1.0,0.6,0.4]);}
+  else {var a3=addRing(hex(-3.0,0,0,1.5,0.12),'C');oxy(a3+1,[-0.6,1.1,0.1]);oxy(a3+3,[-0.6,-1.1,0.1]);chain(a3+4,5,[-1.0,-0.5,0.3]);chain(a3+0,8,[1.15,0.0,0.25]);}
   var cx=0,cy=0,cz=0;atoms.forEach(function(at){cx+=at.p[0];cy+=at.p[1];cz+=at.p[2];});cx/=atoms.length;cy/=atoms.length;cz/=atoms.length;
   atoms.forEach(function(at){at.p[0]-=cx;at.p[1]-=cy;at.p[2]-=cz;});
   return {atoms:atoms,bonds:bonds};
 }
+function fmtFormula(arr){var s='';for(var i=0;i<arr.length;i+=2){s+=arr[i]+'<sub>'+arr[i+1]+'</sub>';}return s;}
+function updateMolInfo(type){var m=DATA.molecules[type];if(!m)return;document.getElementById('molName').textContent=type;document.getElementById('molFormula').innerHTML=fmtFormula(m.formula);document.getElementById('molDesc').textContent=m.desc;document.getElementById('molIso').innerHTML=m.iso;document.querySelectorAll('#molSwitch button').forEach(function(b){b.classList.toggle('on',b.dataset.m===type);});}
 
+var glReady=false,glStartFn=null,glStopFn=null,glBuildFn=null;
+function ensureGL(){if(glReady)return;try{initGL();glReady=true;var f=document.getElementById('molFallback');if(f)f.style.display='none';}catch(e){glReady=false;var f2=document.getElementById('molFallback');if(f2)f2.textContent='Il tuo browser non supporta WebGL: le altre schede funzionano normalmente.';}}
+function glStart(){if(glReady&&glStartFn)glStartFn();}
+function glStop(){if(glStopFn)glStopFn();}
 function initGL(){
-  if(typeof THREE==='undefined')return;
-  var canvas=document.getElementById('gl');var renderer;
-  try{renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'});}catch(e){return;}
+  if(typeof THREE==='undefined')throw new Error('no THREE');
+  var canvas=document.getElementById('gl');var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-  var scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x05130c,0.02);
-  var camera=new THREE.PerspectiveCamera(60,(innerWidth||1)/(innerHeight||1),0.1,140);camera.position.set(0,0,17);
+  var scene=new THREE.Scene();var camera=new THREE.PerspectiveCamera(55,1,0.1,140);camera.position.set(0,0,16);
   var curW=0,curH=0;
-  function sizeGL(){var w=canvas.clientWidth||window.innerWidth,h=canvas.clientHeight||window.innerHeight;if(w<=0||h<=0)return;if(w===curW&&h===curH)return;curW=w;curH=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
-  sizeGL();
-
+  function sizeGL(){var w=canvas.clientWidth,h=canvas.clientHeight;if(w<=0||h<=0)return;if(w===curW&&h===curH)return;curW=w;curH=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
   function dotTex(){var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d');var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.85)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.beginPath();g.arc(32,32,32,0,7);g.fill();return new THREE.CanvasTexture(c);}
   var tex=dotTex();
-
-  var N=2600,posA=new Float32Array(N*3),colA=new Float32Array(N*3);var pal=[[0.37,0.88,0.54],[0.78,1.0,0.48],[0.71,0.55,1.0]];
-  for(var i=0;i<N;i++){var r=7+Math.pow(Math.random(),0.6)*34;var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);posA[i*3]=r*Math.sin(ph)*Math.cos(th);posA[i*3+1]=r*Math.sin(ph)*Math.sin(th)*0.72;posA[i*3+2]=r*Math.cos(ph);var cc=pal[(Math.random()*pal.length)|0];colA[i*3]=cc[0];colA[i*3+1]=cc[1];colA[i*3+2]=cc[2];}
+  var N=1400,posA=new Float32Array(N*3),colA=new Float32Array(N*3),pal=[[0.37,0.88,0.54],[0.78,1.0,0.48],[0.71,0.55,1.0]];
+  for(var i=0;i<N;i++){var r=8+Math.pow(Math.random(),0.6)*22;var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);posA[i*3]=r*Math.sin(ph)*Math.cos(th);posA[i*3+1]=r*Math.sin(ph)*Math.sin(th)*0.8;posA[i*3+2]=r*Math.cos(ph);var cc=pal[(Math.random()*pal.length)|0];colA[i*3]=cc[0];colA[i*3+1]=cc[1];colA[i*3+2]=cc[2];}
   var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(posA,3));pg.setAttribute('color',new THREE.BufferAttribute(colA,3));
-  var points=new THREE.Points(pg,new THREE.PointsMaterial({size:0.24,map:tex,vertexColors:true,transparent:true,opacity:.92,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));scene.add(points);
-
-  scene.add(new THREE.AmbientLight(0x335544,0.9));
+  var points=new THREE.Points(pg,new THREE.PointsMaterial({size:0.22,map:tex,vertexColors:true,transparent:true,opacity:.85,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true}));scene.add(points);
+  scene.add(new THREE.AmbientLight(0x335544,0.95));
   var l1=new THREE.PointLight(0x5fe089,1.5,90);l1.position.set(9,7,13);scene.add(l1);
   var l2=new THREE.PointLight(0xb58bff,1.3,90);l2.position.set(-11,-5,9);scene.add(l2);
-
-  // orbits
-  var orbits=new THREE.Group();
-  var oCols=[0x5fe089,0xb58bff,0xc6ff7a];
-  for(var oi=0;oi<3;oi++){var tg=new THREE.Mesh(new THREE.TorusGeometry(6.4+oi*0.5,0.05,8,80),new THREE.MeshBasicMaterial({color:oCols[oi],transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false}));tg.rotation.x=Math.PI*0.5*oi+0.4;tg.rotation.y=oi*0.7;orbits.add(tg);}
-  scene.add(orbits);
-
+  var orbits=new THREE.Group();var oCols=[0x5fe089,0xb58bff,0xc6ff7a];for(var oi=0;oi<3;oi++){var tg=new THREE.Mesh(new THREE.TorusGeometry(6.2+oi*0.5,0.045,8,80),new THREE.MeshBasicMaterial({color:oCols[oi],transparent:true,opacity:0.45,blending:THREE.AdditiveBlending,depthWrite:false}));tg.rotation.x=Math.PI*0.5*oi+0.4;tg.rotation.y=oi*0.7;orbits.add(tg);}scene.add(orbits);
   var mol=new THREE.Group();scene.add(mol);
-  var atomMeshes=[],mats=[],spriteMats=[],cGeo=new THREE.SphereGeometry(0.38,20,20),oGeo=new THREE.SphereGeometry(0.34,20,20);
+  var atomMeshes=[],mats=[],spriteMats=[],cGeo=new THREE.SphereGeometry(0.4,20,20),oGeo=new THREE.SphereGeometry(0.36,20,20),switchT=1;
   function clearMol(){while(mol.children.length){var ch=mol.children.pop();if(ch.geometry&&ch.geometry.dispose&&ch.geometry!==cGeo&&ch.geometry!==oGeo)ch.geometry.dispose();}atomMeshes=[];mats=[];spriteMats=[];}
-  function buildMol(type){
-    clearMol();
-    var data=buildMoleculeData(type);
-    var cMat=new THREE.MeshStandardMaterial({color:0x0e1a12,emissive:0x4fd07a,emissiveIntensity:0.85,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
-    var oMat=new THREE.MeshStandardMaterial({color:0x2a120a,emissive:0xff7a3c,emissiveIntensity:1.0,roughness:0.35,metalness:0.25,transparent:true,opacity:1});
-    var bMat=new THREE.MeshStandardMaterial({color:0x10241a,emissive:0x2f9d57,emissiveIntensity:0.5,roughness:0.5,transparent:true,opacity:1});
-    mats=[cMat,oMat,bMat];
-    data.atoms.forEach(function(a){var m=new THREE.Mesh(a.el==='O'?oGeo:cGeo,a.el==='O'?oMat:cMat);m.position.set(a.p[0],a.p[1],a.p[2]);m.userData.base=new THREE.Vector3(a.p[0],a.p[1],a.p[2]);m.userData.dir=m.userData.base.clone().normalize();mol.add(m);atomMeshes.push(m);var sm=new THREE.SpriteMaterial({map:tex,color:a.el==='O'?0xff8a4a:0x6fe39a,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false});var sp=new THREE.Sprite(sm);sp.scale.set(1.7,1.7,1.7);sp.position.copy(m.position);sp.userData.atom=m;mol.add(sp);spriteMats.push(sm);});
-    data.bonds.forEach(function(b){var a=data.atoms[b[0]].p,c=data.atoms[b[1]].p;var va=new THREE.Vector3(a[0],a[1],a[2]),vc=new THREE.Vector3(c[0],c[1],c[2]);var len=va.distanceTo(vc);if(len<0.001)return;var geo=new THREE.CylinderGeometry(0.08,0.08,len,9);var m=new THREE.Mesh(geo,bMat);m.position.copy(va.clone().add(vc).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vc.clone().sub(va).normalize());mol.add(m);});
-    switchT=0; // play grow
-  }
-  buildMol('THC');
+  function buildMol(type){clearMol();var data=buildMoleculeData(type);var cMat=new THREE.MeshStandardMaterial({color:0x0e1a12,emissive:0x4fd07a,emissiveIntensity:0.85,roughness:0.35,metalness:0.25});var oMat=new THREE.MeshStandardMaterial({color:0x2a120a,emissive:0xff7a3c,emissiveIntensity:1.0,roughness:0.35,metalness:0.25});var bMat=new THREE.MeshStandardMaterial({color:0x10241a,emissive:0x2f9d57,emissiveIntensity:0.5,roughness:0.5});mats=[cMat,oMat,bMat];data.atoms.forEach(function(a){var m=new THREE.Mesh(a.el==='O'?oGeo:cGeo,a.el==='O'?oMat:cMat);m.position.set(a.p[0],a.p[1],a.p[2]);m.userData.base=new THREE.Vector3(a.p[0],a.p[1],a.p[2]);mol.add(m);atomMeshes.push(m);var sm=new THREE.SpriteMaterial({map:tex,color:a.el==='O'?0xff8a4a:0x6fe39a,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false});var sp=new THREE.Sprite(sm);sp.scale.set(1.8,1.8,1.8);sp.position.copy(m.position);mol.add(sp);spriteMats.push({sm:sm,sp:sp,atom:m});});data.bonds.forEach(function(b){var a=data.atoms[b[0]].p,c=data.atoms[b[1]].p;var va=new THREE.Vector3(a[0],a[1],a[2]),vc=new THREE.Vector3(c[0],c[1],c[2]);var len=va.distanceTo(vc);if(len<0.001)return;var geo=new THREE.CylinderGeometry(0.085,0.085,len,9);var m=new THREE.Mesh(geo,bMat);m.position.copy(va.clone().add(vc).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vc.clone().sub(va).normalize());mol.add(m);});switchT=0;updateMolInfo(type);}
+  buildMol('THC');glBuildFn=buildMol;
 
-  var mxN=0,myN=0,sxN=0,syN=0,dragX=0,dragY=0,dragging=false,lastPX=0,lastPY=0,autoRot=0,explode=0,switchT=1,moved=0;
-  window.addEventListener('mousemove',function(e){mxN=(e.clientX/innerWidth)*2-1;myN=(e.clientY/innerHeight)*2-1;});
-  canvas.style.pointerEvents='none';
-  function inHero(e){return window.scrollY < innerHeight*0.85;}
-  window.addEventListener('pointerdown',function(e){if(inHero(e)&&e.clientY<innerHeight*0.9){dragging=true;moved=0;lastPX=e.clientX;lastPY=e.clientY;}});
-  window.addEventListener('pointerup',function(e){if(dragging&&moved<6&&inHero(e)){explode=1;}dragging=false;});
-  window.addEventListener('pointermove',function(e){if(dragging){var dx=e.clientX-lastPX,dy=e.clientY-lastPY;moved+=Math.abs(dx)+Math.abs(dy);dragY+=dx*0.006;dragX+=dy*0.006;lastPX=e.clientX;lastPY=e.clientY;}});
+  var mxN=0,myN=0,sxN=0,syN=0,dragX=0,dragY=0,dragging=false,lastPX=0,lastPY=0,autoRot=0,explode=0,moved=0;
+  canvas.addEventListener('mousemove',function(e){var r=canvas.getBoundingClientRect();mxN=((e.clientX-r.left)/r.width)*2-1;myN=((e.clientY-r.top)/r.height)*2-1;});
+  canvas.addEventListener('pointerdown',function(e){dragging=true;moved=0;lastPX=e.clientX;lastPY=e.clientY;canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointerup',function(e){if(dragging&&moved<6)explode=1;dragging=false;});
+  canvas.addEventListener('pointermove',function(e){if(dragging){var dx=e.clientX-lastPX,dy=e.clientY-lastPY;moved+=Math.abs(dx)+Math.abs(dy);dragY+=dx*0.007;dragX+=dy*0.007;lastPX=e.clientX;lastPY=e.clientY;}});
   window.addEventListener('resize',sizeGL);
-  window.__weedGL={renderer:renderer,scene:scene,camera:camera,size:sizeGL,build:buildMol,atoms:function(){return atomMeshes.length;}};
+  var eb=document.getElementById('explodeBtn');if(eb)eb.addEventListener('click',function(){explode=1;});
+  var rb=document.getElementById('resetRotBtn');if(rb)rb.addEventListener('click',function(){dragX=0;dragY=0;});
+  document.querySelectorAll('#molSwitch button').forEach(function(btn){btn.addEventListener('click',function(){buildMol(btn.dataset.m);});});
 
-  document.querySelectorAll('#molSwitch button').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('#molSwitch button').forEach(function(x){x.classList.remove('on');});btn.classList.add('on');buildMol(btn.dataset.m);});});
-
-  var t0=performance.now();
+  var running=false,raf=null,t0=performance.now();
   function frame(now){
+    if(!running)return;
     sizeGL();
     var t=(now-t0)/1000;
-    sxN+=(mxN-sxN)*0.05;syN+=(myN-syN)*0.05;
-    camera.position.x+=(sxN*2.6-camera.position.x)*0.06;camera.position.y+=(-syN*1.8-camera.position.y)*0.06;camera.lookAt(0,0,0);
-    points.rotation.y=t*0.02;points.rotation.x=t*0.008;
-    orbits.rotation.y+=0.004;orbits.rotation.x+=0.0016;
-    orbits.children.forEach(function(o,k){o.rotation.z+=0.003*(k+1);});
-    autoRot+=0.0032;
-    switchT=Math.min(1,switchT+0.045);var grow=1-Math.pow(1-switchT,3);
-    explode*=0.94;if(explode<0.001)explode=0;
-    var sc=grow*1.5*(1-scrollNorm*0.4);if(sc<0.0001)sc=0.0001;
-    mol.scale.setScalar(sc);
-    mol.rotation.y=autoRot+dragY;mol.rotation.x=0.25+dragX;
-    mol.position.y=-scrollNorm*3.2;
-    orbits.scale.setScalar((1-scrollNorm*0.4));orbits.position.y=mol.position.y;
-    var op=Math.max(0.1,1-scrollNorm*2.1);
-    for(var mi=0;mi<mats.length;mi++)mats[mi].opacity=op;
-    for(var si=0;si<spriteMats.length;si++)spriteMats[si].opacity=op*0.55;
-    orbits.children.forEach(function(o){o.material.opacity=0.5*op;});
-    // explode displacement
-    var pushf=1+explode*1.6;
-    for(var ai=0;ai<atomMeshes.length;ai++){var m=atomMeshes[ai];m.position.copy(m.userData.base).multiplyScalar(pushf);}
+    sxN+=(mxN-sxN)*0.06;syN+=(myN-syN)*0.06;
+    camera.position.x+=(sxN*2.2-camera.position.x)*0.07;camera.position.y+=(-syN*1.5-camera.position.y)*0.07;camera.lookAt(0,0,0);
+    points.rotation.y=t*0.025;points.rotation.x=t*0.01;
+    orbits.rotation.y+=0.004;orbits.rotation.x+=0.0016;orbits.children.forEach(function(o,k){o.rotation.z+=0.003*(k+1);});
+    autoRot+=0.0034;switchT=Math.min(1,switchT+0.05);var grow=1-Math.pow(1-switchT,3);explode*=0.93;if(explode<0.001)explode=0;
+    mol.scale.setScalar(grow*1.55);mol.rotation.y=autoRot+dragY;mol.rotation.x=0.22+dragX;
+    var pushf=1+explode*1.7;
+    for(var ai=0;ai<atomMeshes.length;ai++){atomMeshes[ai].position.copy(atomMeshes[ai].userData.base).multiplyScalar(pushf);}
+    for(var si=0;si<spriteMats.length;si++){spriteMats[si].sp.position.copy(spriteMats[si].atom.position);}
     renderer.render(scene,camera);
-    rafGL=requestAnimationFrame(frame);
+    raf=requestAnimationFrame(frame);
   }
-  var rafGL;
-  if(REDUCED){sizeGL();mol.scale.setScalar(1.5);renderer.render(scene,camera);}else{rafGL=requestAnimationFrame(frame);}
+  glStartFn=function(){sizeGL();if(running)return;if(REDUCED){sizeGL();mol.scale.setScalar(1.55);renderer.render(scene,camera);return;}running=true;t0=performance.now();raf=requestAnimationFrame(frame);};
+  glStopFn=function(){running=false;if(raf)cancelAnimationFrame(raf);};
+  window.__weedGL={renderer:renderer,scene:scene,camera:camera,build:buildMol,start:glStartFn,stop:glStopFn,size:sizeGL,atoms:function(){return atomMeshes.length;}};
 }
 
 /* ===================== INTRO ===================== */
-function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">esperienza interattiva</div><div class="intro-bar"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},2000);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},3000);}
+function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div class="intro-in"><svg viewBox="0 0 200 200">'+leafSVG('#c6ff7a','#1f9d57','li')+'</svg><div class="intro-title">WeedMap</div><div class="intro-sub">esperienza interattiva</div><div class="intro-bar"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},1900);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},2900);}
 
 /* ===================== INIT ===================== */
 function renderAll(){
   buildPlant();buildAnatomyKey();window._focusPart('tricomi');
   buildRadarFrame();buildTernary();applyBlend({Indica:0.34,Sativa:0.33,Hybrid:0.33});
   buildStrainFilters();buildGalaxy('Tutti');showStrain(0);
-  buildTerpenes();buildCannabinoids();buildFacts();buildDotNav();
+  buildTerpenes();buildCannabinoids();buildFacts();buildHome();
 }
 renderAll();
-initScroll();
-initCursor();
-initShare();
-try{initGL();}catch(e){}
+initCursor();initShare();initProgress();
+initTabs();
 intro();
 </script>
 </body>
