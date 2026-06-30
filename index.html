@@ -135,6 +135,18 @@
   .cann .aff .b i{display:block;height:100%;width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
   .cann .note{font-size:12px;color:var(--mut);line-height:1.5;border-top:1px solid var(--line2);padding-top:12px;margin-top:14px}
 
+  .mol-wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center}
+  .mol-stage{position:relative;height:min(58vh,500px);overflow:hidden;background:radial-gradient(120% 90% at 60% 28%,#1b1e24,#0a0c0f 72%)}
+  .mol-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  .mol-stage canvas:active{cursor:grabbing}
+  .mol-hint{position:absolute;left:16px;bottom:14px;font-size:12px;color:var(--mut2);pointer-events:none}
+  .mol-txt p{color:#d4dbe0;font-size:16px;line-height:1.7;margin-bottom:16px}
+  .mol-txt b{color:var(--grn);font-weight:600}
+  .mol-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .mol-chips span{font-size:12.5px;font-weight:600;color:var(--mut);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+  .mol-note{color:var(--mut2);font-size:13px}
+  @media(max-width:900px){.mol-wrap{grid-template-columns:1fr}}
+
   .tipi{display:grid;grid-template-columns:1fr 1.05fr;gap:30px;align-items:center}
   .toggle{display:flex;gap:8px;margin-bottom:22px}
   .toggle button{font-family:var(--fs);cursor:pointer;font-size:14px;font-weight:600;padding:10px 20px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mut);transition:.25s}
@@ -277,6 +289,18 @@
     <section class="sec" id="cannabinoidi">
       <div class="sec-head reveal"><span class="lab">03 — Molecole</span><h2>I <span class="se">cannabinoidi</span></h2><p>Oltre al THC c'è un intero alfabeto. Affinità CB1/CB2 indicative a scopo didattico.</p></div>
       <div class="grid g-cann reveal" id="cannGrid"></div>
+    </section>
+
+    <section class="sec" id="molecola">
+      <div class="sec-head reveal"><span class="lab">In 3D · Interattivo</span><h2>La molecola del <span class="se">THC</span></h2><p>Il Δ9-tetraidrocannabinolo in tre dimensioni, reso in studio. Trascina per ruotarla.</p></div>
+      <div class="mol-wrap reveal">
+        <div class="mol-stage card"><canvas id="mol"></canvas><div class="mol-hint">↻ trascina per ruotare</div></div>
+        <div class="mol-txt">
+          <p>Il THC è una molecola <b>triciclica</b>: un anello aromatico, un anello pirano e uno cicloesenico, più una catena pentilica. È questa forma a farla incastrare nei recettori <b>CB1</b> del cervello.</p>
+          <div class="mol-chips"><span>C₂₁H₃₀O₂</span><span>21 carboni</span><span>2 ossigeni</span></div>
+          <p class="mol-note">Sfere scure = carbonio · sfere rosse = ossigeno. Modello stilizzato a scopo didattico (idrogeni omessi).</p>
+        </div>
+      </div>
     </section>
 
     <section class="sec" id="tipi">
@@ -541,16 +565,18 @@ function initHero(){
   // bud texture (frosty green nug)
   function budTex(){var cv=document.createElement('canvas');cv.width=cv.height=256;var g=cv.getContext('2d');g.fillStyle='#4f7e2c';g.fillRect(0,0,256,256);var i;for(i=0;i<260;i++){g.fillStyle='rgba('+(40+Math.random()*45|0)+','+(90+Math.random()*70|0)+','+(28+Math.random()*34|0)+',.5)';g.beginPath();g.arc(Math.random()*256,Math.random()*256,8+Math.random()*22,0,7);g.fill();}for(i=0;i<46;i++){g.strokeStyle='rgba('+(205+Math.random()*45|0)+','+(110+Math.random()*45|0)+',45,.85)';g.lineWidth=1.5+Math.random()*2;g.beginPath();var x=Math.random()*256,y=Math.random()*256;g.moveTo(x,y);g.quadraticCurveTo(x+12,y-18,x+(Math.random()-0.5)*30,y-30-Math.random()*16);g.stroke();}for(i=0;i<900;i++){g.fillStyle='rgba(236,255,232,'+(0.2+Math.random()*0.5)+')';g.fillRect(Math.random()*256,Math.random()*256,2,2);}var t=new THREE.CanvasTexture(cv);if('encoding' in t)t.encoding=THREE.sRGBEncoding;return t;}
   var BT=budTex();
-  var budMat=new THREE.MeshPhysicalMaterial({map:BT,bumpMap:BT,bumpScale:0.04,roughness:0.55,metalness:0,clearcoat:0.5,clearcoatRoughness:0.35,envMapIntensity:0.9,sheen:0.5,sheenColor:new THREE.Color(0xddffcc)});
-  function makeBud(r){var geo=new THREE.IcosahedronGeometry(r,3);var pos=geo.attributes.position;for(var i=0;i<pos.count;i++){var x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);var L=Math.sqrt(x*x+y*y+z*z)||1;var d=1+(Math.sin(x*18)*0.05+Math.cos(y*16)*0.05+Math.sin(z*20+y*5)*0.06+(Math.random()-0.5)*0.07);pos.setXYZ(i,x/L*r*d,y/L*r*d*1.08,z/L*r*d);}geo.computeVertexNormals();var m=new THREE.Mesh(geo,budMat);m.castShadow=true;return m;}
+  var budMat=new THREE.MeshPhysicalMaterial({map:BT,bumpMap:BT,bumpScale:0.02,roughness:0.5,metalness:0,clearcoat:0.55,clearcoatRoughness:0.3,envMapIntensity:0.85,sheen:0.6,sheenColor:new THREE.Color(0xe6ffcc)});
+  var calyxGeo=new THREE.IcosahedronGeometry(1,1);
+  var pistilGeo=new THREE.CylinderGeometry(0.5,1.4,1,5);var pistilMat=new THREE.MeshStandardMaterial({color:0xdd7a2e,roughness:0.55,metalness:0});
+  function makeBud(R){var grp=new THREE.Group();var n=Math.max(14,Math.round(34*R/0.45)),i;for(i=0;i<n;i++){var th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),rr=R*Math.pow(Math.random(),0.5);var x=Math.cos(th)*Math.sin(ph)*rr,y=Math.cos(ph)*rr*1.15,z=Math.sin(th)*Math.sin(ph)*rr;var sx=R*(0.15+Math.random()*0.1);var c=new THREE.Mesh(calyxGeo,budMat);c.position.set(x,y,z);c.scale.set(sx,sx*1.3,sx);c.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);c.castShadow=true;grp.add(c);}var np=Math.round(n*0.28);for(i=0;i<np;i++){var t2=Math.random()*Math.PI*2,p2=Math.acos(2*Math.random()-1);var dir=new THREE.Vector3(Math.cos(t2)*Math.sin(p2),Math.cos(p2)*0.8,Math.sin(t2)*Math.sin(p2)).normalize();var r2=R*(0.55+Math.random()*0.4),len=R*(0.3+Math.random()*0.4);var pi=new THREE.Mesh(pistilGeo,pistilMat);pi.scale.set(R*0.05,len,R*0.05);pi.position.copy(dir.clone().multiplyScalar(r2));pi.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);pi.position.addScaledVector(dir,len*0.5);grp.add(pi);}return grp;}
   // turntable group: hero bud in glass jar
   var turn=new THREE.Group();scene.add(turn);
   var jarMat=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:0.03,transmission:1,thickness:0.8,ior:1.47,transparent:true,envMapIntensity:1.2,clearcoat:0.5,clearcoatRoughness:0.05});
   var lidMat=new THREE.MeshStandardMaterial({color:0x16181c,roughness:0.35,metalness:0.7,envMapIntensity:1});
   var jarH=1.5,jarR=0.78,baseY=0.30;
-  var heroBud=makeBud(0.5);heroBud.position.set(0,baseY+0.5,0);turn.add(heroBud);
-  var b2=makeBud(0.34);b2.position.set(0.4,baseY+0.32,0.18);turn.add(b2);
-  var b3=makeBud(0.3);b3.position.set(-0.38,baseY+0.3,-0.12);turn.add(b3);
+  var heroBud=makeBud(0.46);heroBud.position.set(0,baseY+0.62,0);turn.add(heroBud);
+  var b2=makeBud(0.26);b2.position.set(0.3,baseY+0.34,0.14);turn.add(b2);
+  var b3=makeBud(0.24);b3.position.set(-0.3,baseY+0.3,-0.12);turn.add(b3);
   var jar=new THREE.Mesh(new THREE.CylinderGeometry(jarR,jarR,jarH,48,1,true),jarMat);jar.position.y=baseY+jarH/2;jar.castShadow=true;turn.add(jar);
   var jbase=new THREE.Mesh(new THREE.CircleGeometry(jarR,48),jarMat);jbase.rotation.x=-Math.PI/2;jbase.position.y=baseY+0.005;turn.add(jbase);
   var lid=new THREE.Mesh(new THREE.CylinderGeometry(jarR*1.04,jarR*1.04,0.18,48),lidMat);lid.position.y=baseY+jarH-0.02;lid.castShadow=true;turn.add(lid);
@@ -570,6 +596,50 @@ function initHero(){
 }
 function heroScroll(){window.addEventListener('scroll',function(){if(!window.__hero)return;var h=el('top');var hh=h.offsetHeight;var p=Math.min(1,Math.max(0,(window.scrollY||document.documentElement.scrollTop)/(hh||1)));window.__hero.set(p);});}
 
+/* ===================== 3D MOLECULE (draggable) ===================== */
+function initMolecule(){
+  if(typeof THREE==='undefined')return;
+  var canvas=el('mol');var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.8));
+  if('outputEncoding' in renderer)renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+  var scene=new THREE.Scene();var camera=new THREE.PerspectiveCamera(38,1,0.1,100);camera.position.set(0,0,9);
+  var cw=0,ch=0;function size(){var w=canvas.clientWidth,h=canvas.clientHeight;if(w<=0||h<=0||(w===cw&&h===ch))return;cw=w;ch=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  var pm=new THREE.PMREMGenerator(renderer);var stp=new THREE.Scene();stp.background=new THREE.Color(0x2a2d33);
+  function pan(c,x,y,z,sx,sy,rx,ry){var m=new THREE.Mesh(new THREE.PlaneGeometry(sx,sy),new THREE.MeshBasicMaterial({color:new THREE.Color(c,c,c)}));m.position.set(x,y,z);if(rx)m.rotation.x=rx;if(ry)m.rotation.y=ry;stp.add(m);}
+  pan(6,0,8,0,12,8,Math.PI/2,0);pan(3,-7,0,3,8,9,0,Math.PI/2);pan(4.5,7,0,2,8,9,0,-Math.PI/2);
+  var envRT=pm.fromScene(stp,0.04);scene.environment=envRT.texture;pm.dispose&&pm.dispose();
+  scene.add(new THREE.AmbientLight(0xffffff,0.3));var dl=new THREE.DirectionalLight(0xffffff,1.5);dl.position.set(4,6,6);scene.add(dl);
+  var mol=new THREE.Group();scene.add(mol);
+  function hex(cx,cy,cz,r,tilt){var a=[];for(var k=0;k<6;k++){var ang=k/6*Math.PI*2;a.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r*Math.cos(tilt),cz+Math.sin(ang)*r*Math.sin(tilt)]);}return a;}
+  var atoms=[],bonds=[];
+  function ring(rr,e){var b=atoms.length;rr.forEach(function(p){atoms.push({p:p,el:e||'C'});});for(var k=0;k<6;k++)bonds.push([b+k,b+(k+1)%6]);return b;}
+  function chain(from,len,dir){var pv=from;for(var t=0;t<len;t++){var bp=atoms[pv].p;atoms.push({p:[bp[0]+dir[0],bp[1]+dir[1]+((t%2)?0.3:-0.3),bp[2]+dir[2]*((t%2)?1:-1)],el:'C'});bonds.push([pv,atoms.length-1]);pv=atoms.length-1;}return pv;}
+  function oxy(n,off){var bp=atoms[n].p;atoms.push({p:[bp[0]+off[0],bp[1]+off[1],bp[2]+off[2]],el:'O'});bonds.push([n,atoms.length-1]);}
+  var A=ring(hex(-2.4,0,0,1.4,0.1),'C'),B=ring(hex(0.2,0.2,0.5,1.4,0.5),'C'),C=ring(hex(2.5,-0.2,0.2,1.4,0.8),'C');
+  bonds.push([A+0,B+3]);bonds.push([B+0,C+3]);oxy(B+4,[0.2,1.1,0.4]);oxy(A+2,[-1.0,-0.8,0.1]);chain(A+4,5,[-1.0,-0.5,0.3]);oxy(C+1,[0.8,0.8,0.2]);
+  var cx=0,cy=0,cz=0;atoms.forEach(function(at){cx+=at.p[0];cy+=at.p[1];cz+=at.p[2];});cx/=atoms.length;cy/=atoms.length;cz/=atoms.length;atoms.forEach(function(at){at.p[0]-=cx;at.p[1]-=cy;at.p[2]-=cz;});
+  var cMat=new THREE.MeshPhysicalMaterial({color:0x2b2f36,roughness:0.25,metalness:0.1,clearcoat:0.8,clearcoatRoughness:0.2,envMapIntensity:1.2});
+  var oMat=new THREE.MeshPhysicalMaterial({color:0xd24a3a,roughness:0.3,metalness:0.1,clearcoat:0.7,envMapIntensity:1});
+  var bMat=new THREE.MeshStandardMaterial({color:0x8a929c,roughness:0.4,metalness:0.6,envMapIntensity:1});
+  var cGeo=new THREE.SphereGeometry(0.42,24,24),oGeo=new THREE.SphereGeometry(0.38,24,24);
+  atoms.forEach(function(at){var m=new THREE.Mesh(at.el==='O'?oGeo:cGeo,at.el==='O'?oMat:cMat);m.position.set(at.p[0],at.p[1],at.p[2]);mol.add(m);});
+  bonds.forEach(function(bd){var p1=atoms[bd[0]].p,p2=atoms[bd[1]].p;var v1=new THREE.Vector3(p1[0],p1[1],p1[2]),v2=new THREE.Vector3(p2[0],p2[1],p2[2]);var len=v1.distanceTo(v2);if(len<0.001)return;var g=new THREE.CylinderGeometry(0.1,0.1,len,10);var m=new THREE.Mesh(g,bMat);m.position.copy(v1.clone().add(v2).multiplyScalar(0.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v2.clone().sub(v1).normalize());mol.add(m);});
+  mol.scale.setScalar(0.92);
+  var drag=false,lx=0,ly=0,vx=0,vy=0;
+  canvas.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;ly=e.clientY;});
+  window.addEventListener('pointerup',function(){drag=false;});
+  window.addEventListener('pointermove',function(e){if(!drag)return;vx=(e.clientX-lx)*0.01;vy=(e.clientY-ly)*0.01;mol.rotation.y+=vx;mol.rotation.x+=vy;lx=e.clientX;ly=e.clientY;});
+  window.addEventListener('resize',size);
+  var running=false,raf=null;
+  function frame(){if(!running)return;size();if(!drag){vx*=0.95;vy*=0.95;mol.rotation.y+=0.0035+vx;mol.rotation.x+=vy;}renderer.render(scene,camera);raf=requestAnimationFrame(frame);}
+  function start(){size();if(running)return;running=true;raf=requestAnimationFrame(frame);}
+  function stop(){running=false;if(raf)cancelAnimationFrame(raf);}
+  window.__mol={start:start,stop:stop,scene:scene,renderer:renderer,camera:camera,atoms:function(){return atoms.length;}};
+  if(REDUCED){size();renderer.render(scene,camera);}else start();
+  if('IntersectionObserver' in window)new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)start();else stop();});},{threshold:.05}).observe(canvas);
+}
+
 /* ===================== INTRO ===================== */
 function intro(){if(REDUCED)return;var o=document.createElement('div');o.className='intro';o.innerHTML='<div style="text-align:center"><div class="t">Weed<b>Map</b></div><div class="ld"><i></i></div></div>';document.body.appendChild(o);setTimeout(function(){o.classList.add('hide');},1500);setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},2300);}
 
@@ -577,6 +647,7 @@ function intro(){if(REDUCED)return;var o=document.createElement('div');o.classNa
 buildStats();buildStrainFilters();buildStrains('Tutti');buildTerpenes();buildCannabinoids();buildTypes();setType('Indica');buildPlant();buildVs();buildFacts();
 initScroll();initShare();heroScroll();
 try{initHero();}catch(e){var f=el('glfb');if(f)f.style.display='block';}
+try{initMolecule();}catch(e){}
 intro();
 </script>
 </body>
